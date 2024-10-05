@@ -44,6 +44,10 @@ Technical features:
 
 ## Deployment
 
+### Dev env
+
+* Front-end: `npm run build` + `git push` to let [.github/workflows/deploy.yml] copy the built files to the S3 bucket.
+
 ## Management
 
 ### Adding, editing and removing questions
@@ -51,3 +55,11 @@ Technical features:
 ### Managing learner accounts
 
 ### Viewing stats
+
+## Tech stack and attribution
+
+* Cheese logo nicked from https://www.freepik.com/icon/cheese_4900716
+* Front-end: Vue
+* CSS: https://v2.tailwindcss.com/docs/
+* UI components: https://primevue.org/
+* 
