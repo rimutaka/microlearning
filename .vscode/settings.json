@@ -2,5 +2,8 @@
   "rust-analyzer.check.command": "clippy",
   "files.associations": {
     "*.css": "tailwindcss"
+  },
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": "file:///home/mx/projects/bitesized/.github/workflows/deploy.yml"
   }
 }
