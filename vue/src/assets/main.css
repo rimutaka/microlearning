@@ -7,7 +7,7 @@ body {
 }
 
 #app {
-  @apply max-w-screen-lg mx-auto my-auto p-2;
+  @apply max-w-screen-lg mx-auto my-auto p-2 text-center items-center flex flex-col h-screen justify-between;
 }
 
 img {
@@ -20,4 +20,16 @@ h1 {
 
 h3 {
   @apply text-xl;
+}
+
+ul#signup-pitch {
+  @apply mt-4   text-start pl-8;
+}
+
+ul#signup-pitch li {
+  @apply my-3;
+}
+
+ul#signup-pitch li i {
+  @apply me-2 font-normal;
 }

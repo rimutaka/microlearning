@@ -1,6 +1,10 @@
 <template>
-  <div>
-    <h1 class="mt-4">Bite-Sized Learning for Busy Devs</h1>
-    <h3 class="my-4">Learn new skills in 2-min long email lessons, get certified, get a better job.</h3>
+  <div class="bg-surface-0 px-6 mt-2 mb-12 md:px-12 lg:px-20">
+    <div class="text-surface-700">
+      <div class="text-primary font-bold mb-4">
+        <img alt="Bite-sized Learning Logo" class="h-12 w-12 mb-4" src="@/assets/logo.svg" />
+      </div>
+      <h1 class="mb-4 text-primary">Bite-Sized Learning for Busy Devs</h1>
+    </div>
   </div>
 </template>

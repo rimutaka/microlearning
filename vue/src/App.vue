@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import TopMenu from './components/TopMenu.vue'
+import { RouterView } from 'vue-router'
 import TopHeader from './components/TopHeader.vue';
+import FooterStatic from './components/FooterStatic.vue';
 </script>
 
 <template>
-  <header>
-    <TopMenu />
+  <header class="">
     <TopHeader />
   </header>
-
-  <RouterView />
+  <main class="mb-auto">
+    <RouterView />
+  </main>
+  <footer class="">
+    <FooterStatic />
+  </footer>
 </template>
