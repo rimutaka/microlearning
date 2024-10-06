@@ -4,7 +4,7 @@
       <div class="text-primary font-bold mb-4">
         <img alt="Bite-sized Learning Logo" class="h-12 w-12 mb-4" src="@/assets/logo.svg" />
       </div>
-      <h1 class="mb-4 text-primary">Bite-Sized Learning for Busy Devs</h1>
+      <h1 class="mb-4 text-primary">Bite-sized Learning for Busy Devs</h1>
     </div>
   </div>
 </template>

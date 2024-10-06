@@ -31,5 +31,5 @@ ul#signup-pitch li {
 }
 
 ul#signup-pitch li i {
-  @apply me-2 font-normal;
+  @apply me-2 font-normal text-slate-500;
 }
