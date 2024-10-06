@@ -7,7 +7,7 @@
       <li><i class="pi pi-envelope"></i>delivered to your inbox</li>
       <li><i class="pi pi-info-circle"></i>with detailed explanations of the correct answer</li>
       <li><i class="pi pi-sparkles"></i>to help you become a better dev</li>
-      <li><i class="pi pi-stopwatch"></i>without the big effort of doing a course</li>
+      <li><i class="pi pi-stopwatch"></i>without the massive effort of doing a course</li>
     </ul>
   </div>
 </template>
