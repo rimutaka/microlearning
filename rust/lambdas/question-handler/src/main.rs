@@ -37,10 +37,10 @@ pub(crate) async fn my_handler(
     let path = event.payload.raw_path.clone().unwrap_or("".to_string());
     info!("Path: {}", path);
 
-    // topic ID is required for all queries
+    // topic ID is required for all queries, must be lower-case
     let topic = match event.payload.query_string_parameters.get(fields::TOPIC) {
-        Some(v) => v,
-        None => {
+        Some(v) if !v.trim().is_empty() => v.trim().to_lowercase(),
+        _ => {
             info!("No topic found in the query string");
             return text_response(Some("No topic found in the query string".to_string()), 400);
         }
@@ -69,11 +69,11 @@ pub(crate) async fn my_handler(
     //decide on the action depending on the HTTP method
     match method {
         Method::GET => match qid {
-            Some(qid) if !qid.is_empty() => match question::get_exact(topic, qid).await {
+            Some(qid) if !qid.is_empty() => match question::get_exact(&topic, qid).await {
                 Ok(v) => json_response(Some(&v), 200),
                 Err(e) => text_response(Some(e.to_string()), 400),
             },
-            _ => match question::get_random(topic).await {
+            _ => match question::get_random(&topic).await {
                 Ok(v) => json_response(Some(&v), 200),
                 Err(e) => text_response(Some(e.to_string()), 400),
             },
