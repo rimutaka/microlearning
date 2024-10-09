@@ -7,6 +7,7 @@
         <label :for="topic" class="ms-2 me-4">{{ topic }}</label>
       </div>
     </div>
+    <SampleQuestion v-if="currentTopic" :topic="currentTopic" />
     <div class="flex flex-wrap items-center gap-4 justify-center my-8">
       <InputText type="text" v-model="email" placeholder="Your email" />
       <Button label="Subscribe" icon="pi pi-discord" raised rounded class="font-bold px-8 py-4 whitespace-nowrap" />
@@ -16,15 +17,22 @@
 
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
 import InputText from 'primevue/inputtext';
+import SampleQuestion from "./SampleQuestion.vue";
 
 
 const topics = ref(["AWS", "CSS", "General", "JS / TS", "Rust"]);
-const selectedTopics = ref([]);
-
+const selectedTopics = ref<Array<string>>([]);
 const email = ref("");
+const currentTopic = ref<string>("");
+
+watch(selectedTopics, (newVal, oldVal) => {
+  if (newVal.length > 0) currentTopic.value = newVal[newVal.length - 1].toLowerCase();
+  console.log("currentTopic", currentTopic.value);
+});
+
 
 </script>
