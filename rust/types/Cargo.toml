@@ -1,0 +1,18 @@
+[package]
+name = "bitie_types"
+version = "0.1.0"
+edition = "2021"
+authors = ["rimutaka <max@onebro.me>"]
+description = "Shared types and models for bitie"
+license = "GPL 3.0"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+aws_lambda_events = { workspace = true }
+lambda_runtime = { workspace = true }
+
+tracing = { workspace = true }
+
+
