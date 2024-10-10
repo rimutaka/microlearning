@@ -70,11 +70,11 @@ pub(crate) async fn my_handler(
     match method {
         Method::GET => match qid {
             Some(qid) if !qid.is_empty() => match question::get_exact(&topic, qid).await {
-                Ok(v) => json_response(Some(&v), 200),
+                Ok(v) => json_response(Some(&v.to_html()), 200),
                 Err(e) => text_response(Some(e.to_string()), 400),
             },
             _ => match question::get_random(&topic).await {
-                Ok(v) => json_response(Some(&v), 200),
+                Ok(v) => json_response(Some(&v.to_html()), 200),
                 Err(e) => text_response(Some(e.to_string()), 400),
             },
         },
