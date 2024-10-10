@@ -7,11 +7,11 @@
         <label :for="topic" class="ms-2 me-4">{{ topic }}</label>
       </div>
     </div>
-    <SampleQuestion v-if="currentTopic" :topic="currentTopic" />
     <div class="flex flex-wrap items-center gap-4 justify-center my-8">
       <InputText type="text" v-model="email" placeholder="Your email" />
       <Button label="Subscribe" icon="pi pi-discord" raised rounded class="font-bold px-8 py-4 whitespace-nowrap" />
     </div>
+    <SampleQuestion v-if="currentTopic" :topic="currentTopic" />
   </div>
 </template>
 
@@ -30,7 +30,7 @@ const email = ref("");
 const currentTopic = ref<string>("");
 
 watch(selectedTopics, (newVal, oldVal) => {
-  if (newVal.length > 0) currentTopic.value = newVal[newVal.length - 1].toLowerCase();
+  if (newVal.length > 0) currentTopic.value = newVal[newVal.length - 1];
   console.log("currentTopic", currentTopic.value);
 });
 
