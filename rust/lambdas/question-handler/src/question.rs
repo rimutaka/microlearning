@@ -1,6 +1,10 @@
 use anyhow::Error;
 use aws_sdk_dynamodb::{types::AttributeValue, Client};
-use bitie_types::{ddb::fields, ddb::tables, question::Question};
+use bitie_types::{
+    ddb::fields,
+    ddb::tables,
+    question::{Answer, Question},
+};
 // use chrono::{DateTime, Utc};
 use tracing::{info, warn};
 
@@ -85,25 +89,24 @@ async fn get_question(
 
                 // process a single item
                 if let Some(item) = items.into_iter().next() {
-                    // iterate through possible answers, we don't know how many
-                    // and populate the placeholder array
-                    let mut answers = [None, None, None, None, None, None, None, None, None, None];
-                    for (i, answer_slot) in answers.iter_mut().enumerate() {
-                        if let Some(ddb_answer) = item.get(&["a", &(i + 1).to_string()].concat()) {
-                            if let Ok(ddb_answer) = ddb_answer.as_s() {
-                                // TODO: remove * and make a question out of the error situation
-                                *answer_slot = Some(ddb_answer.clone());
-                            }
-                        }
-                    }
-
-                    // convert the answers into a vector with a filter to remove None values
-                    let answers = answers.into_iter().flatten().collect::<Vec<String>>();
-
                     let item_qid = match item.get(fields::QID) {
                         Some(AttributeValue::S(v)) => v.clone(),
                         _ => {
                             warn!("Invalid question {topic} / {query_qid} / {comparison_op}: missing qid attribute");
+                            return Err(Error::msg("Invalid question in DDB".to_string()));
+                        }
+                    };
+
+                    let answers = match item.get(fields::ANSWERS) {
+                        Some(AttributeValue::S(v)) => match serde_json::from_str::<Vec<Answer>>(v) {
+                            Ok(v) => v,
+                            Err(_) => {
+                                warn!("Invalid question {topic} / {item_qid}: cannot deserialize answers attribute");
+                                return Err(Error::msg("Invalid question in DDB".to_string()));
+                            }
+                        },
+                        _ => {
+                            warn!("Invalid question {topic} / {item_qid}: missing answers attribute");
                             return Err(Error::msg("Invalid question in DDB".to_string()));
                         }
                     };
@@ -117,19 +120,13 @@ async fn get_question(
                     };
 
                     let correct = match item.get(fields::CORRECT) {
-                        Some(AttributeValue::Ns(v_str)) => {
-                            let mut v_u8 = Vec::with_capacity(v_str.len());
-                            for v in v_str {
-                                match v.parse::<u8>() {
-                                    Ok(v) => v_u8.push(v),
-                                    Err(_) => {
-                                        warn!("Invalid question {topic} / {item_qid}: invalid correct attribute");
-                                        return Err(Error::msg("Invalid question in DDB".to_string()));
-                                    }
-                                }
+                        Some(AttributeValue::N(v)) => match v.parse::<u8>() {
+                            Ok(v) => v,
+                            Err(_) => {
+                                warn!("Invalid question {topic} / {item_qid}: invalid correct attribute");
+                                return Err(Error::msg("Invalid question in DDB".to_string()));
                             }
-                            v_u8
-                        }
+                        },
                         _ => {
                             warn!("Invalid question {topic} / {item_qid}: missing correct attribute");
                             return Err(Error::msg("Invalid question in DDB".to_string()));
