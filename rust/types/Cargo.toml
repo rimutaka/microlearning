@@ -13,5 +13,7 @@ chrono = { workspace = true }
 aws_lambda_events = { workspace = true }
 lambda_runtime = { workspace = true }
 tracing = { workspace = true }
-
+bs58 = { workspace = true }
+uuid = { workspace = true }
 pulldown-cmark = "0.12.1"
+anyhow = { workspace = true }

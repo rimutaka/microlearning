@@ -6,7 +6,7 @@ use bitie_types::{
     question::{Answer, Question},
 };
 // use chrono::{DateTime, Utc};
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 /// Returns a single question for the given topic.
 /// Returns a error if no questions found.
@@ -14,9 +14,7 @@ pub(crate) async fn get_random(topic: &str) -> Result<Question, Error> {
     let client = Client::new(&aws_config::load_from_env().await);
 
     // generate a random question ID to choose the one before that
-    // e.g. 1D759ksnnlogULbRPng3noG, 2gS2XiBnscLX5dQFDP3kiJo, 3SPUtNR96QCIsdu1je8Duki
-    let random_qid = uuid::Uuid::new_v4();
-    let random_qid = bs58::encode(random_qid.as_bytes()).into_string();
+    let random_qid = Question::generate_random_qid();
 
     match get_question(&client, topic, &random_qid, "<").await {
         Ok(Some(v)) => Ok(v),
@@ -154,6 +152,56 @@ async fn get_question(
         Err(e) => {
             info!("Query for {topic} / {query_qid} / {comparison_op} failed: {:?}", e);
             Err(Error::msg("DDB error".to_string()))
+        }
+    }
+}
+
+/// Save a question in the main questions table.
+/// Replaces existing records unconditionally.
+pub(crate) async fn save(q: &Question) -> Result<(), Error> {
+    info!("Saving question {}/{}", q.topic, q.qid);
+
+    info!("{:?}", q);
+
+    let client = Client::new(&aws_config::load_from_env().await);
+
+    // this has to be an update to prevent overwriting photo IDs
+    const UPDATE_EXPRESSION: &str =
+        "SET #question = :question, #answers = :answers, #correct = :correct, #updated = :updated";
+
+    match client
+        .update_item()
+        .table_name(tables::QUESTIONS)
+        .update_expression(UPDATE_EXPRESSION)
+        .key(fields::TOPIC, AttributeValue::S(q.topic.clone()))
+        .key(fields::QID, AttributeValue::S(q.qid.clone()))
+        .expression_attribute_names("#question", fields::QUESTION)
+        .expression_attribute_values([":", fields::QUESTION].concat(), AttributeValue::S(q.question.clone()))
+        .expression_attribute_names("#answers", fields::ANSWERS)
+        .expression_attribute_values(
+            [":", fields::ANSWERS].concat(),
+            AttributeValue::S(q.serialize_answers()?),
+        )
+        .expression_attribute_names("#correct", fields::CORRECT)
+        .expression_attribute_values(
+            [":", fields::CORRECT].concat(),
+            AttributeValue::N(q.correct.to_string()),
+        )
+        .expression_attribute_names("#updated", fields::UPDATED)
+        .expression_attribute_values(
+            [":", fields::UPDATED].concat(),
+            AttributeValue::S(chrono::Utc::now().to_rfc3339()),
+        )
+        .send()
+        .await
+    {
+        Ok(_) => {
+            info!("Question saved in DDB");
+            Ok(())
+        }
+        Err(e) => {
+            error!("Failed to save question {}/{}: {:?}", q.topic, q.qid, e);
+            Err(Error::msg("Failed to save question".to_string()))
         }
     }
 }

@@ -11,6 +11,8 @@
 
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
+import type { Question } from "@/constants";
+import { QUESTION_HANDLER_URL, URL_PARAM_TOPIC } from "@/constants";
 // import { Writr } from 'writr';
 
 const props = defineProps<{
@@ -25,7 +27,7 @@ watchEffect(async () => {
   if (!props.topic) return;
 
   try {
-    const response = await fetch(`https://bitesized.info/q?topic=${props.topic}`);
+    const response = await fetch(`${QUESTION_HANDLER_URL}${URL_PARAM_TOPIC}=${props.topic}`);
     const question = <Question>await response.json();
     console.log("question", question);
 
@@ -54,21 +56,5 @@ watchEffect(async () => {
     console.error(error);
   }
 });
-
-/// A mirror of the Rust's type
-interface Answer {
-  a: string,
-  e: string,
-  c: boolean,
-}
-
-/// A mirror of the Rust's type
-interface Question {
-  qid: string,
-  topic: string,
-  question: string,
-  answers: Array<Answer>,
-  correct: number,
-}
 
 </script>

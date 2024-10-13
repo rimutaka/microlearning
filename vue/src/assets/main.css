@@ -1,3 +1,4 @@
+@import 'primeicons/primeicons.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -22,6 +23,10 @@ h3 {
   @apply text-xl;
 }
 
+h4 {
+  @apply text-lg font-bold;
+}
+
 ul#signup-pitch {
   @apply mt-4   text-start pl-8;
 }
@@ -32,4 +37,20 @@ ul#signup-pitch li {
 
 ul#signup-pitch li i {
   @apply me-2 font-normal text-slate-500;
+}
+
+.question-readiness li {
+  @apply mb-4;
+}
+
+.question-ready {
+  @apply text-neutral-500;
+}
+
+.question-ready i {
+  @apply pi pi-check me-4;
+}
+
+.question-not-ready i {
+  @apply pi pi-stop me-4 text-neutral-500 bg-neutral-200;
 }

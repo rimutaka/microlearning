@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import QuestionFormView from '@/views/QuestionFormView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,6 +10,16 @@ const router = createRouter({
       name: 'home',
       component: HomeView
     },
+    {
+      path: '/add',
+      name: 'add',
+      component: QuestionFormView
+    },
+    // {
+    //   path: '/question/:topic/:qid',
+    //   name: 'question',
+    //   component: HomeView
+    // },
     {
       path: '/about',
       name: 'about',

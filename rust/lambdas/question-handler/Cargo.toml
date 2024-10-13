@@ -28,5 +28,3 @@ regex = { workspace = true }
 # ], default-features = false }
 chrono = { workspace = true }
 anyhow = { workspace = true }
-uuid = { workspace = true }
-bs58 = { workspace = true }

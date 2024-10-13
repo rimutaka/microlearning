@@ -2,9 +2,9 @@
   <div class="card mt-12">
     <h3>Topics</h3>
     <div class="flex flex-wrap items-center gap-4 justify-center my-4">
-      <div class="flex" v-for="topic in topics" :key="topic">
-        <Checkbox v-model="selectedTopics" :inputId="topic" name="topics" :value="topic" />
-        <label :for="topic" class="ms-2 me-4">{{ topic }}</label>
+      <div class="flex" v-for="topic in topics" :key="topic.id">
+        <Checkbox v-model="selectedTopics" :inputId="topic" name="topics" :value="topic.id" />
+        <label :for="topic.id" class="ms-2 me-4">{{ topic.t }}</label>
       </div>
     </div>
     <div class="flex flex-wrap items-center gap-4 justify-center my-8">
@@ -22,9 +22,9 @@ import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
 import InputText from 'primevue/inputtext';
 import SampleQuestion from "./SampleQuestion.vue";
+import { TOPICS } from "@/constants";
 
-
-const topics = ref(["AWS", "CSS", "General", "JS / TS", "Rust"]);
+const topics = ref(TOPICS);
 const selectedTopics = ref<Array<string>>([]);
 const email = ref("");
 const currentTopic = ref<string>("");
@@ -33,6 +33,5 @@ watch(selectedTopics, (newVal, oldVal) => {
   if (newVal.length > 0) currentTopic.value = newVal[newVal.length - 1];
   console.log("currentTopic", currentTopic.value);
 });
-
 
 </script>
