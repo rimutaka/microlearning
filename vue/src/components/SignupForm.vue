@@ -3,7 +3,7 @@
     <h3>Topics</h3>
     <div class="flex flex-wrap items-center gap-4 justify-center my-4">
       <div class="flex" v-for="topic in topics" :key="topic.id">
-        <Checkbox v-model="selectedTopics" :inputId="topic" name="topics" :value="topic.id" />
+        <Checkbox v-model="selectedTopics" name="topics" :value="topic.id" />
         <label :for="topic.id" class="ms-2 me-4">{{ topic.t }}</label>
       </div>
     </div>

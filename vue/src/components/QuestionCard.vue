@@ -1,22 +1,24 @@
 <template>
   <div class="flex">
     <div></div>
-    <div class="text-left w-fit mx-auto">
+    <div class="q-card">
 
-      <div class="mb-6 bg-slate-50 px-2 py-4 overflow-scroll max-w-screen-lg" v-html="questionMarkdown?.question"></div>
+      <div class="q-text" v-html="questionMarkdown?.question"></div>
 
       <h3 class="mb-4">Answers</h3>
 
       <div class="mb-8 border-2" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-300': !isAnswered }" v-for="(answer, index) in questionMarkdown?.answers" :key="index">
-        <div class="flex">
-          <input v-if="!isAnswered" :type="questionMarkdown?.correct == 1 ? 'radio' : 'checkbox'" :name="questionMarkdown?.qid" :value="index" v-model="learnerAnswers" />
+        <div class="flex items-center" :class="{ 'bg-green-100': answer?.c, 'bg-red-100': !answer?.c && isAnswered, 'bg-slate-300': !isAnswered }">
 
-          <div class="mb-2 w-full p-2 overflow-scroll max-w-screen-lg" :class="{ 'bg-green-100': answer?.c, 'bg-red-100': !answer?.c && isAnswered, 'bg-slate-300': !isAnswered }" v-html="answer.a"></div>
+          <input type="radio" v-if="!isAnswered && questionMarkdown?.correct == 1" :name="questionMarkdown?.qid" :value="index" v-model="learnerAnswerRadio" />
+          <input type="checkbox" v-if="!isAnswered && questionMarkdown?.correct && questionMarkdown.correct > 1" :name="questionMarkdown?.qid" :value="index" v-model="learnerAnswersCheck" />
+          <div class="q-answer" v-html="answer.a"></div>
+
         </div>
 
         <div v-if="answer?.c" class="px-2">Correct.</div>
         <div v-else-if="isAnswered" class="px-2">Incorrect.</div>
-        <div class="p-2  overflow-scroll max-w-screen-lg" v-if="answer?.e" v-html="answer.e"></div>
+        <div class="q-explain" v-if="answer?.e" v-html="answer.e"></div>
       </div>
     </div>
     <div></div>
@@ -24,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect, computed } from "vue";
+import { ref, watchEffect, computed, watch } from "vue";
 import type { Question } from "@/constants";
 import { QUESTION_HANDLER_URL, URL_PARAM_QID, URL_PARAM_TOPIC } from "@/constants";
 // import { Writr } from 'writr';
@@ -37,7 +39,8 @@ const props = defineProps<{
 
 // as fetched from the server
 const questionMarkdown = ref<Question | undefined>();
-const learnerAnswers = ref<string[]>([]);
+const learnerAnswersCheck = ref<string[]>([]);
+const learnerAnswerRadio = ref<string | undefined>();
 
 const isAnswered = computed(() => {
   if (questionMarkdown.value?.answers?.[0].e) { return true } else { return false };

@@ -43,6 +43,7 @@ ul#signup-pitch li i {
   @apply me-2 font-normal text-slate-500;
 }
 
+/* QUESTION FORM */
 .question-readiness li {
   @apply mb-4;
 }
@@ -57,4 +58,41 @@ ul#signup-pitch li i {
 
 .question-not-ready i {
   @apply pi pi-stop me-4 text-neutral-500 bg-neutral-200;
+}
+
+/* QUESTION CARD */
+
+.q-card {
+  @apply text-left w-fit mx-auto;
+}
+
+.q-card .q-text {
+  @apply mb-6 bg-slate-50 px-2 py-4 overflow-scroll max-w-screen-lg;
+}
+
+.q-card input[type='radio'],
+.q-card input[type='checkbox'] {
+  @apply h-6 w-6 checked:bg-green-600 text-green-500 p-2 my-auto mx-2 rounded-md;
+}
+
+.q-card .q-answer {
+  @apply w-full p-2 overflow-scroll max-w-screen-lg;
+}
+
+.q-card .q-explain {
+  @apply p-2  overflow-scroll max-w-screen-lg;
+}
+
+/* QUESTION CARD EMBEDDED HTML */
+
+.q-card p:not(:first-child) {
+  @apply mt-4;
+}
+
+.q-card ul {
+  @apply ps-2 list-disc list-inside mb-4;
+}
+
+.q-card code {
+  @apply bg-slate-200 py-0.5 px-1 rounded-md font-mono text-sm;
 }
