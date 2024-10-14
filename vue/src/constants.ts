@@ -23,6 +23,11 @@ export const TOPICS = <Array<TopicTitleId>>[
   { t: "Rust", id: "rust" }
 ];
 
+/// Returns the topic title by its ID
+export function findTopicById (id: string): string | undefined { 
+  return TOPICS.find((topic) => topic.id === id)?.t;
+}
+
 /// A mirror of the Rust's type
 export interface Answer {
   /// Answer option

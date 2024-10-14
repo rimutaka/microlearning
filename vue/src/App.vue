@@ -8,7 +8,7 @@ import FooterStatic from './components/FooterStatic.vue';
   <header class="">
     <TopHeader />
   </header>
-  <main class="mb-auto">
+  <main class="mb-auto w-full">
     <RouterView />
   </main>
   <footer class="">

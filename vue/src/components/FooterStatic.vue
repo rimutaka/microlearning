@@ -26,8 +26,13 @@ const menuItems = ref([
     route: '/'
   },
   {
+    label: 'Add',
+    icon: 'pi pi-plus-circle',
+    route: '/add'
+  },
+  {
     label: 'About',
-    icon: 'pi pi-star',
+    icon: 'pi pi-info-circle',
     route: '/about'
   },
   {

@@ -58,15 +58,16 @@ import { ref, watch, computed } from "vue";
 
 import Button from 'primevue/button';
 import RadioButton from 'primevue/radiobutton';
-import Checkbox from 'primevue/checkbox';
 import Textarea from 'primevue/textarea';
 
-import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC } from "@/constants";
+import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID } from "@/constants";
 
 import type { Answer, Question } from "@/constants";
 import { useRouter } from "vue-router";
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
+
+const router = useRouter();
 
 const topics = ref(TOPICS);
 const selectedTopic = ref("");
@@ -108,7 +109,7 @@ async function submitQuestion() {
   hash.update(submissionQuestion);
   const bodyHash = toHex(await hash.digest());
 
-  const response = await fetch(`${QUESTION_HANDLER_URL}topic=aws`, {
+  const response = await fetch(`${QUESTION_HANDLER_URL}`, {
     method: "POST",
     body: submissionQuestion,
     headers: {
@@ -125,7 +126,10 @@ async function submitQuestion() {
       console.log(savedQuestion.topic);
       console.log(savedQuestion.qid);
 
-      // useRouter().push(`/question/${savedQuestion.topic}/${savedQuestion.qid}`);
+      // redirect to the saved question
+      // TODO: make use of the returned question details to avoid an extra fetch
+      router.push(`/question?${URL_PARAM_TOPIC}=${savedQuestion.topic}&${URL_PARAM_QID}=${savedQuestion.qid}`);
+
     } catch (error) {
       console.error(error);
     }
