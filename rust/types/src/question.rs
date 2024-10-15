@@ -4,6 +4,33 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use tracing::error;
 
+/// The possible formats for the question response.
+/// The value is taken from the `QUESTION_FORMAT_HEADER_NAME` header.
+/// Use the `FromStr` trait to convert the string to the enum.
+pub enum QuestionFormat {
+    /// Return the full question in Markdown format for editing.
+    /// Header value: `markdown_full`.
+    MarkdownFull,
+    /// Return the full question in HTML format for rendering with explanations.
+    /// Header value: `html_full`.
+    HtmlFull,
+    /// Return the short question in HTML format for the user to answer.
+    /// This is the default format if the header is absent or the value is none of the above.
+    HtmlShort,
+}
+
+// impl FromStr for QuestionFormat {
+//     type Err = ();
+
+//     fn from_str(s: &str) -> Result<Self, Self::Err> {
+//         match s {
+//             "markdown_full" => Ok(QuestionFormat::MarkdownFull),
+//             "html_full" => Ok(QuestionFormat::HtmlFull),
+//             _ => Ok(QuestionFormat::HtmlShort),
+//         }
+//     }
+// }
+
 /// A question with multiple answers.
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -16,8 +43,8 @@ pub struct Answer {
     e: Option<String>,
     /// A flag to indicate if this answer is correct.
     /// Only present if true.
-    #[serde(skip_serializing_if = "std::ops::Not::not", default)]
-    c: bool,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    c: Option<bool>,
 }
 
 /// A question with multiple answers.
@@ -50,7 +77,7 @@ impl Question {
     /// Converts markdown members (question, answers) to HTML.
     /// Supports CommonMark only.
     /// See https://crates.io/crates/pulldown-cmark for more information.
-    pub fn to_html(self) -> Self {
+    fn into_html(self) -> Self {
         // the parser can have Options for extended MD support, but they don't seem to be needed
 
         // convert the question to HTML
@@ -82,6 +109,31 @@ impl Question {
             question,
             answers,
             ..self
+        }
+    }
+
+    /// Removes detailed explanations from the answers
+    /// to display the question for answering.
+    fn without_detailed_explanations(self) -> Self {
+        let answers = self
+            .answers
+            .into_iter()
+            .map(|answer| Answer {
+                e: None,
+                c: None,
+                ..answer
+            })
+            .collect();
+
+        Question { answers, ..self }
+    }
+
+    /// Formats the question to provide the the required format.
+    pub fn format(self, format: QuestionFormat) -> Self {
+        match format {
+            QuestionFormat::MarkdownFull => self,
+            QuestionFormat::HtmlFull => self.into_html(),
+            QuestionFormat::HtmlShort => self.without_detailed_explanations().into_html(),
         }
     }
 
@@ -120,7 +172,7 @@ impl FromStr for Question {
 
         // Checks how many answers have `correct` flag set to true
         // and updates `correct` attribute.
-        let correct = q.answers.iter().filter(|a| a.c).count() as u8;
+        let correct = q.answers.iter().filter(|a| a.c.unwrap_or_default()).count() as u8;
 
         // qid is missing for new questions
         // it should be a valid UUID4 if present, but check it just in case

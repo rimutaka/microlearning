@@ -49,3 +49,12 @@ export interface Question {
   /// It is recalculated on the server on submission
   correct: number,
 }
+
+// /// The header name for the question format.
+// /// The value should be one of the `QuestionFormat` enum values (see Rust code).
+// /// CloudFront has to be configured to vary the cache depending on the header contents.
+// export const QUESTION_FORMAT_HEADER_NAME = "x-bitie-question-format";
+// /// `QUESTION_FORMAT_HEADER_NAME` value to return the full question with explanation in HTML.
+// export const QUESTION_FORMAT_HEADER_HTML_FULL = "html_full";
+// /// `QUESTION_FORMAT_HEADER_NAME` value to return the full question with explanation in Markdown.
+// export const QUESTION_FORMAT_HEADER_MARKDOWN_FULL = "markdown_full";

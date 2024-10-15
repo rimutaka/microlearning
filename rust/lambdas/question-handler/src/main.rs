@@ -5,7 +5,7 @@ use aws_lambda_events::{
 use bitie_types::{
     ddb::fields,
     lambda::{json_response, text_response},
-    question::Question,
+    question::{Question, QuestionFormat},
 };
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
 use std::str::FromStr;
@@ -68,19 +68,20 @@ pub(crate) async fn my_handler(
                 }
             };
 
+            // get the question from the DB
             match event.payload.query_string_parameters.get(fields::QID) {
                 Some(qid) if !qid.is_empty() => match question::get_exact(&topic, qid).await {
-                    Ok(v) => json_response(Some(&v.to_html()), 200),
+                    Ok(v) => json_response(Some(&v.format(QuestionFormat::HtmlShort)), 200),
                     Err(e) => text_response(Some(e.to_string()), 400),
                 },
                 _ => match question::get_random(&topic).await {
-                    Ok(v) => json_response(Some(&v.to_html()), 200),
+                    Ok(v) => json_response(Some(&v.format(QuestionFormat::HtmlShort)), 200),
                     Err(e) => text_response(Some(e.to_string()), 400),
                 },
             }
         }
 
-        Method::POST => {
+        Method::PUT => {
             let body = match event.payload.body {
                 Some(v) => v,
                 None => {
@@ -95,7 +96,51 @@ pub(crate) async fn my_handler(
             };
 
             match question::save(&q).await {
-                Ok(_) => json_response(Some(&q.to_html()), 200),
+                Ok(_) => json_response(Some(&q.format(QuestionFormat::MarkdownFull)), 200),
+                Err(e) => text_response(Some(e.to_string()), 400),
+            }
+        }
+
+        Method::POST => {
+            // topic param is required for get queries
+            let topic = match event.payload.query_string_parameters.get(fields::TOPIC) {
+                Some(v) if !v.trim().is_empty() => v.trim().to_lowercase(),
+                _ => {
+                    info!("No topic found in the query string");
+                    return text_response(Some("No topic found in the query string".to_string()), 400);
+                }
+            };
+
+            let qid = match event.payload.query_string_parameters.get(fields::QID) {
+                Some(v) if !v.is_empty() => v,
+                _ => {
+                    info!("No qid found in the query string");
+                    return text_response(Some("No qid found in the query string".to_string()), 400);
+                }
+            };
+
+            // get the list of answers from the body
+            let body = match event.payload.body {
+                Some(v) => v,
+                None => {
+                    info!("Missing body");
+                    return text_response(Some("Missing body".to_string()), 400);
+                }
+            };
+
+            // parse them, but we have nowhere to save them yet
+            let answers = match serde_json::from_str::<Vec<u8>>(&body) {
+                Ok(v) if !v.is_empty() => v,
+                _ => {
+                    info!("Invalid list of answers: {body}");
+                    return text_response(Some("Invalid list of answers".to_string()), 400);
+                }
+            };
+            info!("Answers: {:?}", answers);
+
+            // get the question from the DB and return as HTML with explanations
+            match question::get_exact(&topic, qid).await {
+                Ok(v) => json_response(Some(&v.format(QuestionFormat::HtmlFull)), 200),
                 Err(e) => text_response(Some(e.to_string()), 400),
             }
         }

@@ -66,6 +66,7 @@ import type { Answer, Question } from "@/constants";
 import { useRouter } from "vue-router";
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
+// import { Writr } from 'writr';
 
 const router = useRouter();
 
@@ -110,7 +111,7 @@ async function submitQuestion() {
   const bodyHash = toHex(await hash.digest());
 
   const response = await fetch(`${QUESTION_HANDLER_URL}`, {
-    method: "POST",
+    method: "PUT",
     body: submissionQuestion,
     headers: {
       "x-amz-content-sha256": bodyHash,
@@ -149,4 +150,21 @@ watch([selectedTopic, questionText, answers.value], () => {
   // console.log(questionReadiness.value);
 });
 
+    // https://www.npmjs.com/package/writr?activeTab=readme
+    // const writr = new Writr(question.question, {
+    //   renderOptions: {
+
+    //     emoji: false,
+    //     toc: false,
+    //     slug: false,
+    //     highlight: false,
+    //     gfm: true,
+    //     math: false,
+    //     mdx: false,
+    //     caching: false,
+    //   }
+    // });
+    // const q = await writr.render();
+    // console.log("q", q);
+    
 </script>

@@ -72,7 +72,11 @@ ul#signup-pitch li i {
 
 .q-card input[type='radio'],
 .q-card input[type='checkbox'] {
-  @apply h-6 w-6 checked:bg-green-600 text-green-500 p-2 my-auto mx-2 rounded-md;
+  @apply h-6 w-6 checked:bg-green-600 text-green-500 p-2 my-auto mx-2;
+}
+
+.q-card input[type='checkbox'] {
+  @apply rounded-md;
 }
 
 .q-card .q-answer {

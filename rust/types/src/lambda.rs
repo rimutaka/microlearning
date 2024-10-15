@@ -3,9 +3,13 @@ use aws_lambda_events::{
     lambda_function_urls::LambdaFunctionUrlResponse,
 };
 use lambda_runtime::Error;
-
 use serde::Serialize;
 use tracing::info;
+
+// /// The header name for the question format.
+// /// The value should be one of the `QuestionFormat` enum values.
+// /// CloudFront has to be configured to vary the cache depending on the header contents.
+// pub const QUESTION_FORMAT_HEADER_NAME: &str = "x-bitie-question-format";
 
 /// A shortcut for returning the lambda response in the required format.
 /// Always returns OK.
