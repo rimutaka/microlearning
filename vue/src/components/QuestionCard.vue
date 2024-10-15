@@ -7,11 +7,11 @@
 
       <h3 class="mb-4">Answers</h3>
 
-      <div class="mb-8 border-2" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-300': !isAnswered }" v-for="(answer, index) in questionMarkdown?.answers" :key="index">
-        <div class="flex items-center" :class="{ 'bg-green-100': answer?.c, 'bg-red-100': !answer?.c && isAnswered, 'bg-slate-300': !isAnswered }">
+      <div class="mb-8 border-2" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered }" v-for="(answer, index) in questionMarkdown?.answers" :key="index">
+        <div class="flex items-center" :class="{ 'bg-green-100': answer?.c, 'bg-red-100': !answer?.c && isAnswered, 'bg-slate-100': !isAnswered }">
 
-          <input type="radio" v-if="!isAnswered && questionMarkdown?.correct == 1" :name="questionMarkdown?.qid" :value="index" v-model="learnerAnswerRadio" />
-          <input type="checkbox" v-if="!isAnswered && questionMarkdown?.correct && questionMarkdown.correct > 1" :name="questionMarkdown?.qid" :value="index" v-model="learnerAnswersCheck" />
+          <input type="radio" v-if="questionMarkdown?.correct == 1" :name="questionMarkdown?.qid" :value="index" :disabled="isAnswered" v-model="learnerAnswerRadio" />
+          <input type="checkbox" v-if="questionMarkdown?.correct && questionMarkdown.correct > 1" :name="questionMarkdown?.qid" :disabled="isAnswered" :value="index" v-model="learnerAnswersCheck" />
           <div class="q-answer" v-html="answer.a"></div>
 
         </div>
@@ -20,8 +20,13 @@
         <div v-else-if="isAnswered" class="px-2">Incorrect.</div>
         <div class="q-explain" v-if="answer?.e" v-html="answer.e"></div>
       </div>
-      <div class="text-end">
-        <Button label="Submit" icon="pi pi-check" raised rounded class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
+      <div class="flex" v-if="!isAnswered">
+        <div class="flex-grow text-end my-auto me-4">
+          <p class="">{{ optionsToSelect }}</p>
+        </div>
+        <div class=" flex-shrink text-end mx-4">
+          <Button label="Submit" icon="pi pi-check" raised rounded class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
+        </div>
       </div>
     </div>
     <div></div>
@@ -52,9 +57,46 @@ const isAnswered = computed(() => {
 });
 
 const isQuestionReady = computed(() => {
-  console.log("isQuestionReady", learnerAnswerRadio.value, learnerAnswersCheck.value, questionMarkdown.value?.correct);
+  // console.log("isQuestionReady", learnerAnswerRadio.value, learnerAnswersCheck.value, questionMarkdown.value?.correct);
   // must be either a single radio answer or multiple checkbox answers matching the number of correct answers
   return learnerAnswerRadio.value !== undefined && questionMarkdown.value?.correct == 1 || learnerAnswersCheck.value.length == questionMarkdown.value?.correct;
+});
+
+// this fn abstracts the complicated logic of informing the user
+// how many answers they need to select
+const optionsToSelect = computed(() => {
+  // this line is needed for type checking
+  if (!questionMarkdown.value) return "";
+
+  // is this a single choice question with radio buttons?
+  if (questionMarkdown.value.correct == 1) {
+    // if a radio button is selected it can be submitted
+    // the user can change the answer, but not deselect it
+    if (learnerAnswerRadio.value == undefined) {
+      return "Select one of the options";
+    } else {
+      return "Check your selection and submit";
+    }
+  }
+
+  // assume it is a multichoice question from now on
+
+  // perform an exhaustive match by how many answers were selected
+  const remainingNumber = questionMarkdown.value.correct - learnerAnswersCheck.value.length;
+  if (remainingNumber == 0) {
+    // if the required number of answers is selected, the user can submit
+    return "Check your selection and submit";
+  }
+  else if (remainingNumber < 0) {
+    // too many answers selected
+    return `Only ${questionMarkdown.value.correct} options should be selected`;
+  }
+  else {
+    // more answers should be selected
+    const wordMore = learnerAnswersCheck.value.length ? "more" : "";
+    const wordAnswers = remainingNumber > 1 ? "options" : "option";
+    return `Select ${remainingNumber} ${wordMore} ${wordAnswers}`;
+  }
 });
 
 watchEffect(async () => {

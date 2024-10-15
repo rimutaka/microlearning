@@ -1,5 +1,5 @@
 <template>
-  <h3 class="mt-8 mb-4 text-start">Sample question about <em class="italic">{{ findTopicById(props.topic) }}</em></h3>
+  <h3 class="mt-8 mb-4 text-start">Random question about <em class="italic">{{ findTopicById(props.topic) }}</em></h3>
   <QuestionCard :topic="props.topic" />
 </template>
 
