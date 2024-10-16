@@ -4,26 +4,34 @@
     <div class="flex flex-wrap gap-4 mb-4">
       <h4>Topics: </h4>
       <div class="flex" v-for="topic in topics" :key="topic.id">
-        <RadioButton v-model="selectedTopic" :inputId="topic" name="topics" :value="topic.id" />
+        <RadioButton v-model="selectedTopic" name="topics" :value="topic.id" />
         <label :for="topic.id" class="ms-2 me-4">{{ topic.t }}</label>
       </div>
     </div>
     <div class="flex flex-wrap gap-4 mb-4">
       <h4>Question: </h4>
-      <div class="w-full">
+      <div class="w-full md-group">
         <Textarea v-model="questionText" class="w-full" rows="3" />
+        <QuestionFieldMarkdown :text="questionTextDebounced" />
       </div>
     </div>
     <div class="flex flex-wrap gap-4 mb-8">
       <h4>Answers: </h4>
       <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
-        <Textarea v-model="answer.a" :value="answer.a" rows="3" class="w-full mb-2" placeholder="An answer options (always visible)" />
-        <Textarea v-model="answer.e" :value="answer.e" rows="5" class="w-full mb-2" placeholder="A detailed explanation (visible after answering)" />
+        <div class="md-group mb-2">
+          <Textarea v-model="answer.a" :value="answer.a" rows="3" class="w-full" placeholder="An answer options (always visible)" />
+          <QuestionFieldMarkdown :text="answersDebounced[idx].a" />
+        </div>
+        <div class="md-group mb-2">
+          <Textarea v-model="answer.e" :value="answer.e" rows="5" class="w-full" placeholder="A detailed explanation (visible after answering)" />
+          <QuestionFieldMarkdown :text="answersDebounced[idx].e" />
+        </div>
+
         <div class="flex">
           <div class="flex-grow justify-start text-start ps-4">
-            <input type="radio" v-model="answer.c" :inputId="`c${idx}`" :name="`c${idx}`" :value="true" class="h-8 w-8 checked:bg-green-600 text-green-500 p-3" />
+            <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="true" class="h-8 w-8 checked:bg-green-600 text-green-500 p-3" />
             <label class="ms-2" :for="`c${idx}`">Correct</label>
-            <input type="radio" v-model="answer.c" :inputId="`c${idx}`" :name="`c${idx}`" :value="false" class="h-8 w-8 checked:bg-red-600 text-red-500 p-3 ms-6" />
+            <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="false" class="h-8 w-8 checked:bg-red-600 text-red-500 p-3 ms-6" />
             <label class="ms-2" :for="`c${idx}`">Incorrect</label>
           </div>
           <div class="flex-shrink">
@@ -59,6 +67,7 @@ import { ref, watch, computed } from "vue";
 import Button from 'primevue/button';
 import RadioButton from 'primevue/radiobutton';
 import Textarea from 'primevue/textarea';
+import QuestionFieldMarkdown from "./QuestionFieldMarkdown.vue";
 
 import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID } from "@/constants";
 
@@ -66,16 +75,20 @@ import type { Answer, Question } from "@/constants";
 import { useRouter } from "vue-router";
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
-// import { Writr } from 'writr';
+import debounce from "lodash.debounce"
 
 const router = useRouter();
 
 const topics = ref(TOPICS);
-const selectedTopic = ref("");
-const questionText = ref("");
-const answers = ref<Array<Answer>>([{ a: "", e: "", c: false }]);
-const questionReady = ref(false);
+const selectedTopic = ref(""); // the topic of the question from TOPICS
+const questionText = ref(""); // the text of the question in markdown
+const questionTextDebounced = ref(""); // for HTML conversion
+const answers = ref<Array<Answer>>([{ a: "", e: "", c: false }]); // the list of answers
+const answersDebounced = ref<Array<Answer>>([{ a: "", e: "", c: false }]); // for HTML conversion
+const questionReady = ref(false); // enables Submit button
 
+/// used to inform the user what steps are required
+/// affects questionReady
 const questionReadiness = ref({
   topic: false,
   question: false,
@@ -84,12 +97,17 @@ const questionReadiness = ref({
   explanations: false,
 });
 
+/// Adds an answer block to the form
 function addAnswer(index: number) {
   answers.value.splice(index + 1, 0, { a: "", e: "", c: false });
+  answersDebounced.value.splice(index + 1, 0, { a: "", e: "", c: false });
 }
 
+/// Removes an answer block from the form
 function deleteAnswer(index: number) {
   answers.value.splice(index, 1);
+  answersDebounced.value.splice(index, 1);
+
 }
 
 async function submitQuestion() {
@@ -139,32 +157,26 @@ async function submitQuestion() {
   }
 }
 
+/// Slows down markdown conversion to HTML
+const debounceMarkdownForHtml = debounce(() => {
+  questionTextDebounced.value = questionText.value;
+  answersDebounced.value = JSON.parse(JSON.stringify(answers.value))
+}, 500)
+
 // update questionReadiness list and enable the submit button via questionReady
 watch([selectedTopic, questionText, answers.value], () => {
+  // assess question readiness
   questionReadiness.value.topic = selectedTopic.value !== "";
   questionReadiness.value.question = questionText.value.length > 10;
   questionReadiness.value.answers = answers.value.length >= 2 && answers.value.every((answer) => answer.a.length > 0);
   questionReadiness.value.correct = answers.value.some((answer) => answer.c);
   questionReadiness.value.explanations = answers.value.every((answer) => answer.e.length > 10);
+
+  // enable / disable the submit button
   questionReady.value = Object.values(questionReadiness.value).every((value) => value);
-  // console.log(questionReadiness.value);
+
+  debounceMarkdownForHtml();
 });
 
-    // https://www.npmjs.com/package/writr?activeTab=readme
-    // const writr = new Writr(question.question, {
-    //   renderOptions: {
 
-    //     emoji: false,
-    //     toc: false,
-    //     slug: false,
-    //     highlight: false,
-    //     gfm: true,
-    //     math: false,
-    //     mdx: false,
-    //     caching: false,
-    //   }
-    // });
-    // const q = await writr.render();
-    // console.log("q", q);
-    
 </script>

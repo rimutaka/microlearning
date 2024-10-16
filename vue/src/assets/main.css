@@ -60,7 +60,17 @@ ul#signup-pitch li i {
   @apply pi pi-stop me-4 text-neutral-500 bg-neutral-200;
 }
 
-/* QUESTION CARD */
+.md-group:focus-within {
+  @apply bg-slate-100 rounded-md;
+}
+
+.md-group:focus-within .md-rendered {
+  @apply block;
+}
+
+/* QUESTION CARD, PREVIEW and MD RENDERING */
+/* .q-card is used for the full question preview */
+/* .md-rendered is used for previewing individual fields */
 
 .q-card {
   @apply text-left w-fit mx-auto;
@@ -89,14 +99,27 @@ ul#signup-pitch li i {
 
 /* QUESTION CARD EMBEDDED HTML */
 
-.q-card p:not(:first-child) {
+.q-card p:not(:first-child),
+.md-rendered p:not(:first-child) {
   @apply mt-4;
 }
 
-.q-card ul {
+.q-card ul,
+.md-rendered ul {
   @apply ps-2 list-disc list-inside mb-4;
 }
 
-.q-card code {
+.q-card code,
+.md-rendered code {
   @apply bg-slate-200 py-0.5 px-1 rounded-md font-mono text-sm;
+}
+
+.q-card pre,
+.md-rendered pre {
+  @apply my-4;
+}
+
+.q-card pre code,
+.md-rendered pre code {
+  @apply bg-slate-200 p-2 font-mono text-sm rounded-none;
 }
