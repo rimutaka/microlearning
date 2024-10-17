@@ -1,4 +1,5 @@
 use aws_lambda_events::{
+    http::header::HeaderMap,
     http::method::Method,
     lambda_function_urls::{LambdaFunctionUrlRequest, LambdaFunctionUrlResponse},
 };
@@ -56,12 +57,6 @@ pub(crate) async fn my_handler(
     };
     info!("Method: {}", method);
 
-    // get the token from the headers
-    let token = match event.payload.headers.get("x-bitie-token") {
-        Some(v) => v.to_str().unwrap_or_default(),
-        None => "",
-    };
-
     //decide on the action depending on the HTTP method
     match method {
         Method::GET => {
@@ -78,11 +73,12 @@ pub(crate) async fn my_handler(
             match event.payload.query_string_parameters.get(fields::QID) {
                 Some(qid) if !qid.is_empty() => match question::get_exact(&topic, qid).await {
                     Ok(v) => {
-                        let response_format = if token.is_empty() {
-                            QuestionFormat::HtmlShort
-                        } else {
+                        let response_format = if is_valid_token(&event.payload.headers) {
+                            // the caller will include the token only if markdown is requested
                             info!("Token found");
                             QuestionFormat::MarkdownFull
+                        } else {
+                            QuestionFormat::HtmlShort
                         };
 
                         json_response(Some(&v.format(response_format)), 200)
@@ -97,7 +93,8 @@ pub(crate) async fn my_handler(
         }
 
         Method::PUT => {
-            if token.is_empty() {
+            // all put events must be authorized
+            if !is_valid_token(&event.payload.headers) {
                 return text_response(Some("Unauthorized".to_string()), 401);
             }
 
@@ -166,5 +163,37 @@ pub(crate) async fn my_handler(
 
         // unsupported method
         _ => text_response(Some("Unsupported HTTP method".to_string()), 400),
+    }
+}
+
+/// Returns true if the token in the headers matches the token in the environment var.
+/// It is a temporary solution for authenticating DDB update requests.
+/// Logs an error if the token env var is missing.
+fn is_valid_token(headers: &HeaderMap) -> bool {
+    const TOKEN_ENV_VAR: &str = "x_bitie_token";
+    const TOKEN_HEADER_NAME: &str = "x-bitie-token";
+
+    // get the token from the environment
+    let token_env = match std::env::var(TOKEN_ENV_VAR) {
+        Ok(v) => v.trim().to_string(),
+        Err(e) => {
+            info!("Missing {TOKEN_ENV_VAR} with a token: {e}");
+            return false;
+        }
+    };
+
+    // make sure the token env var is not empty
+    if token_env.is_empty() {
+        info!("Empty {TOKEN_ENV_VAR}");
+        return false;
+    }
+
+    // get the token from the headers and compare
+    match headers.get(TOKEN_HEADER_NAME) {
+        Some(v) => v.to_str().unwrap_or_default() == token_env,
+        None => {
+            info!("Missing {TOKEN_HEADER_NAME} header");
+            false
+        }
     }
 }

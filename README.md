@@ -63,6 +63,10 @@ Technical features:
 * CSS: https://v2.tailwindcss.com/docs/
 * UI components: https://primevue.org/ and https://primevue.org/icons
 * MD to HTML: https://marked.js.org
+
+## Notes
+
+* `<Transition>` is misbehaving, see https://stackoverflow.com/questions/68998731/vue-transition-with-tailwind
 * MD XSS: 
   * https://github.com/cujanovic/Markdown-XSS-Payloads/blob/master/Markdown-XSS-Payloads.txt
   * https://github.com/showdownjs/showdown/wiki/Markdown%27s-XSS-Vulnerability-(and-how-to-mitigate-it)
