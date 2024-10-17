@@ -19,14 +19,18 @@
         <div v-else-if="isAnswered" class="px-2">Incorrect.</div>
         <div class="q-explain" v-if="answer?.e" v-html="answer.e"></div>
       </div>
-      <div class="flex" v-if="!isAnswered">
-        <div class="flex-grow text-end my-auto me-4">
+      <div class="flex">
+        <div v-if="hasToken" class="flex-shrink">
+          <Button label="Edit" icon="pi pi-pencil" severity="secondary" rounded class="ms-4 whitespace-nowrap" @click="navigateToEditPage" />
+        </div>
+        <div v-if="!isAnswered" class="flex-grow text-end my-auto me-4">
           <p class="">{{ optionsToSelect }}</p>
         </div>
-        <div class=" flex-shrink text-end mx-4">
+        <div v-if="!isAnswered" class="flex-shrink text-end mx-4">
           <Button label="Submit" icon="pi pi-check" raised rounded class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
         </div>
       </div>
+
     </div>
   </div>
 </template>
@@ -34,10 +38,11 @@
 <script setup lang="ts">
 import { ref, watchEffect, computed, watch } from "vue";
 import type { Question } from "@/constants";
-import { QUESTION_HANDLER_URL, URL_PARAM_QID, URL_PARAM_TOPIC } from "@/constants";
+import { QUESTION_HANDLER_URL, URL_PARAM_QID, URL_PARAM_TOPIC, TOKEN_HEADER_NAME } from "@/constants";
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
 import Button from 'primevue/button';
+import router from "@/router";
 
 const props = defineProps<{
   topic: string,
@@ -49,6 +54,11 @@ const props = defineProps<{
 const questionMarkdown = ref<Question | undefined>();
 const learnerAnswersCheck = ref<string[]>([]);
 const learnerAnswerRadio = ref<string | undefined>();
+
+// a temporary solution to enable editing links
+const hasToken = computed(() => {
+  return localStorage.getItem(TOKEN_HEADER_NAME) ? true : false;
+});
 
 const isAnswered = computed(() => {
   if (questionMarkdown.value?.answers?.[0].e) { return true } else { return false };
@@ -136,6 +146,11 @@ async function submitQuestion() {
   }
 }
 
+/// navigates to edit page, but it should only work if the user has a token
+function navigateToEditPage() {
+  router.push(`/add?${URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${URL_PARAM_QID}=${questionMarkdown.value?.qid}`);
+}
+
 watchEffect(async () => {
   console.log("fetching question for topic", props.topic);
   // only fetch if topic is set
@@ -148,16 +163,7 @@ watchEffect(async () => {
     const fetchParams = `${URL_PARAM_TOPIC}=${props.topic}`.concat(props.qid ? `&${URL_PARAM_QID}=${props.qid}` : "");
     console.log("fetchParams", fetchParams);
 
-    // by default, lambda removes answer details (correct, explanation) from the response
-    const getHeaders = new Headers();
-    if (props.withAnswers) {
-      getHeaders.append("x-bitie-w-answers", "true");
-    }
-
-    const response = await fetch(`${QUESTION_HANDLER_URL}${fetchParams}`, {
-      method: "GET",
-      headers: getHeaders,
-    });
+    const response = await fetch(`${QUESTION_HANDLER_URL}${fetchParams}`);
     console.log(`Fetched. Status: ${response.status}`);
 
     // a successful response should contain the saved question
