@@ -12,7 +12,7 @@
       <h4>Question: </h4>
       <div class="w-full md-group">
         <Textarea v-model="questionText" class="w-full" rows="3" />
-        <QuestionFieldMarkdown :text="questionTextDebounced" />
+        <QuestionFieldMarkdown :text="questionTextDebounced" :correct="undefined" />
       </div>
     </div>
     <div class="flex flex-wrap gap-4 mb-8">

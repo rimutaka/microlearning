@@ -14,7 +14,9 @@ import { marked } from 'marked';
 
 const props = defineProps<{
   text: string,
-  correct?: boolean,
+  /// true: display `Correct`, false: display `Incorrect`, for explanations only
+  /// undefined: do not display correct/incorrect for question and answer fields
+  correct: boolean | undefined,
 }>()
 
 const renderedHtml = ref("");
