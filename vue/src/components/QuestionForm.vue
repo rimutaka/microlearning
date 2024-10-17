@@ -10,22 +10,22 @@
     </div>
     <div class="flex flex-wrap gap-4 mb-4">
       <h4>Question: </h4>
-      <div class="w-full md-group">
+      <div class="w-full md-group" @focusin="inFocusInputId = 'questionTextInput'">
         <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" />
-        <QuestionFieldMarkdown :text="questionTextDebounced" :correct="undefined" />
+        <QuestionFieldMarkdown :text="questionTextDebounced" :correct="undefined" :active="inFocusInputId == 'questionTextInput'"/>
       </div>
     </div>
     <div class="flex flex-wrap gap-4 mb-8">
       <h4>Answers: </h4>
       <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
-        <div class="md-group mb-2">
+        <div class="md-group mb-2" @focusin="inFocusInputId = `answerInput${idx}`">
           <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full" placeholder="An answer options (always visible)" @keydown="formattingKeypress" />
-          <QuestionFieldMarkdown :text="answersDebounced[idx].a" :correct="undefined" />
+          <QuestionFieldMarkdown :text="answersDebounced[idx].a" :correct="undefined" :active="inFocusInputId == `answerInput${idx}`"/>
         </div>
 
-        <div class="md-group mb-2">
+        <div class="md-group mb-2" @focusin="inFocusInputId = `explanationInput${idx}`">
           <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" />
-          <QuestionFieldMarkdown :text="answersDebounced[idx].e" :correct="answer.c === true" />
+          <QuestionFieldMarkdown :text="answersDebounced[idx].e" :correct="answer.c === true" :active="inFocusInputId == `explanationInput${idx}`"/>
         </div>
 
         <div class="flex">
@@ -95,6 +95,7 @@ const answers = ref<Array<Answer>>([{ a: "", e: "", c: false }]); // the list of
 const answersDebounced = ref<Array<Answer>>([{ a: "", e: "", c: false }]); // for HTML conversion
 
 const questionReady = ref(false); // enables Submit button
+const inFocusInputId = ref("") // the ID of the input field that is currently in focus to enable MD rendering
 
 /// used to inform the user what steps are required
 /// affects questionReady
@@ -299,6 +300,7 @@ watchEffect(async () => {
     if (response.status === 200) {
       try {
         const question = <Question>await response.json();
+        console.log(`Fetched. Status: ${response.status}`);
         // console.log(question);
 
         // set debounced values before the main values to avoid triggering out of index errors

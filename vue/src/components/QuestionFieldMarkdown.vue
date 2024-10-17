@@ -1,14 +1,23 @@
 <template>
-  <div v-if="text && text.trim()" class="w-full text-start px-4 pb-4 mb-4 bg-slate-100 rounded-md hidden md-rendered">
-    <p v-if="props.correct" class="mb-4">Correct.</p>
-    <p v-else-if="props.correct === false" class="mb-4">Incorrect.</p>
-    <div v-html="renderedHtml"></div>
-  </div>
+  <Transition enter-active-class="duration-1000 ease-out" enter-from-class="transform opacity-0" enter-to-class="opacity-100" leave-active-class="duration-1000 ease-in" leave-from-class="opacity-100" leave-to-class="transform opacity-0">
+    <div v-if="props.active" class="w-full text-start px-3 pb-4 mb-4 bg-slate-100 rounded-md md-rendered">
+      <div v-if="text && text.trim()">
+        <p v-if="props.correct" class="mb-4">Correct.</p>
+        <p v-else-if="props.correct === false" class="mb-4">Incorrect.</p>
+        <div v-html="renderedHtml"></div>
+      </div>
+      <ul v-else class="markdown-prompt">
+        <li class="list-none">Limited Markdown support</li>
+        <li><kbd>Ctrl+B</kbd>, <kbd>Ctrl+I</kbd> to toggle <strong>bold</strong> and <em>italic</em></li>
+        <li>No images</li>
+      </ul>
+    </div>
+  </Transition>
 </template>
 
 
 <script setup lang="ts">
-import { ref, watchEffect } from "vue";
+import { ref, watchEffect, Transition } from "vue";
 // import { Writr } from 'writr';
 import { marked } from 'marked';
 
@@ -17,6 +26,7 @@ const props = defineProps<{
   /// true: display `Correct`, false: display `Incorrect`, for explanations only
   /// undefined: do not display correct/incorrect for question and answer fields
   correct: boolean | undefined,
+  active: boolean,
 }>()
 
 const renderedHtml = ref("");

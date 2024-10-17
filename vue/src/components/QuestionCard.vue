@@ -158,6 +158,7 @@ watchEffect(async () => {
       method: "GET",
       headers: getHeaders,
     });
+    console.log(`Fetched. Status: ${response.status}`);
 
     // a successful response should contain the saved question
     // an error may contain JSON or plain text, depending on where the errror occurred

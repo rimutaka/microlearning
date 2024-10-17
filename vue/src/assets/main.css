@@ -60,12 +60,9 @@ ul#signup-pitch li i {
   @apply pi pi-stop me-4 text-neutral-500 bg-neutral-200;
 }
 
-.md-group:focus-within {
+/* Markdown preview group */
+.md-group {
   @apply bg-slate-100 rounded-md;
-}
-
-.md-group:focus-within .md-rendered {
-  @apply block;
 }
 
 /* QUESTION CARD, PREVIEW and MD RENDERING */
@@ -104,9 +101,18 @@ ul#signup-pitch li i {
   @apply mt-4;
 }
 
+.q-card a,
+.md-rendered a {
+  @apply text-blue-500 underline;
+}
+
 .q-card ul,
 .md-rendered ul {
   @apply ps-2 list-disc list-inside mb-4;
+}
+
+.md-rendered ul.markdown-prompt {
+  @apply text-gray-400 text-sm flex gap-2 ps-0
 }
 
 .q-card code,
