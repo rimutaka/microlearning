@@ -60,11 +60,6 @@ ul#signup-pitch li i {
   @apply pi pi-stop me-4 text-neutral-500 bg-neutral-200;
 }
 
-/* Markdown preview group */
-.md-group {
-  @apply bg-slate-100 rounded-md;
-}
-
 /* QUESTION CARD, PREVIEW and MD RENDERING */
 /* .q-card is used for the full question preview */
 /* .md-rendered is used for previewing individual fields */

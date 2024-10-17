@@ -1,6 +1,5 @@
 <template>
   <div class="card mt-12">
-    <h3 class="mb-8">New question form</h3>
     <div class="flex flex-wrap gap-4 mb-4">
       <h4>Topics: </h4>
       <div class="flex" v-for="topic in topics" :key="topic.id">
@@ -10,24 +9,15 @@
     </div>
     <div class="flex flex-wrap gap-4 mb-4">
       <h4>Question: </h4>
-      <div class="w-full md-group" @focusin="inFocusInputId = 'questionTextInput'">
-        <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" />
-        <QuestionFieldMarkdown :text="questionTextDebounced" :correct="undefined" :active="inFocusInputId == 'questionTextInput'"/>
+      <div class="w-full">
+        <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" @focusin="showMdPreview" />
       </div>
     </div>
     <div class="flex flex-wrap gap-4 mb-8">
       <h4>Answers: </h4>
       <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
-        <div class="md-group mb-2" @focusin="inFocusInputId = `answerInput${idx}`">
-          <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full" placeholder="An answer options (always visible)" @keydown="formattingKeypress" />
-          <QuestionFieldMarkdown :text="answersDebounced[idx].a" :correct="undefined" :active="inFocusInputId == `answerInput${idx}`"/>
-        </div>
-
-        <div class="md-group mb-2" @focusin="inFocusInputId = `explanationInput${idx}`">
-          <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" />
-          <QuestionFieldMarkdown :text="answersDebounced[idx].e" :correct="answer.c === true" :active="inFocusInputId == `explanationInput${idx}`"/>
-        </div>
-
+        <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full mb-2" placeholder="An answer options (always visible)" @keydown="formattingKeypress" @focusin="showMdPreview" />
+        <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" @focusin="showMdPreview" />
         <div class="flex">
           <div class="flex-grow justify-start text-start ps-4">
             <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="true" class="h-8 w-8 checked:bg-green-600 text-green-500 p-3" />
@@ -59,6 +49,9 @@
 
     </div>
   </div>
+  <Popover ref="mdPreviewPopover" class="max-w-screen-lg w-screen">
+    <QuestionFieldMarkdown :text="mdTextForPreview" :correct="mdCorrectForPreview" />
+  </Popover>
 </template>
 
 
@@ -68,6 +61,7 @@ import { ref, watch, computed, watchEffect } from "vue";
 import Button from 'primevue/button';
 import RadioButton from 'primevue/radiobutton';
 import Textarea from 'primevue/textarea';
+import Popover from "primevue/popover";
 import QuestionFieldMarkdown from "./QuestionFieldMarkdown.vue";
 
 import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME } from "@/constants";
@@ -95,7 +89,11 @@ const answers = ref<Array<Answer>>([{ a: "", e: "", c: false }]); // the list of
 const answersDebounced = ref<Array<Answer>>([{ a: "", e: "", c: false }]); // for HTML conversion
 
 const questionReady = ref(false); // enables Submit button
-const inFocusInputId = ref("") // the ID of the input field that is currently in focus to enable MD rendering
+const mdPreviewPopover = ref();
+const mdTextForPreview = ref(""); // debounced markdown text from the input in focus to be displayed in the popover
+const mdCorrectForPreview = ref<boolean | undefined>(undefined); // status of answer.c (correct/incorrect) from the answer in focus for the popover
+
+let inFocusInputId = ""; // the ID of the input field that is currently in focus to enable MD rendering
 
 /// used to inform the user what steps are required
 /// affects questionReady
@@ -107,10 +105,33 @@ const questionReadiness = ref({
   explanations: false,
 });
 
+/// Turns on a Popover with a Markdown preview
+const showMdPreview = (event: FocusEvent) => {
+  const src = event.target as HTMLInputElement; // this cast is safe because only textarea elements calls this function
+  mdTextForPreview.value = src.value; // get the text from the input itself for the the initial state
+  inFocusInputId = src.id; // this ID will be used to update the preview when the text changes
+
+  // console.log(`showMdPreview id: ${inFocusInputId}`);
+
+  // find the right v-model to get `answer.c` status from
+  // only explanations need this value, others have it set to undefined
+  if (inFocusInputId.startsWith("explanationInput")) {
+    const index = parseInt(inFocusInputId.replace("explanationInput", ""));
+    mdCorrectForPreview.value = answers.value[index].c === true;
+  }
+  else {
+    mdCorrectForPreview.value = undefined;
+  }
+
+  // there is a bug that I cannot work around
+  // the popover remains attached to the previous input if you change focus
+  // to another field without clicking somewhere else first
+  mdPreviewPopover.value.show(event);
+}
+
 /// Adds an answer block to the form
 function addAnswer(index: number) {
   answers.value.splice(index + 1, 0, { a: "", e: "", c: false });
-  answersDebounced.value.splice(index + 1, 0, { a: "", e: "", c: false });
 }
 
 /// Removes an answer block from the form
@@ -120,7 +141,6 @@ function deleteAnswer(index: number) {
     return;
   }
   answers.value.splice(index, 1);
-  answersDebounced.value.splice(index, 1);
 }
 
 /// Adds or removes Markdown formatting from the selected text
@@ -249,9 +269,24 @@ async function submitQuestion() {
 
 /// Slows down markdown conversion to HTML
 const debounceMarkdownForHtml = debounce(() => {
-  questionTextDebounced.value = questionText.value;
-  answersDebounced.value = JSON.parse(JSON.stringify(answers.value))
-}, 500)
+  let textToDebounce = "";
+
+  // find the right v-model to debounce
+  if (inFocusInputId == "questionTextInput") {
+    textToDebounce = questionText.value;
+  } else if (inFocusInputId.startsWith("answerInput")) {
+    const index = parseInt(inFocusInputId.replace("answerInput", ""));
+    textToDebounce = answers.value[index].a;
+  } else if (inFocusInputId.startsWith("explanationInput")) {
+    const index = parseInt(inFocusInputId.replace("explanationInput", ""));
+    textToDebounce = answers.value[index].e;
+  }
+  else {
+    console.error("Unknown debouncing target: ", inFocusInputId);
+  }
+
+  mdTextForPreview.value = textToDebounce;
+}, 500);
 
 // update questionReadiness list and enable the submit button via questionReady
 watch([selectedTopic, questionText, answers.value], () => {
@@ -265,7 +300,9 @@ watch([selectedTopic, questionText, answers.value], () => {
   // enable / disable the submit button
   questionReady.value = Object.values(questionReadiness.value).every((value) => value);
 
-  debounceMarkdownForHtml();
+  if (inFocusInputId) {
+    debounceMarkdownForHtml();
+  }
 });
 
 watchEffect(async () => {
