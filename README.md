@@ -61,5 +61,9 @@ Technical features:
 * Cheese logo nicked from https://www.freepik.com/icon/cheese_4900716
 * Front-end: Vue
 * CSS: https://v2.tailwindcss.com/docs/
-* UI components: https://primevue.org/
-* 
+* UI components: https://primevue.org/ and https://primevue.org/icons
+* MD to HTML: https://marked.js.org
+* MD XSS: 
+  * https://github.com/cujanovic/Markdown-XSS-Payloads/blob/master/Markdown-XSS-Payloads.txt
+  * https://github.com/showdownjs/showdown/wiki/Markdown%27s-XSS-Vulnerability-(and-how-to-mitigate-it)
+  * https://medium.com/taptuit/exploiting-xss-via-markdown-72a61e774bf8

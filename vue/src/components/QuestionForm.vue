@@ -20,23 +20,24 @@
       <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
         <div class="md-group mb-2">
           <Textarea v-model="answer.a" :value="answer.a" rows="3" class="w-full" placeholder="An answer options (always visible)" />
-          <QuestionFieldMarkdown :text="answersDebounced[idx].a" />
+          <QuestionFieldMarkdown :text="answersDebounced[idx].a" :correct="undefined" />
         </div>
+
         <div class="md-group mb-2">
           <Textarea v-model="answer.e" :value="answer.e" rows="5" class="w-full" placeholder="A detailed explanation (visible after answering)" />
-          <QuestionFieldMarkdown :text="answersDebounced[idx].e" />
+          <QuestionFieldMarkdown :text="answersDebounced[idx].e" :correct="answer.c === true" />
         </div>
 
         <div class="flex">
           <div class="flex-grow justify-start text-start ps-4">
             <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="true" class="h-8 w-8 checked:bg-green-600 text-green-500 p-3" />
             <label class="ms-2" :for="`c${idx}`">Correct</label>
-            <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="false" class="h-8 w-8 checked:bg-red-600 text-red-500 p-3 ms-6" />
+            <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="false" :checked="!answer.c" class="h-8 w-8 checked:bg-red-600 text-red-500 p-3 ms-6" />
             <label class="ms-2" :for="`c${idx}`">Incorrect</label>
           </div>
           <div class="flex-shrink">
             <Button label="Add another answer" icon="pi pi-plus" severity="secondary" rounded class="ms-4 whitespace-nowrap" @click="addAnswer(idx)" />
-            <Button label="Delete this answer" icon="pi pi-trash" severity="secondary" rounded class="ms-4 whitespace-nowrap" @click="deleteAnswer(idx)" />
+            <Button v-if="answers.length > 1" label="Delete this answer" icon="pi pi-trash" severity="secondary" rounded class="ms-4 whitespace-nowrap" @click="deleteAnswer(idx)" />
           </div>
         </div>
       </div>
@@ -62,14 +63,14 @@
 
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, watchEffect } from "vue";
 
 import Button from 'primevue/button';
 import RadioButton from 'primevue/radiobutton';
 import Textarea from 'primevue/textarea';
 import QuestionFieldMarkdown from "./QuestionFieldMarkdown.vue";
 
-import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID } from "@/constants";
+import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME } from "@/constants";
 
 import type { Answer, Question } from "@/constants";
 import { useRouter } from "vue-router";
@@ -77,14 +78,22 @@ import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
 import debounce from "lodash.debounce"
 
+const props = defineProps<{
+  topic: string | undefined,
+  qid?: string | undefined,
+}>()
+
 const router = useRouter();
 
 const topics = ref(TOPICS);
 const selectedTopic = ref(""); // the topic of the question from TOPICS
+
 const questionText = ref(""); // the text of the question in markdown
 const questionTextDebounced = ref(""); // for HTML conversion
+
 const answers = ref<Array<Answer>>([{ a: "", e: "", c: false }]); // the list of answers
 const answersDebounced = ref<Array<Answer>>([{ a: "", e: "", c: false }]); // for HTML conversion
+
 const questionReady = ref(false); // enables Submit button
 
 /// used to inform the user what steps are required
@@ -105,15 +114,26 @@ function addAnswer(index: number) {
 
 /// Removes an answer block from the form
 function deleteAnswer(index: number) {
+  if (answers.value.length === 1) {
+    // cannot delete the last remaining answer
+    return;
+  }
   answers.value.splice(index, 1);
   answersDebounced.value.splice(index, 1);
-
 }
 
 async function submitQuestion() {
+
+  // this is a temporary hack to limit who can update DDB
+  let token = localStorage.getItem(TOKEN_HEADER_NAME);
+  if (!token) {
+    console.log("No token found. Redirecting to homepage.");
+    router.push("/");
+    return;
+  }
   // the lambda gets all it needs from the serialized JSON object
   const submissionQuestion = JSON.stringify(<Question>{
-    qid: "",
+    qid: props.qid,
     topic: selectedTopic.value,
     question: questionText.value,
     answers: answers.value,
@@ -133,6 +153,7 @@ async function submitQuestion() {
     body: submissionQuestion,
     headers: {
       "x-amz-content-sha256": bodyHash,
+      [TOKEN_HEADER_NAME]: token,
     },
   });
 
@@ -178,5 +199,66 @@ watch([selectedTopic, questionText, answers.value], () => {
   debounceMarkdownForHtml();
 });
 
+watchEffect(async () => {
+
+  // this is a temporary hack to limit who can update DDB
+  let token = localStorage.getItem(TOKEN_HEADER_NAME);
+  if (!token) {
+    console.log("No token found. Redirecting to homepage.");
+    router.push("/");
+    return;
+  }
+
+  // if no topic is set, this is a new question
+  if (!(props.topic && props.qid)) {
+    console.log("Adding a new question");
+    return;
+  }
+
+  // fetching an existing question for editing
+  console.log(`Fetching question for ${props.topic}/${props.qid}`);
+
+  try {
+    const response = await fetch(`${QUESTION_HANDLER_URL}${URL_PARAM_TOPIC}=${props.topic}&${URL_PARAM_QID}=${props.qid}`, {
+      method: "GET",
+      headers: {
+        [TOKEN_HEADER_NAME]: token,
+      }
+    });
+
+    // a successful response should contain the saved question
+    // an error may contain JSON or plain text, depending on where the errror occurred
+    if (response.status === 200) {
+      try {
+        const question = <Question>await response.json();
+        // console.log(question);
+
+        // set debounced values before the main values to avoid triggering out of index errors
+        // in the template
+        answersDebounced.value = JSON.parse(JSON.stringify(question.answers));
+        questionTextDebounced.value = question.question;
+
+        // copy DDB values to the form models
+        selectedTopic.value = question.topic;
+        questionText.value = question.question;
+
+        // copy the array while maintaining a reference to the original object
+        // https://stackoverflow.com/questions/71353509/why-would-a-vue3-watcher-of-a-prop-not-be-triggered-composition-api
+        answers.value.length = 0;
+        question.answers.forEach((answer: Answer) => {
+          answers.value.push(answer);
+        });
+
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      console.error("Failed to get question. Status: ", response.status);
+    }
+  } catch (error) {
+    console.error("Failed to get question.");
+    console.error(error);
+  }
+});
 
 </script>

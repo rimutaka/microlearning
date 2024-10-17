@@ -73,7 +73,7 @@ ul#signup-pitch li i {
 /* .md-rendered is used for previewing individual fields */
 
 .q-card {
-  @apply text-left w-fit mx-auto;
+  @apply text-left w-full;
 }
 
 .q-card .q-text {

@@ -4,5 +4,5 @@ import QuestionForm from '../components/QuestionForm.vue';
 </script>
 
 <template>
-  <QuestionForm />
+  <QuestionForm :topic="<string>$route.query.topic" :qid="<string>$route.query.qid"/>
 </template>

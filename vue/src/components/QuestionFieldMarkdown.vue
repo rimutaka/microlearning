@@ -1,5 +1,9 @@
 <template>
-  <div v-if="text && text.trim()" class="w-full text-start px-4 pb-4 mb-4 bg-slate-100 rounded-md hidden md-rendered" v-html="renderedHtml"></div>
+  <div v-if="text && text.trim()" class="w-full text-start px-4 pb-4 mb-4 bg-slate-100 rounded-md hidden md-rendered">
+    <p v-if="props.correct" class="mb-4">Correct.</p>
+    <p v-else-if="props.correct === false" class="mb-4">Incorrect.</p>
+    <div v-html="renderedHtml"></div>
+  </div>
 </template>
 
 
@@ -9,7 +13,8 @@ import { ref, watchEffect } from "vue";
 import { marked } from 'marked';
 
 const props = defineProps<{
-  text: string
+  text: string,
+  correct?: boolean,
 }>()
 
 const renderedHtml = ref("");

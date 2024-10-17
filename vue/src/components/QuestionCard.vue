@@ -1,6 +1,5 @@
 <template>
   <div class="flex" v-if="questionMarkdown">
-    <div></div>
     <div class="q-card">
 
       <div class="q-text" v-html="questionMarkdown?.question"></div>
@@ -29,7 +28,6 @@
         </div>
       </div>
     </div>
-    <div></div>
   </div>
 </template>
 
@@ -99,6 +97,45 @@ const optionsToSelect = computed(() => {
   }
 });
 
+async function submitQuestion() {
+  // double-check there are answers to submit
+  if (!isQuestionReady.value) {
+    console.error("Must select answers:", questionMarkdown.value?.correct);
+    return;
+  }
+
+  // the lambda expects a string array of answers
+  const answers = JSON.stringify(questionMarkdown.value?.correct == 1 ? [learnerAnswerRadio.value] : learnerAnswersCheck.value);
+
+  // calculate the hash of the request body for x-amz-content-sha256 header
+  // as required by CloudFront
+  const hash = new Sha256();
+  hash.update(answers);
+  const bodyHash = toHex(await hash.digest());
+
+  const response = await fetch(`${QUESTION_HANDLER_URL}${URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${URL_PARAM_QID}=${questionMarkdown.value?.qid}`, {
+    method: "POST",
+    body: answers,
+    headers: {
+      "x-amz-content-sha256": bodyHash,
+    },
+  });
+
+  // a successful response should contain the saved question
+  // an error may contain JSON or plain text, depending on where the errror occurred
+  if (response.status === 200) {
+    try {
+      // update the question with the full details
+      questionMarkdown.value = <Question>await response.json();
+      console.log("Full question received", questionMarkdown.value);
+    } catch (error) {
+      console.error(error);
+    }
+  } else {
+    console.error("Failed to save the question: ", response.status);
+  }
+}
+
 watchEffect(async () => {
   console.log("fetching question for topic", props.topic);
   // only fetch if topic is set
@@ -145,46 +182,5 @@ watchEffect(async () => {
     console.error(error);
   }
 });
-
-async function submitQuestion() {
-  // double-check there are answers to submit
-  if (!isQuestionReady.value) {
-    console.error("Must select answers:", questionMarkdown.value?.correct);
-    return;
-  }
-
-  // the lambda expects a string array of answers
-  const answers = JSON.stringify(questionMarkdown.value?.correct == 1 ? [learnerAnswerRadio.value] : learnerAnswersCheck.value);
-
-  console.log("Answers for POST", answers);
-
-  // calculate the hash of the request body for x-amz-content-sha256 header
-  // as required by CloudFront
-  const hash = new Sha256();
-  hash.update(answers);
-  const bodyHash = toHex(await hash.digest());
-
-  const response = await fetch(`${QUESTION_HANDLER_URL}${URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${URL_PARAM_QID}=${questionMarkdown.value?.qid}`, {
-    method: "POST",
-    body: answers,
-    headers: {
-      "x-amz-content-sha256": bodyHash,
-    },
-  });
-
-  // a successful response should contain the saved question
-  // an error may contain JSON or plain text, depending on where the errror occurred
-  if (response.status === 200) {
-    try {
-      // update the question with the full details
-      questionMarkdown.value = <Question>await response.json();
-      console.log("Full question received", questionMarkdown.value);
-    } catch (error) {
-      console.error(error);
-    }
-  } else {
-    console.error("Failed to save the question: ", response.status);
-  }
-}
 
 </script>

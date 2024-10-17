@@ -7,6 +7,9 @@ export const URL_PARAM_TOPIC = "topic"
 /// E.g. .../q?topic=foo&qid=bar
 export const URL_PARAM_QID = "qid"
 
+/// A temporary measure to limit who can save data in DDB
+export const TOKEN_HEADER_NAME = "x-bitie-token";
+
 /// Keypair for the topic title and DDB topic ID, e.g. "AWS"/"aws".
 export interface TopicTitleId {
   t: string,

@@ -56,6 +56,12 @@ pub(crate) async fn my_handler(
     };
     info!("Method: {}", method);
 
+    // get the token from the headers
+    let token = match event.payload.headers.get("x-bitie-token") {
+        Some(v) => v.to_str().unwrap_or_default(),
+        None => "",
+    };
+
     //decide on the action depending on the HTTP method
     match method {
         Method::GET => {
@@ -71,7 +77,16 @@ pub(crate) async fn my_handler(
             // get the question from the DB
             match event.payload.query_string_parameters.get(fields::QID) {
                 Some(qid) if !qid.is_empty() => match question::get_exact(&topic, qid).await {
-                    Ok(v) => json_response(Some(&v.format(QuestionFormat::HtmlShort)), 200),
+                    Ok(v) => {
+                        let response_format = if token.is_empty() {
+                            QuestionFormat::HtmlShort
+                        } else {
+                            info!("Token found");
+                            QuestionFormat::MarkdownFull
+                        };
+
+                        json_response(Some(&v.format(response_format)), 200)
+                    }
                     Err(e) => text_response(Some(e.to_string()), 400),
                 },
                 _ => match question::get_random(&topic).await {
@@ -82,6 +97,10 @@ pub(crate) async fn my_handler(
         }
 
         Method::PUT => {
+            if token.is_empty() {
+                return text_response(Some("Unauthorized".to_string()), 401);
+            }
+
             let body = match event.payload.body {
                 Some(v) => v,
                 None => {
