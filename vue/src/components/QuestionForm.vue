@@ -11,7 +11,7 @@
     <div class="flex flex-wrap gap-4 mb-4">
       <h4>Question: </h4>
       <div class="w-full md-group">
-        <Textarea v-model="questionText" class="w-full" rows="3" />
+        <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" />
         <QuestionFieldMarkdown :text="questionTextDebounced" :correct="undefined" />
       </div>
     </div>
@@ -19,12 +19,12 @@
       <h4>Answers: </h4>
       <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
         <div class="md-group mb-2">
-          <Textarea v-model="answer.a" :value="answer.a" rows="3" class="w-full" placeholder="An answer options (always visible)" />
+          <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full" placeholder="An answer options (always visible)" @keydown="formattingKeypress" />
           <QuestionFieldMarkdown :text="answersDebounced[idx].a" :correct="undefined" />
         </div>
 
         <div class="md-group mb-2">
-          <Textarea v-model="answer.e" :value="answer.e" rows="5" class="w-full" placeholder="A detailed explanation (visible after answering)" />
+          <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" />
           <QuestionFieldMarkdown :text="answersDebounced[idx].e" :correct="answer.c === true" />
         </div>
 
@@ -120,6 +120,74 @@ function deleteAnswer(index: number) {
   }
   answers.value.splice(index, 1);
   answersDebounced.value.splice(index, 1);
+}
+
+/// Adds or removes Markdown formatting from the selected text
+/// in question, answer and explanation fields
+function formattingKeypress(event: KeyboardEvent) {
+
+  // exit early if there is no selected text
+  const target = <HTMLInputElement>event.target;
+  const start = target.selectionStart;
+  const end = target.selectionEnd;
+
+  // check there is a selection
+  if (!start || !end || start === end) {
+    return;
+  }
+
+  // check how the key should be handled
+  let formatSymbolStart = "", formatSymbolEnd = "";
+  let formatSymbolLength = 0; // remains 0 if the selection should not be toggled
+  if (event.key === "b" && event.ctrlKey) { formatSymbolStart = "**"; formatSymbolEnd = "**"; formatSymbolLength = 2; }
+  if (event.key === "i" && event.ctrlKey) { formatSymbolStart = "_"; formatSymbolEnd = "_"; formatSymbolLength = 1; }
+  if (event.key === "`") { formatSymbolStart = "`"; formatSymbolEnd = "`"; }
+  if (event.key === "'") { formatSymbolStart = "'"; formatSymbolEnd = "'"; }
+  if (event.key === "\"") { formatSymbolStart = "\""; formatSymbolEnd = "\""; }
+  if (event.key === "{") { formatSymbolStart = "{"; formatSymbolEnd = "}"; }
+  if (event.key === "[") { formatSymbolStart = "["; formatSymbolEnd = "]"; }
+  if (event.key === "(") { formatSymbolStart = "("; formatSymbolEnd = ")"; }
+
+  // if no format symbol is found, exit
+  if (!formatSymbolStart) return;
+
+  event.preventDefault();
+
+  // a reusable function to check if the formatting should be removed
+  // ** are usually outside the selection and __ are inside
+  // brackets and quotes are excluded from the check via formatSymbolLength = 0
+  const shouldRemoveFormat = (v: string) => formatSymbolLength > 0
+    && (v.slice(start - formatSymbolLength, start) === formatSymbolStart && v.slice(end, end + formatSymbolLength) === formatSymbolEnd
+      || v.slice(start)?.startsWith(formatSymbolStart) && v.slice(end - formatSymbolLength)?.startsWith(formatSymbolEnd));
+
+  // reusable functions for adding and removing formatting
+  const remover = (v: string) => {
+    if (v.slice(start)?.startsWith(formatSymbolStart) && v.slice(end - formatSymbolLength)?.startsWith(formatSymbolEnd))
+      // the removable part is inside the selection, e.g. __text__
+      return v.slice(0, start) + v.slice(start + formatSymbolLength, end - formatSymbolLength) + v.slice(end);
+    else
+      // the removable part is outside the selection, e.g. **text**
+      return v.slice(0, start - formatSymbolLength) + v.slice(start, end) + v.slice(end + formatSymbolLength);
+  };
+
+  // a reusable function for adding formatting
+  const adder = (v: string) => v.slice(0, start) + formatSymbolStart + v.slice(start, end) + formatSymbolEnd + v.slice(end);
+
+  // find the right v-model to update
+  // then check if the formatting already exists and should be added or removed (toggle)
+  if (target.id == "questionTextInput") {
+    questionText.value = (shouldRemoveFormat(questionText.value)) ? remover(questionText.value) : adder(questionText.value);
+    // repeat the same for answers and explanations
+  } else if (target.id.startsWith("answerInput")) {
+    const index = parseInt(target.id.replace("answerInput", ""));
+    answers.value[index].a = (shouldRemoveFormat(answers.value[index].a)) ? remover(answers.value[index].a) : adder(answers.value[index].a);
+  } else if (target.id.startsWith("explanationInput")) {
+    const index = parseInt(target.id.replace("explanationInput", ""));
+    answers.value[index].e = (shouldRemoveFormat(answers.value[index].e)) ? remover(answers.value[index].e) : adder(answers.value[index].e);
+  }
+  else {
+    console.error("Unknown formatting target", target);
+  }
 }
 
 async function submitQuestion() {
