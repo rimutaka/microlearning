@@ -74,7 +74,7 @@ ul#signup-pitch li i {
 
 .q-card input[type='radio'],
 .q-card input[type='checkbox'] {
-  @apply h-6 w-6 checked:bg-slate-400 disabled:bg-slate-100 checked:disabled:bg-slate-400 text-green-500 p-2 my-auto mx-2;
+  @apply h-6 w-6 checked:bg-blue-400 disabled:bg-slate-100 checked:disabled:bg-blue-400 text-green-500 p-2 my-auto mx-2;
 }
 
 .q-card input[type='checkbox'] {
@@ -117,10 +117,10 @@ ul#signup-pitch li i {
 
 .q-card pre,
 .md-rendered pre {
-  @apply my-4;
+  @apply my-4 bg-slate-200 p-2 w-fit;
 }
 
 .q-card pre code,
 .md-rendered pre code {
-  @apply bg-slate-200 p-2 font-mono text-sm rounded-none;
+  @apply font-mono text-sm rounded-none;
 }

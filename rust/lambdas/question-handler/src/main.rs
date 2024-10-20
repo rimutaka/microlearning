@@ -156,7 +156,7 @@ pub(crate) async fn my_handler(
 
             // get the question from the DB and return as HTML with explanations
             match question::get_exact(&topic, qid).await {
-                Ok(v) => json_response(Some(&v.format(QuestionFormat::HtmlFull)), 200),
+                Ok(v) => json_response(Some(&v.format(QuestionFormat::HtmlFull(Some(answers)))), 200),
                 Err(e) => text_response(Some(e.to_string()), 400),
             }
         }

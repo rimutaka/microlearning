@@ -9,13 +9,12 @@ use tracing::error;
 /// Use the `FromStr` trait to convert the string to the enum.
 pub enum QuestionFormat {
     /// Return the full question in Markdown format for editing.
-    /// Header value: `markdown_full`.
     MarkdownFull,
     /// Return the full question in HTML format for rendering with explanations.
-    /// Header value: `html_full`.
-    HtmlFull,
+    /// Learner answers are enclosed in the Vec<u8>.
+    /// This is only valid in the context of a learner answering the question.
+    HtmlFull(Option<Vec<u8>>),
     /// Return the short question in HTML format for the user to answer.
-    /// This is the default format if the header is absent or the value is none of the above.
     HtmlShort,
 }
 
@@ -45,6 +44,10 @@ pub struct Answer {
     /// Only present if true.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     c: Option<bool>,
+    /// Learner's choice. It is set to true if the learner selected this answer.
+    /// Present in JSON only if true.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    sel: Option<bool>,
 }
 
 /// A question with multiple answers.
@@ -77,16 +80,16 @@ impl Question {
     /// Converts markdown members (question, answers) to HTML.
     /// Supports CommonMark only.
     /// See https://crates.io/crates/pulldown-cmark for more information.
-    fn into_html(self) -> Self {
+    fn into_html(self, learner_answers: Option<Vec<u8>>) -> Self {
         // the parser can have Options for extended MD support, but they don't seem to be needed
 
         // convert the question to HTML
         let parser = pulldown_cmark::Parser::new(&self.question);
-        let mut question = String::new();
-        push_html(&mut question, parser);
+        let mut question_as_html = String::new();
+        push_html(&mut question_as_html, parser);
 
         // convert answers to HTML
-        let answers = self
+        let answers_as_html = self
             .answers
             .into_iter()
             .map(|answer| {
@@ -101,13 +104,41 @@ impl Question {
                     e
                 });
 
-                Answer { a, e, c: answer.c }
+                Answer {
+                    a,
+                    e,
+                    c: answer.c,
+                    sel: None,
+                }
             })
-            .collect();
+            .collect::<Vec<Answer>>();
+
+        // sort the answers so that the answered questions are at the top
+        let answers_as_html = match learner_answers {
+            Some(v) => {
+                // sort them into two buckets, then append unanswered to answered
+                // the original order in the buckets is preserved
+                let mut answered = Vec::with_capacity(self.correct as usize);
+                let mut unanswered = Vec::with_capacity(answers_as_html.len() - self.correct as usize);
+                for (idx, answer) in answers_as_html.into_iter().enumerate() {
+                    if v.contains(&(idx as u8)) {
+                        answered.push(Answer {
+                            sel: Some(true),
+                            ..answer
+                        });
+                    } else {
+                        unanswered.push(answer);
+                    }
+                }
+                answered.append(&mut unanswered);
+                answered
+            }
+            None => answers_as_html,
+        };
 
         Question {
-            question,
-            answers,
+            question: question_as_html,
+            answers: answers_as_html,
             ..self
         }
     }
@@ -132,8 +163,8 @@ impl Question {
     pub fn format(self, format: QuestionFormat) -> Self {
         match format {
             QuestionFormat::MarkdownFull => self,
-            QuestionFormat::HtmlFull => self.into_html(),
-            QuestionFormat::HtmlShort => self.without_detailed_explanations().into_html(),
+            QuestionFormat::HtmlFull(v) => self.into_html(v),
+            QuestionFormat::HtmlShort => self.without_detailed_explanations().into_html(None),
         }
     }
 

@@ -39,6 +39,8 @@ export interface Answer {
   e: string,
   /// Set to true if correct
   c: boolean,
+  /// Set to true if this is the user selection
+  sel: boolean,
 }
 
 /// A mirror of the Rust's type

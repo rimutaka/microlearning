@@ -34,7 +34,7 @@
     </div>
     <div class="flex gap-12">
       <div class="flex-grow text-end">
-        <Button label="Submit" icon="pi pi-check" raised rounded class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
+        <Button label="Save" icon="pi pi-check" raised rounded class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
       </div>
       <div class="text-left flex-shrink">
         <h4 class="mb-4">Question readiness:</h4>
@@ -85,8 +85,8 @@ const selectedTopic = ref(""); // the topic of the question from TOPICS
 const questionText = ref(""); // the text of the question in markdown
 const questionTextDebounced = ref(""); // for HTML conversion
 
-const answers = ref<Array<Answer>>([{ a: "", e: "", c: false }]); // the list of answers
-const answersDebounced = ref<Array<Answer>>([{ a: "", e: "", c: false }]); // for HTML conversion
+const answers = ref<Array<Answer>>([{ a: "", e: "", c: false, sel: false }]); // the list of answers
+const answersDebounced = ref<Array<Answer>>([{ a: "", e: "", c: false, sel: false }]); // for HTML conversion
 
 const questionReady = ref(false); // enables Submit button
 const mdPreviewPopover = ref();
@@ -131,7 +131,7 @@ const showMdPreview = (event: FocusEvent) => {
 
 /// Adds an answer block to the form
 function addAnswer(index: number) {
-  answers.value.splice(index + 1, 0, { a: "", e: "", c: false });
+  answers.value.splice(index + 1, 0, { a: "", e: "", c: false, sel: false });
 }
 
 /// Removes an answer block from the form
@@ -162,6 +162,8 @@ function formattingKeypress(event: KeyboardEvent) {
   let formatSymbolLength = 0; // remains 0 if the selection should not be toggled
   if (event.key === "b" && event.ctrlKey) { formatSymbolStart = "**"; formatSymbolEnd = "**"; formatSymbolLength = 2; }
   if (event.key === "i" && event.ctrlKey) { formatSymbolStart = "_"; formatSymbolEnd = "_"; formatSymbolLength = 1; }
+  if (event.key === "_") { formatSymbolStart = "_"; formatSymbolEnd = "_"; }
+  if (event.key === "*") { formatSymbolStart = "*"; formatSymbolEnd = "*"; }
   if (event.key === "`") { formatSymbolStart = "`"; formatSymbolEnd = "`"; }
   if (event.key === "'") { formatSymbolStart = "'"; formatSymbolEnd = "'"; }
   if (event.key === "\"") { formatSymbolStart = "\""; formatSymbolEnd = "\""; }
