@@ -5,7 +5,8 @@
       <div class="q-text" v-html="questionMarkdown?.question"></div>
 
       <div v-for="(answer, index) in questionMarkdown?.answers" :key="index">
-        <h3 v-if="isAnswered && index === 0" class="mb-4">Your answers</h3>
+        <h3 v-if="isAnswered && index === 0 && questionMarkdown?.correct == 1" class="mb-4">Your answer</h3>
+        <h3 v-if="isAnswered && index === 0 && questionMarkdown?.correct > 1" class="mb-4">Your answers</h3>
         <h3 v-else-if="!isAnswered && index === 0" class="mb-4">Answers</h3>
         <h3 v-else-if="isAnswered && index === questionMarkdown?.correct" class="mb-4">Other options</h3>
 
