@@ -12,7 +12,7 @@
       <div class="flex-grow md:flex-shrink text-center md:text-start mb-4 md:mb-auto">
         <Button label="Try a random question" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
       </div>
-      <p class="md:hidden w-full text-center mb-4">or</p>
+      <p class="md:hidden w-full text-center mb-4">or subscribe</p>
       <div class="flex-grow text-end">
         <InputText type="email" v-model="email" placeholder="Your email" name="email" class="mb-2 w-full" />
         <div class="flex">

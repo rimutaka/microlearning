@@ -3,7 +3,9 @@
     <div class="flex" v-if="questionMarkdown">
       <div class="q-card">
 
-        <div class="q-text" v-html="questionMarkdown?.question"></div>
+        <div class="q-text">
+          <div class="" v-html="questionMarkdown?.question"></div>
+        </div>
 
         <div v-for="(answer, index) in questionMarkdown?.answers" :key="index">
           <h3 v-if="isAnswered && index === 0 && questionMarkdown?.correct == 1" class="mb-4">Your answer</h3>
@@ -11,8 +13,8 @@
           <h3 v-else-if="!isAnswered && index === 0" class="mb-4">Answers</h3>
           <h3 v-else-if="isAnswered && index === questionMarkdown?.correct" class="mb-4">Other options</h3>
 
-          <div class="mb-8 border-2" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered }">
-            <div class="flex items-center" :class="{ 'bg-green-100': answer?.c, 'bg-red-100': !answer?.c && isAnswered, 'bg-slate-100': !isAnswered }">
+          <div class="mb-8 border-2 rounded-md" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered }">
+            <div class="flex items-center" :class="{ 'bg-green-100': answer?.c, 'bg-red-100': !answer?.c && isAnswered }">
 
               <input type="radio" v-if="questionMarkdown?.correct == 1" :name="questionMarkdown?.qid" :value="index" :disabled="isAnswered" v-model="learnerAnswerRadio" />
               <input type="checkbox" v-if="questionMarkdown?.correct && questionMarkdown.correct > 1" :name="questionMarkdown?.qid" :disabled="isAnswered" :value="index" v-model="learnerAnswersCheck" />
@@ -27,13 +29,13 @@
         </div>
 
         <div class="flex">
-          <div v-if="hasToken" class="flex-shrink">
-            <Button label="Edit" icon="pi pi-pencil" severity="secondary" rounded class="ms-4 whitespace-nowrap" @click="navigateToEditPage" />
+          <div v-if="hasToken" class="flex-shrink text-start">
+            <Button label="Edit" icon="pi pi-pencil" severity="secondary" rounded class="whitespace-nowrap" @click="navigateToEditPage" />
           </div>
           <div v-if="!isAnswered" class="flex-grow text-end my-auto me-4">
-            <p class="">{{ optionsToSelect }}</p>
+            <p class="text-xs text-slate-500">{{ optionsToSelect }}</p>
           </div>
-          <div v-if="!isAnswered" class="flex-shrink text-end mx-4">
+          <div v-if="!isAnswered" class="flex-shrink text-end">
             <Button label="Submit" icon="pi pi-check" raised rounded class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
           </div>
         </div>

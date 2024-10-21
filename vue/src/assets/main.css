@@ -67,9 +67,8 @@ ul#signup-pitch li i {
 .q-card {
   @apply text-left w-full;
 }
-
 .q-card .q-text {
-  @apply mb-6 bg-slate-100 px-2 py-4 overflow-scroll max-w-screen-lg;
+  @apply mb-6 max-w-screen-lg;
 }
 
 .q-card input[type='radio'],
@@ -112,15 +111,28 @@ ul#signup-pitch li i {
 
 .q-card code,
 .md-rendered code {
-  @apply bg-slate-200 py-0.5 px-1 rounded-md font-mono text-sm;
+  @apply py-0.5 px-1 rounded-md font-mono text-sm overflow-scroll;
+}
+
+.q-card code{
+  @apply bg-slate-100;
+}
+
+.md-rendered code {
+  @apply bg-slate-200;
 }
 
 .q-card pre,
 .md-rendered pre {
-  @apply my-4 bg-slate-200 p-2 w-fit;
+  max-width: 90vw; /* prevents viewport overflow on small screens */
+  @apply my-4 overflow-x-scroll md:overflow-auto md:max-w-none;
 }
 
 .q-card pre code,
 .md-rendered pre code {
-  @apply font-mono text-sm rounded-none;
+  @apply font-mono text-sm rounded-none p-2 w-fit block;
+}
+
+.p-popover-content pre code {
+  @apply p-2;
 }
