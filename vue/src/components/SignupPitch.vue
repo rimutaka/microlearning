@@ -1,6 +1,6 @@
 <template>
   <div class="card">
-    <h3>Identify and fill gaps in your skills and knowledge, one question at a time:</h3>
+    <h3 class="text-justify md:text-center">Identify and fill gaps in your skills and knowledge, one question at a time:</h3>
 
     <ul id="signup-pitch">
       <li><i class="pi pi-list-check"></i>multi-choice questions on topics that interest you</li>

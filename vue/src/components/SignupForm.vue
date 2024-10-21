@@ -8,16 +8,23 @@
       </div>
     </div>
 
-    <div class="flex flex-wrap items-center gap-4 justify-center my-12">
-      <div class=" flex-grow text-start  mb-auto">
+    <div class="flex flex-wrap md:gap-12 my-12">
+      <div class="flex-grow md:flex-shrink text-center md:text-start mb-4 md:mb-auto">
         <Button label="Try a random question" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
       </div>
-      <div class="flex-shrink">
-        <InputText type="email" v-model="email" placeholder="Your email" name="email" />
-        <Button label="Subscribe" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 ms-4 whitespace-nowrap" :disabled="!canSubscribe" />
-        <p v-if="email && !selectedTopics.length" class="mt-2 text-sm text-start text-slate-500">Select at least one topic</p>
+      <p class="md:hidden w-full text-center mb-4">or</p>
+      <div class="flex-grow text-end">
+        <InputText type="email" v-model="email" placeholder="Your email" name="email" class="mb-2 w-full" />
+        <div class="flex">
+          <div class=flex-grow>
+              <p v-if="email && !selectedTopics.length" class="text-xs text-end text-slate-500">Select at least one topic</p>
+              <p v-else class="text-xs text-start md:mb-auto text-slate-500">One new question per day.<br />Auto-paused if you get a backlog.<br />One-click unsubscribe.</p>
+          </div>
+          <div class="flex-shrink">
+            <Button label="Subscribe" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 ms-4 whitespace-nowrap" :disabled="!canSubscribe" />
+          </div>
+        </div>
       </div>
-
     </div>
     <TransitionSlot>
       <SampleQuestion v-if="currentTopic" :topic="currentTopic" />

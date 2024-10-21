@@ -32,7 +32,7 @@ h4 {
 }
 
 ul#signup-pitch {
-  @apply mt-4   text-start pl-8;
+  @apply mt-4 text-start  md:pl-8;
 }
 
 ul#signup-pitch li {
