@@ -31,6 +31,10 @@ h4 {
   @apply text-lg font-bold;
 }
 
+a {
+  @apply text-blue-500 underline;
+}
+
 ul#signup-pitch {
   @apply mt-4 text-start  md:pl-8;
 }
@@ -41,6 +45,10 @@ ul#signup-pitch li {
 
 ul#signup-pitch li i {
   @apply me-2 font-normal text-slate-500;
+}
+
+footer a {
+  @apply text-inherit no-underline;
 }
 
 /* QUESTION FORM */
@@ -95,11 +103,6 @@ ul#signup-pitch li i {
   @apply mt-4;
 }
 
-.q-card a,
-.md-rendered a {
-  @apply text-blue-500 underline;
-}
-
 .q-card ul,
 .md-rendered ul {
   @apply ps-2 list-disc list-inside mb-4;
@@ -131,8 +134,4 @@ ul#signup-pitch li i {
 .q-card pre code,
 .md-rendered pre code {
   @apply font-mono text-sm rounded-none p-2 w-fit block;
-}
-
-.p-popover-content pre code {
-  @apply p-2;
 }
