@@ -1,42 +1,47 @@
 <template>
-  <div class="flex" v-if="questionMarkdown">
-    <div class="q-card">
+  <TransitionSlot>
+    <div class="flex" v-if="questionMarkdown">
+      <div class="q-card">
 
-      <div class="q-text" v-html="questionMarkdown?.question"></div>
+        <div class="q-text" v-html="questionMarkdown?.question"></div>
 
-      <div v-for="(answer, index) in questionMarkdown?.answers" :key="index">
-        <h3 v-if="isAnswered && index === 0 && questionMarkdown?.correct == 1" class="mb-4">Your answer</h3>
-        <h3 v-if="isAnswered && index === 0 && questionMarkdown?.correct > 1" class="mb-4">Your answers</h3>
-        <h3 v-else-if="!isAnswered && index === 0" class="mb-4">Answers</h3>
-        <h3 v-else-if="isAnswered && index === questionMarkdown?.correct" class="mb-4">Other options</h3>
+        <div v-for="(answer, index) in questionMarkdown?.answers" :key="index">
+          <h3 v-if="isAnswered && index === 0 && questionMarkdown?.correct == 1" class="mb-4">Your answer</h3>
+          <h3 v-if="isAnswered && index === 0 && questionMarkdown?.correct > 1" class="mb-4">Your answers</h3>
+          <h3 v-else-if="!isAnswered && index === 0" class="mb-4">Answers</h3>
+          <h3 v-else-if="isAnswered && index === questionMarkdown?.correct" class="mb-4">Other options</h3>
 
-        <div class="mb-8 border-2" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered }">
-          <div class="flex items-center" :class="{ 'bg-green-100': answer?.c, 'bg-red-100': !answer?.c && isAnswered, 'bg-slate-100': !isAnswered }">
+          <div class="mb-8 border-2" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered }">
+            <div class="flex items-center" :class="{ 'bg-green-100': answer?.c, 'bg-red-100': !answer?.c && isAnswered, 'bg-slate-100': !isAnswered }">
 
-            <input type="radio" v-if="questionMarkdown?.correct == 1" :name="questionMarkdown?.qid" :value="index" :disabled="isAnswered" v-model="learnerAnswerRadio" />
-            <input type="checkbox" v-if="questionMarkdown?.correct && questionMarkdown.correct > 1" :name="questionMarkdown?.qid" :disabled="isAnswered" :value="index" v-model="learnerAnswersCheck" />
-            <div class="q-answer" v-html="answer.a"></div>
+              <input type="radio" v-if="questionMarkdown?.correct == 1" :name="questionMarkdown?.qid" :value="index" :disabled="isAnswered" v-model="learnerAnswerRadio" />
+              <input type="checkbox" v-if="questionMarkdown?.correct && questionMarkdown.correct > 1" :name="questionMarkdown?.qid" :disabled="isAnswered" :value="index" v-model="learnerAnswersCheck" />
+              <div class="q-answer" v-html="answer.a"></div>
 
+            </div>
+
+            <div v-if="answer?.c" class="px-2">Correct.</div>
+            <div v-else-if="isAnswered" class="px-2">Incorrect.</div>
+            <div class="q-explain" v-if="answer?.e" v-html="answer.e"></div>
           </div>
+        </div>
 
-          <div v-if="answer?.c" class="px-2">Correct.</div>
-          <div v-else-if="isAnswered" class="px-2">Incorrect.</div>
-          <div class="q-explain" v-if="answer?.e" v-html="answer.e"></div>
-        </div>
-      </div>
-
-      <div class="flex">
-        <div v-if="hasToken" class="flex-shrink">
-          <Button label="Edit" icon="pi pi-pencil" severity="secondary" rounded class="ms-4 whitespace-nowrap" @click="navigateToEditPage" />
-        </div>
-        <div v-if="!isAnswered" class="flex-grow text-end my-auto me-4">
-          <p class="">{{ optionsToSelect }}</p>
-        </div>
-        <div v-if="!isAnswered" class="flex-shrink text-end mx-4">
-          <Button label="Submit" icon="pi pi-check" raised rounded class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
+        <div class="flex">
+          <div v-if="hasToken" class="flex-shrink">
+            <Button label="Edit" icon="pi pi-pencil" severity="secondary" rounded class="ms-4 whitespace-nowrap" @click="navigateToEditPage" />
+          </div>
+          <div v-if="!isAnswered" class="flex-grow text-end my-auto me-4">
+            <p class="">{{ optionsToSelect }}</p>
+          </div>
+          <div v-if="!isAnswered" class="flex-shrink text-end mx-4">
+            <Button label="Submit" icon="pi pi-check" raised rounded class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
+          </div>
         </div>
       </div>
     </div>
+  </TransitionSlot>
+  <div v-if="!questionMarkdown">
+    <p>Loading...</p>
   </div>
 </template>
 
@@ -47,12 +52,12 @@ import { QUESTION_HANDLER_URL, URL_PARAM_QID, URL_PARAM_TOPIC, TOKEN_HEADER_NAME
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
 import Button from 'primevue/button';
+import TransitionSlot from "./TransitionSlot.vue";
 import router from "@/router";
 
 const props = defineProps<{
   topic: string,
   qid?: string,
-  withAnswers?: boolean
 }>()
 
 // as fetched from the server
@@ -176,6 +181,8 @@ watchEffect(async () => {
   console.log("fetching question for topic", props.topic);
   // only fetch if topic is set
   if (!props.topic) return;
+
+  questionMarkdown.value = undefined;
 
   try {
 

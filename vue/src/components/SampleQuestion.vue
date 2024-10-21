@@ -1,6 +1,8 @@
 <template>
-  <h3 class="mt-8 mb-4 text-start">Random question about <em class="italic">{{ findTopicById(props.topic) }}</em></h3>
-  <QuestionCard :topic="props.topic" />
+  <div class=" border-t-2 border-slate-300">
+    <h3 class="mt-8 mb-4 text-start">Random question about <em class="italic">{{ findTopicById(props.topic) }}</em></h3>
+    <QuestionCard :topic="props.topic" />
+  </div>
 </template>
 
 
