@@ -1,14 +1,13 @@
 <template>
-  <div class="w-full text-start px-3 py-2 mb-4 bg-slate-100 rounded-md md-rendered">
+  <div class="text-start px-3 py-2 mb-4 bg-slate-100 rounded-md md-rendered">
     <div v-if="text && text.trim()">
       <p v-if="props.correct" class="mb-4">Correct.</p>
       <p v-else-if="props.correct === false" class="mb-4">Incorrect.</p>
       <div v-html="renderedHtml"></div>
     </div>
     <ul v-else class="markdown-prompt">
-      <li class="list-none">Limited Markdown support</li>
+      <li class="list-none">Markdown support</li>
       <li><kbd>Ctrl+B</kbd>, <kbd>Ctrl+I</kbd> to toggle <strong>bold</strong> and <em>italic</em></li>
-      <li>No images</li>
     </ul>
   </div>
 </template>

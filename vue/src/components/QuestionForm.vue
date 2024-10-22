@@ -49,7 +49,7 @@
 
     </div>
   </div>
-  <Popover ref="mdPreviewPopover" class="max-w-screen-lg w-screen">
+  <Popover ref="mdPreviewPopover" class="max-w-screen-md w-screen">
     <QuestionFieldMarkdown :text="mdTextForPreview" :correct="mdCorrectForPreview" />
   </Popover>
 </template>
