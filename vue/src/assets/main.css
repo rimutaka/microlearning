@@ -75,8 +75,14 @@ footer a {
 .q-card {
   @apply text-left w-full;
 }
+
+.q-card p {
+  max-width: 90vw; /* Chrome doesn't break up long URLs creating an overflow on small screens */
+  @apply break-words md:max-w-none;
+}
+
 .q-card .q-text {
-  @apply mb-6 max-w-screen-lg;
+  @apply mb-6;
 }
 
 .q-card input[type='radio'],
@@ -89,11 +95,11 @@ footer a {
 }
 
 .q-card .q-answer {
-  @apply w-full p-2 overflow-scroll max-w-screen-lg;
+  @apply w-full p-2 max-w-screen-lg;
 }
 
 .q-card .q-explain {
-  @apply p-2  overflow-scroll max-w-screen-lg;
+  @apply p-2 max-w-screen-lg;
 }
 
 /* QUESTION CARD EMBEDDED HTML */
@@ -109,15 +115,15 @@ footer a {
 }
 
 .md-rendered ul.markdown-prompt {
-  @apply text-gray-400 text-sm flex gap-2 ps-0
+  @apply text-gray-400 text-sm flex gap-2 ps-0;
 }
 
 .q-card code,
 .md-rendered code {
-  @apply py-0.5 px-1 rounded-md font-mono text-sm overflow-scroll;
+  @apply py-0.5 px-1 rounded-md font-mono text-sm;
 }
 
-.q-card code{
+.q-card code {
   @apply bg-slate-100;
 }
 
@@ -128,10 +134,11 @@ footer a {
 .q-card pre,
 .md-rendered pre {
   max-width: 90vw; /* prevents viewport overflow on small screens */
-  @apply my-4 overflow-x-scroll md:overflow-auto md:max-w-none;
+  @apply my-4 md:max-w-none;
 }
 
 .q-card pre code,
 .md-rendered pre code {
-  @apply font-mono text-sm rounded-none p-2 w-fit block;
+  max-width: 90vw;
+  @apply font-mono text-sm rounded-none p-2 md:w-fit block overflow-x-auto;
 }
