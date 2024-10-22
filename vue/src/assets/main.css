@@ -76,9 +76,11 @@ footer a {
   @apply text-left w-full;
 }
 
-.q-card p {
-  max-width: 90vw; /* Chrome doesn't break up long URLs creating an overflow on small screens */
-  @apply break-words md:max-w-none;
+.q-card p, .q-card li {
+  /* Chrome doesn't break up long URLs creating an overflow on small screens */
+  overflow-wrap: anywhere;
+  max-width: 95vw; 
+  @apply md:max-w-none;
 }
 
 .q-card .q-text {
@@ -111,7 +113,7 @@ footer a {
 
 .q-card ul,
 .md-rendered ul {
-  @apply ps-2 list-disc list-inside mb-4;
+  @apply list-disc list-inside mb-4;
 }
 
 .md-rendered ul.markdown-prompt {
