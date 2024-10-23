@@ -13,6 +13,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@auth0/auth0-vue": "^2.3.3",
     "@aws-crypto/sha256-js": "^5.2.0",
     "@primevue/themes": "^4.0.7",
     "@tailwindcss/forms": "^0.5.9",

@@ -10,6 +10,10 @@ export const URL_PARAM_QID = "qid"
 /// A temporary measure to limit who can save data in DDB
 export const TOKEN_HEADER_NAME = "x-bitie-token";
 
+/// The key name for the last authentication timestamp in the localStorage.
+/// The user is asked to auth if the key is present.
+export const LAST_AUTH_TIMESTAMP = "auth";
+
 /// Keypair for the topic title and DDB topic ID, e.g. "AWS"/"aws".
 export interface TopicTitleId {
   t: string,
