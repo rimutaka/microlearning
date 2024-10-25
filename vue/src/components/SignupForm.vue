@@ -8,11 +8,7 @@
         <Button label="Try a random question" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
       </div>
       <p class="md:hidden w-full text-center mb-4">or subscribe</p>
-      <div class="flex-shrink text-start">
-        <Button label="Subscribe now for free" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 me-4 mb-2 whitespace-nowrap" :disabled="!canSubscribe" @click="subscribe" />
-        <p v-if="!selectedTopics.length" class="text-xs text-start text-slate-500">Select at least one topic</p>
-        <p v-else class="text-xs text-start md:mb-auto text-slate-500">One new question per day.<br />Auto-paused if you get a backlog.<br />One-click unsubscribe.</p>
-      </div>
+      <SubscribeBlock class="flex-shrink text-start" />
     </div>
     <TransitionSlot>
       <SampleQuestion v-if="currentTopic" :topic="currentTopic" />
@@ -22,25 +18,18 @@
 
 
 <script setup lang="ts">
-import { useAuth0 } from '@auth0/auth0-vue';
-import { ref, computed } from "vue";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import { TOPICS, USER_HANDLER_URL, TOKEN_HEADER_NAME, URL_PARAM_TOPICS } from "@/constants";
+import { TOPICS } from "@/constants";
 
 import Button from 'primevue/button';
-import SampleQuestion from "./SampleQuestion.vue";
 import TopicsList from './TopicsList.vue';
 import TransitionSlot from "./TransitionSlot.vue";
-
-const { idTokenClaims } = useAuth0();
+import SubscribeBlock from './SubscribeBlock.vue';
+import SampleQuestion from "./SampleQuestion.vue";
 
 const store = useMainStore();
-
-const { selectedTopics } = storeToRefs(store);
-const currentTopic = ref<string>("");
-
-const canSubscribe = computed(() => selectedTopics.value.length > 0);
+const { selectedTopics, currentTopic } = storeToRefs(store);
 
 /// Show a random question from the selected topics or all topics
 function showRandomQuestion() {
@@ -49,34 +38,7 @@ function showRandomQuestion() {
   } else {
     currentTopic.value = TOPICS[Math.floor(Math.random() * TOPICS.length)].id;
   }
-}
-
-async function subscribe() {
-  // this is a temporary hack to limit who can update DDB
-  let token = idTokenClaims.value?.__raw;
-  if (!token) {
-    console.log("No token found.");
-    return;
-  }
-
-  // create a URL with list of topics
-  const url = `${USER_HANDLER_URL}${URL_PARAM_TOPICS}=${selectedTopics.value.map((t) => t).join(".")}`;
-  try {
-    const response = await fetch(url, {
-      headers: {
-        [TOKEN_HEADER_NAME]: token,
-      },
-    });
-
-    // a successful response should contain the saved question
-    // an error may contain JSON or plain text, depending on where the errror occurred
-    if (response.status === 204) { console.log("Subscribed successfully"); }
-    else {
-      console.error("Failed to subscribe: ", response.status);
-    }
-  } catch (error) {
-    console.error(error);
-  }
+  console.log("showRandomQuestion", currentTopic.value);
 }
 
 </script>

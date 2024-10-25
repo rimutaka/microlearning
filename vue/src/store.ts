@@ -6,7 +6,8 @@ import type { Question } from './constants'
 export const useMainStore = defineStore('main', () => {
   const question = ref<Question | undefined>()
   const selectedTopics = ref<string[]>([])
+  const currentTopic = ref<string | undefined>();
   const email = ref<string | undefined>()
 
-  return { question, selectedTopics, email }
+  return { question, selectedTopics, currentTopic, email }
 })
