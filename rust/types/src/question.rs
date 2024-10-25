@@ -3,6 +3,7 @@ use pulldown_cmark::{html::push_html, Parser};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use tracing::error;
+use crate::topic::Topic;
 
 /// The possible formats for the question response.
 /// The value is taken from the `QUESTION_FORMAT_HEADER_NAME` header.
@@ -74,9 +75,6 @@ pub struct Question {
 }
 
 impl Question {
-    /// The list supported topics. It must be synchronized with the same list in the front-end manually.
-    pub const TOPICS: [&'static str; 5] = ["aws", "css", "general", "js-ts", "rust"];
-
     /// Converts markdown members (question, answers) to HTML.
     /// Supports CommonMark only.
     /// See https://crates.io/crates/pulldown-cmark for more information.
@@ -214,7 +212,7 @@ impl FromStr for Question {
 
         // only supported topics are allowed
         let topic = q.topic.trim().to_lowercase();
-        if !Question::TOPICS.contains(&topic.as_str()) {
+        if !Topic::TOPICS.contains(&topic.as_str()) {
             error!("Invalid topic {topic}");
             return Err(Error::msg("Invalid topic"));
         }

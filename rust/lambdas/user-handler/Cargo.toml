@@ -1,0 +1,25 @@
+[package]
+name = "user-handler"
+version = "0.2.0"
+authors = ["rimutaka <max@onebro.me>"]
+edition = "2021"
+description = "A gateway to DDB users table"
+license = "AGPL-3.0"
+
+[dependencies]
+bitie_types = { path = "../../types" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+lambda_runtime = { workspace = true }
+aws_lambda_events = { workspace = true }
+# aws-sdk-s3 = { workspace = true }
+aws-sdk-dynamodb = { workspace = true }
+aws-sdk-s3 = { workspace = true }
+aws-config = { workspace = true }
+bs58 = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }

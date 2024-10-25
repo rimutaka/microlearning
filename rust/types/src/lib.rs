@@ -1,6 +1,9 @@
 pub mod ddb;
-pub mod question;
+pub mod jwt;
 pub mod lambda;
+pub mod question;
+pub mod topic;
+pub mod user;
 
 /// Timestamp for 1 Jan 2024.
 /// Timestamps used for IDs can be made shorter by subtracting this constant.

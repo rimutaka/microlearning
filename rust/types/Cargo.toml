@@ -17,3 +17,4 @@ bs58 = { workspace = true }
 uuid = { workspace = true }
 pulldown-cmark = "0.12.1"
 anyhow = { workspace = true }
+jsonwebtoken = "9.3.0"
