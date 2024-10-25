@@ -16,7 +16,7 @@
       <div class="flex-shrink text-end">
         <div class="flex">
           <div class="flex-shrink">
-            <Button label="Subscribe" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 me-4 whitespace-nowrap" :disabled="!canSubscribe" @click="login" />
+            <Button label="Subscribe" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 me-4 whitespace-nowrap" :disabled="!canSubscribe" @click="subscribe" />
           </div>
           <div class=flex-grow>
             <p v-if="!selectedTopics.length" class="text-xs text-end text-slate-500">Select at least one topic</p>
@@ -35,14 +35,14 @@
 <script setup lang="ts">
 import { useAuth0 } from '@auth0/auth0-vue';
 import { ref, computed } from "vue";
-import { TOPICS } from "@/constants";
+import { TOPICS, USER_HANDLER_URL, TOKEN_HEADER_NAME, URL_PARAM_TOPICS } from "@/constants";
 
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
 import SampleQuestion from "./SampleQuestion.vue";
 import TransitionSlot from "./TransitionSlot.vue";
 
-const { loginWithRedirect, isAuthenticated } = useAuth0();
+const { loginWithRedirect, isAuthenticated, idTokenClaims } = useAuth0();
 
 const selectedTopics = ref<Array<string>>([]);
 const currentTopic = ref<string>("");
@@ -58,12 +58,31 @@ function showRandomQuestion() {
   }
 }
 
-/// Auth0 login
-function login() {
-  if (!isAuthenticated.value) {
-    loginWithRedirect();
-  } else {
-    console.log("Already authenticated");
+async function subscribe() {
+  // this is a temporary hack to limit who can update DDB
+  let token = idTokenClaims.value?.__raw;
+  if (!token) {
+    console.log("No token found.");
+    return;
+  }
+
+  // create a URL with list of topics
+  const url = `${USER_HANDLER_URL}${URL_PARAM_TOPICS}=${selectedTopics.value.map((t) => t).join(".")}`;
+  try {
+    const response = await fetch(url, {
+      headers: {
+        [TOKEN_HEADER_NAME]: token,
+      },
+    });
+
+    // a successful response should contain the saved question
+    // an error may contain JSON or plain text, depending on where the errror occurred
+    if (response.status === 204) { console.log("Subscribed successfully"); }
+    else {
+      console.error("Failed to subscribe: ", response.status);
+    }
+  } catch (error) {
+    console.error(error);
   }
 }
 

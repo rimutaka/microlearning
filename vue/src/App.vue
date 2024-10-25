@@ -52,8 +52,8 @@ function updateAuth() {
       // log in the user if the the user was logged in before
       const lastAuth = localStorage.getItem(LAST_AUTH_TIMESTAMP);
       // console.log(`Last auth/auth'd: ${lastAuth}/${isAuthenticated.value}`);
-      if (!isAuthenticated.value) {
-        // console.log("User was logged in before, logging in again");
+      if (lastAuth && !isAuthenticated.value) {
+        console.log("User was logged in before, logging in again");
         try {
           const accessToken = await getAccessTokenSilently();
           // console.log(`Access token: ${accessToken}`);

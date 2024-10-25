@@ -1,8 +1,12 @@
 /// The endpoint for question-related requests.
 export const QUESTION_HANDLER_URL = "https://bitesized.info/q?";
+/// The endpoint for user-related requests.
+export const USER_HANDLER_URL = "https://bitesized.info/u?";
 
 /// E.g. .../q?topic=foo&qid=bar
 export const URL_PARAM_TOPIC = "topic"
+/// E.g. .../q?topics=foo,bar
+export const URL_PARAM_TOPICS = "topics"
 
 /// E.g. .../q?topic=foo&qid=bar
 export const URL_PARAM_QID = "qid"
