@@ -1,15 +1,15 @@
 <template>
-  <div class="text-start">
-    <Button label="Subscribe now for free" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 me-4 mb-2 whitespace-nowrap" :disabled="!canSubscribe" @click="subscribe" />
-    <p v-if="!selectedTopics.length" class="text-xs text-start text-slate-500">Select at least one topic</p>
-    <p v-else class="text-xs text-start md:mb-auto text-slate-500">One new question per day.<br />Auto-paused if you get a backlog.<br />One-click unsubscribe.</p>
+  <div class="">
+    <Button label="Subscribe now for free" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 me-4 mb-2 whitespace-nowrap" @click="subscribe" />
+    <p class="text-xs text-start md:mb-auto text-slate-500">One new question per day.<br />Auto-paused if you get a backlog.<br />One-click unsubscribe.</p>
+    <p v-if="!selectedTopics.length && topicsRequired" class="text-xs text-start text-red-500">Select at least one topic to subscribe</p>
   </div>
 </template>
 
 
 <script setup lang="ts">
 import { useAuth0 } from '@auth0/auth0-vue';
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { USER_HANDLER_URL, TOKEN_HEADER_NAME, URL_PARAM_TOPICS } from "@/constants";
@@ -19,8 +19,16 @@ const { idTokenClaims } = useAuth0();
 const store = useMainStore();
 const { selectedTopics } = storeToRefs(store);
 const canSubscribe = computed(() => selectedTopics.value.length > 0);
+const topicsRequired = ref(false); // true if attempted to subscribe without selecting topics to show a prompt
 
 async function subscribe() {
+
+  // if no topics are selected, show a prompt and return
+  if (!canSubscribe.value) {
+    topicsRequired.value = true;
+    return;
+  }
+
   let token = idTokenClaims.value?.__raw;
   if (!token) {
     console.log("No token found.");

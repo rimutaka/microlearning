@@ -7,8 +7,8 @@
       <div class="flex-grow md:flex-shrink text-center md:text-start mb-4 md:mb-auto">
         <Button label="Try a random question" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
       </div>
-      <p class="md:hidden w-full text-center mb-4">or subscribe</p>
-      <SubscribeBlock class="flex-shrink text-start" />
+      <p class="md:hidden w-full text-center mb-4">or</p>
+      <SubscribeBlock class="flex-shrink text-start mx-auto" />
     </div>
     <TransitionSlot>
       <SampleQuestion v-if="currentTopic" :topic="currentTopic" />
