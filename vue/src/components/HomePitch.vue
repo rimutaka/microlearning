@@ -7,7 +7,7 @@
       </div>
 
       <div class="card flex-grow md:flex-shrink">
-        <h3 class="text-justify md:text-center text-slate-700">We can help you find and fill gaps in your skills, one question at a time:</h3>
+        <h3 class="text-justify md:text-center text-slate-700">We can help you find and fill gaps in your knowledge, one question at a time:</h3>
         <ul id="signup-pitch">
           <li><i class="pi pi-list-check"></i>hight quality multi-choice questions</li>
           <li><i class="pi pi-envelope"></i>delivered to your inbox</li>

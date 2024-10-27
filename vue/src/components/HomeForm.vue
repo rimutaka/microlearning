@@ -3,12 +3,15 @@
     <h3>Select your topics of interest</h3>
     <TopicsList />
 
-    <div class="flex flex-wrap md:gap-12 my-12">
-      <div class="flex-grow md:flex-shrink text-center md:text-start mb-4 md:mb-auto">
-        <Button label="Try a random question" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
+    <div class="flex flex-wrap my-12">
+      <div class="flex-shrink text-start mx-auto">
+        <Button label="Browse more questions or subscribe" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 md:me-4 mb-2 whitespace-nowrap" @click="navigateToSubscription" />
+        <p class="text-xs text-center md:mb-auto text-slate-500">You will be asked to sign in with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i><i class="pi pi-microsoft me-2"></i><i class="pi pi-linkedin me-2"></i></p>
       </div>
-      <p class="md:hidden w-full text-center mb-4">or</p>
-      <SubscribeBlock class="flex-shrink text-start mx-auto" />
+      <p class="w-full text-center my-4">or</p>
+      <div class="flex-grow text-center mb-4">
+        <Button label="Try a random question now" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
+      </div>
     </div>
     <TransitionSlot>
       <SampleQuestion v-if="currentTopic" :topic="currentTopic" />
@@ -18,14 +21,14 @@
 
 
 <script setup lang="ts">
+import router from '@/router';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import { TOPICS } from "@/constants";
+import { TOPICS, URL_PARAM_LIST_SEPARATOR } from "@/constants";
 
 import Button from 'primevue/button';
 import TopicsList from './TopicsList.vue';
 import TransitionSlot from "./TransitionSlot.vue";
-import SubscribeBlock from './SubscribeBlock.vue';
 import SampleQuestion from "./SampleQuestion.vue";
 
 const store = useMainStore();
@@ -39,6 +42,16 @@ function showRandomQuestion() {
     currentTopic.value = TOPICS[Math.floor(Math.random() * TOPICS.length)].id;
   }
   console.log("showRandomQuestion", currentTopic.value);
+}
+
+async function navigateToSubscription() {
+  console.log("Subscribing to topics: ", selectedTopics.value);
+  const subTopics = selectedTopics.value.map((t) => t).join(URL_PARAM_LIST_SEPARATOR);
+  if (subTopics) {
+    router.push({ name: 'subscription', query: { topics: subTopics } });
+  } else {
+    router.push({ name: 'subscription' });
+  }
 }
 
 </script>
