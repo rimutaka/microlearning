@@ -7,9 +7,11 @@ export const USER_HANDLER_URL = "https://bitesized.info/u?";
 export const URL_PARAM_TOPIC = "topic"
 /// E.g. .../q?topics=foo,bar
 export const URL_PARAM_TOPICS = "topics"
-
 /// E.g. .../q?topic=foo&qid=bar
 export const URL_PARAM_QID = "qid"
+/// A character used to separate values within the same param value,
+/// e.g. .../q?topics=foo.bar
+export const URL_PARAM_LIST_SEPARATOR = "."
 
 /// A temporary measure to limit who can save data in DDB
 export const TOKEN_HEADER_NAME = "x-bitie-token";

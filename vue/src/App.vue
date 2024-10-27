@@ -11,14 +11,20 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue';
-import { RouterView } from 'vue-router'
+import { watch, watchEffect } from 'vue';
+import { RouterView, useRoute } from 'vue-router'
 import { useAuth0 } from '@auth0/auth0-vue';
-import { LAST_AUTH_TIMESTAMP } from "@/constants";
+import { storeToRefs } from 'pinia'
+import { LAST_AUTH_TIMESTAMP, URL_PARAM_TOPICS, URL_PARAM_LIST_SEPARATOR } from "@/constants";
+import { useMainStore } from '@/store';
+
 import TopHeader from './components/TopHeader.vue';
 import FooterStatic from './components/FooterStatic.vue';
 
 const { isAuthenticated, isLoading, loginWithRedirect, getAccessTokenSilently, idTokenClaims } = useAuth0();
+const store = useMainStore();
+const { selectedTopics } = storeToRefs(store);
+const route = useRoute();
 
 console.log(`App load/auth: ${isLoading.value}/${isAuthenticated.value}`);
 
@@ -66,5 +72,14 @@ function updateAuth() {
   }
 }
 
+watchEffect(() => {
+
+  // use query string parameters to preset the selected topics
+  const qsTopics = route.query[URL_PARAM_TOPICS]?.toString();
+  if (qsTopics) {
+    console.log("Setting selected topics from query string: ", qsTopics);
+    selectedTopics.value = qsTopics.split(URL_PARAM_LIST_SEPARATOR);
+  }
+});
 
 </script>

@@ -16,7 +16,6 @@ import { useMainStore } from '@/store';
 import Checkbox from 'primevue/checkbox';
 
 const store = useMainStore();
-
 const { selectedTopics } = storeToRefs(store);
 
 </script>
