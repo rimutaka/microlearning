@@ -37,7 +37,8 @@ export const TOPICS = <Array<TopicTitleId>>[
 ];
 
 /// Returns the topic title by its ID
-export function findTopicById (id: string): string | undefined { 
+export function findTopicById (id: string | undefined): string | undefined { 
+  if (!id) return undefined;
   return TOPICS.find((topic) => topic.id === id)?.t;
 }
 

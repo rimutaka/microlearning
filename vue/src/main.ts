@@ -11,7 +11,6 @@ import { createAuth0 } from '@auth0/auth0-vue';
 
 const pinia = createPinia()
 const app = createApp(App)
-
 app.use(pinia)
 app.use(router)
 

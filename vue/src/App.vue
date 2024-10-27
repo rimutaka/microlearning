@@ -23,7 +23,7 @@ import FooterStatic from './components/FooterStatic.vue';
 
 const { isAuthenticated, isLoading, loginWithRedirect, getAccessTokenSilently, idTokenClaims } = useAuth0();
 const store = useMainStore();
-const { selectedTopics } = storeToRefs(store);
+const { selectedTopics, email, token } = storeToRefs(store);
 const route = useRoute();
 
 console.log(`App load/auth: ${isLoading.value}/${isAuthenticated.value}`);
@@ -51,6 +51,9 @@ function updateAuth() {
     localStorage.setItem(LAST_AUTH_TIMESTAMP, Date.now().toString());
     // console.log("Auth status updated in LS");
     console.log(idTokenClaims.value);
+    email.value = idTokenClaims.value?.email;
+    token.value = idTokenClaims.value?.__raw;
+    // console.log(`Email: ${email.value}`);
   }
   else {
     // console.log("Not authenticated");
