@@ -1,8 +1,8 @@
 <template>
   <TransitionSlot>
-    <SignupPitch v-if="!currentTopic" />
+    <HomePitch v-if="!currentTopic" />
   </TransitionSlot>
-  <SignupForm />
+  <HomeForm />
 </template>
 
 <script setup lang="ts">
@@ -11,8 +11,8 @@ import { useMainStore } from '@/store';
 
 import TransitionSlot from "@/components/TransitionSlot.vue";
 
-import SignupForm from '@/components/SignupForm.vue';
-import SignupPitch from '@/components/SignupPitch.vue';
+import HomeForm from '@/components/HomeForm.vue';
+import HomePitch from '@/components/HomePitch.vue';
 
 const store = useMainStore();
 const { currentTopic } = storeToRefs(store);
