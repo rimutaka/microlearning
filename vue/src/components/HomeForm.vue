@@ -6,7 +6,7 @@
     <div class="flex flex-wrap mt-12 mb-4">
       <div class="flex-shrink text-start mx-auto">
         <Button label="Browse more questions or subscribe" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 md:me-4 mb-2 whitespace-nowrap" @click="navigateToSubscription" />
-        <p class="text-xs text-center md:mb-auto text-slate-500">You will be asked to <span class="link">sign in</span> with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i><i class="pi pi-microsoft me-2"></i><i class="pi pi-linkedin me-2"></i></p>
+        <p class="text-xs text-center md:mb-auto text-slate-500">You will be asked to <span class="link" @click="signIn">sign in</span> with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i><i class="pi pi-microsoft me-2"></i><i class="pi pi-linkedin me-2"></i></p>
       </div>
       <p class="w-full text-center my-4">or</p>
       <div class="flex-grow text-center mb-4">
@@ -15,13 +15,14 @@
       </div>
     </div>
     <TransitionSlot>
-      <SampleQuestion v-if="currentTopic" :topic="currentTopic" />
+      <SampleQuestion v-if="currentTopic" :topic="currentTopic" :nonce="nonce"/>
     </TransitionSlot>
   </div>
 </template>
 
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import router from '@/router';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { storeToRefs } from 'pinia'
@@ -35,7 +36,8 @@ import SampleQuestion from "./SampleQuestion.vue";
 
 const store = useMainStore();
 const { selectedTopics, currentTopic } = storeToRefs(store);
-const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
+const { isAuthenticated, loginWithRedirect } = useAuth0();
+const nonce = ref<string | undefined>(undefined); // needed to force re-render of SampleQuestion for the same topic
 
 /// Show a random question from the selected topics or all topics
 function showRandomQuestion() {
@@ -44,6 +46,7 @@ function showRandomQuestion() {
   } else {
     currentTopic.value = TOPICS[Math.floor(Math.random() * TOPICS.length)].id;
   }
+  nonce.value = Math.random().toString(36); // e.g. 0.cbm9x4v2kyi
   console.log("showRandomQuestion", currentTopic.value);
 }
 
@@ -58,7 +61,7 @@ async function navigateToSubscription() {
 }
 
 /// Auth0 login
-function signin() {
+function signIn() {
   if (!isAuthenticated.value) {
     loginWithRedirect();
   } else {
