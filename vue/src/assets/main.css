@@ -31,7 +31,8 @@ h4 {
   @apply text-lg font-bold;
 }
 
-a, .link {
+a,
+.link {
   @apply text-blue-500 underline cursor-pointer;
 }
 
@@ -76,10 +77,11 @@ footer a {
   @apply text-left w-full;
 }
 
-.q-card p, .q-card li {
+.q-card p,
+.q-card li {
   /* Chrome doesn't break up long URLs creating an overflow on small screens */
   overflow-wrap: anywhere;
-  max-width: 95vw; 
+  max-width: 95vw;
   @apply md:max-w-none;
 }
 
@@ -102,6 +104,34 @@ footer a {
 
 .q-card .q-explain {
   @apply p-2 max-w-screen-lg;
+}
+
+.q-card .hide-explanation .q-explain {
+  @apply hidden;
+}
+
+.q-card .explain-link {
+  @apply hidden cursor-pointer;
+}
+
+.q-card .hide-explanation .explain-link {
+  @apply inline-flex;
+}
+
+.q-card .incorrect-tag {
+  @apply hidden;
+}
+
+.q-card .hide-explanation .incorrect-tag {
+  @apply inline-flex;
+}
+
+.q-card .incorrect-label {
+  @apply inline;
+}
+
+.q-card .hide-explanation .incorrect-label {
+  @apply hidden;
 }
 
 /* QUESTION CARD EMBEDDED HTML */

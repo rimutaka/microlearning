@@ -2,7 +2,6 @@
   <TransitionSlot>
     <div class="flex" v-if="questionMarkdown">
       <div class="q-card">
-
         <div class="q-text">
           <div class="" v-html="questionMarkdown?.question"></div>
         </div>
@@ -13,17 +12,18 @@
           <h3 v-else-if="!isAnswered && index === 0" class="mb-4">Answers</h3>
           <h3 v-else-if="isAnswered && index === questionMarkdown?.correct" class="mb-4">Other options</h3>
 
-          <div class="mb-8 border-2 rounded-md" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered }">
-            <div class="flex items-center" :class="{ 'bg-green-100': answer?.c, 'bg-red-100': !answer?.c && isAnswered }">
-
+          <div class="mb-8 border-4 rounded-md" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered, 'hide-explanation': isAnswered && !answer.c && !answer.sel }">
+            <div class="flex items-center border-b-2" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered }">
               <input type="radio" v-if="questionMarkdown?.correct == 1" :name="questionMarkdown?.qid" :value="index" :disabled="isAnswered" v-model="learnerAnswerRadio" />
               <input type="checkbox" v-if="questionMarkdown?.correct && questionMarkdown.correct > 1" :name="questionMarkdown?.qid" :disabled="isAnswered" :value="index" v-model="learnerAnswersCheck" />
               <div class="q-answer" v-html="answer.a"></div>
-
             </div>
-
-            <div v-if="answer?.c" class="px-2">Correct.</div>
-            <div v-else-if="isAnswered" class="px-2">Incorrect.</div>
+            <div v-if="answer?.c" class="px-2 my-2">Correct.</div>
+            <div v-else-if="isAnswered" class="px-2 my-2">
+              <Tag value="Incorrect" severity="secondary" class="me-2 incorrect-tag"/>
+              <Tag value="Explain" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click="showExplanation" />
+              <span class="incorrect-label">Incorrect.</span>
+            </div>
             <div class="q-explain" v-if="answer?.e" v-html="answer.e"></div>
           </div>
         </div>
@@ -49,13 +49,15 @@
 
 <script setup lang="ts">
 import { ref, watchEffect, computed, watch } from "vue";
+import router from "@/router";
 import type { Question } from "@/constants";
 import { QUESTION_HANDLER_URL, URL_PARAM_QID, URL_PARAM_TOPIC, TOKEN_HEADER_NAME } from "@/constants";
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
+
 import Button from 'primevue/button';
+import Tag from "primevue/tag";
 import TransitionSlot from "./TransitionSlot.vue";
-import router from "@/router";
 
 const props = defineProps<{
   topic: string,
@@ -118,6 +120,16 @@ const optionsToSelect = computed(() => {
     return `Select ${remainingNumber} ${wordMore} ${wordAnswers}`;
   }
 });
+
+/// Changes the parent class of the answer to toggle the explanation
+/// Explanations for incorrect answers NOT selected by the user are hidden by default
+function showExplanation(evt: Event | undefined) {
+  const src = <HTMLElement>evt?.currentTarget;
+  console.log("showExplanation", src);
+  if (src) {
+    src.parentElement?.parentElement?.classList.remove("hide-explanation");
+  }
+}
 
 async function submitQuestion() {
   // double-check there are answers to submit
