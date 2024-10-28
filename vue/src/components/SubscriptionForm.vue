@@ -3,17 +3,18 @@
     <h3>Select your topics of interest</h3>
     <TopicsList />
 
-    <p class="text-center text-red-600 text-sm" :class="topicsReminder && !canSubscribe ? 'visible': 'invisible'">Select at least one topic to subscribe</p>
+    <p class="text-center text-red-600 text-sm" :class="topicsReminder && !canSubscribe ? 'visible': 'invisible'">Select at least one topic</p>
 
-    <div class="flex flex-wrap md:gap-12 mt-8 mb-12">
-      <div class="flex-grow md:flex-shrink text-center md:text-start mb-4 md:mb-auto">
-        <Button v-if="lastSelectedTopic" :label="`View a sample question about ${findTopicById(lastSelectedTopic)}`" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
-      </div>
-      <p class="md:hidden w-full text-center mb-4">or</p>
-      <div class="flex-shrink text-start mx-auto">
+    <div class="mt-4 mb-12">
+      <div class="text-center">
         <Button label="Subscribe" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 md:me-4 mb-2 whitespace-nowrap" @click="subscribe" />
       </div>
+      <p class="w-full text-center mt-2 mb-4 text-sm">or</p>
 
+      <div class="text-center mb-4">
+        <Button v-if="lastSelectedTopic" :label="`View a question about ${findTopicById(lastSelectedTopic)}`" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
+        <Button v-else label="`View questions about selected topics" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
+      </div>
     </div>
     <TransitionSlot>
       <SampleQuestion v-if="sampleQuestionTopic" :topic="sampleQuestionTopic" />
@@ -43,6 +44,12 @@ const canSubscribe = computed(() => selectedTopics.value.length > 0);
 
 /// Show a random question from the selected topics or all topics
 function showRandomQuestion() {
+    // if no topics are selected, show a prompt and return
+    if (!canSubscribe.value) {
+    topicsReminder.value = true;
+    return;
+  }
+  
   console.log("showRandomQuestion", lastSelectedTopic.value);
   sampleQuestionTopic.value = lastSelectedTopic.value;
 }
