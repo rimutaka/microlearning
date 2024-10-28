@@ -12,15 +12,15 @@
           <h3 v-else-if="!isAnswered && index === 0" class="mb-4">Answers</h3>
           <h3 v-else-if="isAnswered && index === questionMarkdown?.correct" class="mb-4">Other options</h3>
 
-          <div class="mb-8 border-4 rounded-md" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered, 'hide-explanation': isAnswered && !answer.c && !answer.sel }">
-            <div class="flex items-center border-b-2" :class="{ 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered }">
+          <div class="mb-8 border-2 rounded-md" :class="{ 'border-4': isAnswered, 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered, 'hide-explanation': isAnswered && !answer.c && !answer.sel }">
+            <div class="flex items-center" :class="{ 'border-b-2': isAnswered, 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered }">
               <input type="radio" v-if="questionMarkdown?.correct == 1" :name="questionMarkdown?.qid" :value="index" :disabled="isAnswered" v-model="learnerAnswerRadio" />
               <input type="checkbox" v-if="questionMarkdown?.correct && questionMarkdown.correct > 1" :name="questionMarkdown?.qid" :disabled="isAnswered" :value="index" v-model="learnerAnswersCheck" />
               <div class="q-answer" v-html="answer.a"></div>
             </div>
             <div v-if="answer?.c" class="px-2 my-2">Correct.</div>
             <div v-else-if="isAnswered" class="px-2 my-2">
-              <Tag value="Incorrect" severity="secondary" class="me-2 incorrect-tag"/>
+              <Tag value="Incorrect" severity="secondary" class="me-2 incorrect-tag" />
               <Tag value="Explain" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click="showExplanation" />
               <span class="incorrect-label">Incorrect.</span>
             </div>
@@ -192,7 +192,7 @@ function navigateToEditPage() {
 }
 
 watchEffect(async () => {
-  console.log("fetching question for topic", props.topic);
+  console.log(`Fetching question for: ${props.topic}/${props.qid}`);
   // only fetch if topic is set
   if (!props.topic) return;
 
