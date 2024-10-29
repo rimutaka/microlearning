@@ -6,7 +6,10 @@
     <div class="flex flex-wrap mt-12 mb-4">
       <div class="flex-shrink text-start mx-auto">
         <Button label="Browse more questions or subscribe" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 md:me-4 mb-2 whitespace-nowrap" @click="navigateToSubscription" />
-        <p class="text-xs text-center md:mb-auto text-slate-500">You will be asked to <span class="link" @click="signIn">sign in</span> with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i><i class="pi pi-microsoft me-2"></i><i class="pi pi-linkedin me-2"></i></p>
+        <p class="text-xs text-center md:mb-auto text-slate-500">You will be asked to
+          <a :href="`/${PageNames.SUBSCRIPTION}`" @click.prevent="router.push(PageNames.SUBSCRIPTION)">sign in</a>
+          with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i><i class="pi pi-microsoft me-2"></i><i class="pi pi-linkedin me-2"></i>
+        </p>
       </div>
       <p class="w-full text-center my-4">or</p>
       <div class="flex-grow text-center mb-4">
@@ -15,7 +18,7 @@
       </div>
     </div>
     <TransitionSlot>
-      <SampleQuestion v-if="currentTopic" :topic="currentTopic" :nonce="nonce"/>
+      <SampleQuestion v-if="currentTopic" :topic="currentTopic" :nonce="nonce" />
     </TransitionSlot>
   </div>
 </template>
@@ -24,10 +27,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import router from '@/router';
-import { useAuth0 } from '@auth0/auth0-vue';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { TOPICS, URL_PARAM_LIST_SEPARATOR } from "@/constants";
+import { PageNames } from '@/router';
 
 import Button from 'primevue/button';
 import TopicsList from './TopicsList.vue';
@@ -36,7 +39,6 @@ import SampleQuestion from "./SampleQuestion.vue";
 
 const store = useMainStore();
 const { selectedTopics, currentTopic } = storeToRefs(store);
-const { isAuthenticated, loginWithRedirect } = useAuth0();
 const nonce = ref<string | undefined>(undefined); // needed to force re-render of SampleQuestion for the same topic
 
 /// Show a random question from the selected topics or all topics
@@ -57,15 +59,6 @@ async function navigateToSubscription() {
     router.push({ name: 'subscription', query: { topics: subTopics } });
   } else {
     router.push({ name: 'subscription' });
-  }
-}
-
-/// Auth0 login
-function signIn() {
-  if (!isAuthenticated.value) {
-    loginWithRedirect();
-  } else {
-    console.log("Already authenticated");
   }
 }
 

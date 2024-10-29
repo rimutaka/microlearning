@@ -16,7 +16,7 @@ app.use(router)
 
 app.use(PrimeVue, {
   theme: {
-      preset: Aura
+    preset: Aura
   }
 })
 
@@ -25,7 +25,7 @@ app.use(
     domain: "dev-lbpjc402mmk4uxbs.us.auth0.com",
     clientId: "p2xjvyoxb8HoKSt1QNDx7CQ8Ka2lXgUJ",
     authorizationParams: {
-      redirect_uri: window.location.href
+      redirect_uri: window.location.origin,
     }
   })
 );

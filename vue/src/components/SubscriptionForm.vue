@@ -110,7 +110,7 @@ async function subscribe() {
 
 watchEffect(async () => {
   console.log(`Fetching user details for: ${email.value}`);
-  // only fetch if topic is set
+  // only fetch if the user is known
   if (!email.value) return;
 
   // redirect the user to login with the list of topics as a parameter
