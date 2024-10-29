@@ -21,14 +21,14 @@ export const TOKEN_HEADER_NAME = "x-bitie-token";
 export const LAST_AUTH_TIMESTAMP = "auth";
 
 /// Keypair for the topic title and DDB topic ID, e.g. "AWS"/"aws".
-export interface TopicTitleId {
+export interface TopicFields {
   t: string,
   id: string,
 };
 
 /// The exclusive list of topics that can be used in the app
 /// It is sync'd with the DDB and the lambdas manually
-export const TOPICS = <Array<TopicTitleId>>[
+export const TOPICS = <Array<TopicFields>>[
   { t: "AWS", id: "aws" },
   { t: "CSS", id: "css" },
   { t: "General", id: "general" },
@@ -66,11 +66,15 @@ export interface Question {
   correct: number,
 }
 
-// /// The header name for the question format.
-// /// The value should be one of the `QuestionFormat` enum values (see Rust code).
-// /// CloudFront has to be configured to vary the cache depending on the header contents.
-// export const QUESTION_FORMAT_HEADER_NAME = "x-bitie-question-format";
-// /// `QUESTION_FORMAT_HEADER_NAME` value to return the full question with explanation in HTML.
-// export const QUESTION_FORMAT_HEADER_HTML_FULL = "html_full";
-// /// `QUESTION_FORMAT_HEADER_NAME` value to return the full question with explanation in Markdown.
-// export const QUESTION_FORMAT_HEADER_MARKDOWN_FULL = "markdown_full";
+/// A mirror of the Rust's type
+export interface User {
+    /// User's email address
+    email: String,
+    /// The list of subscribed topics
+    topics: string[],
+    /// A unique string to use an unsubscribe key
+    /// A shortened base58 encoded UUID
+    unsubscribe: string,
+    /// When the user sub was last updated
+    updated: string,
+}

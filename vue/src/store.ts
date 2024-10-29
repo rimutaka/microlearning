@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { TOPICS } from './constants'
-import type { Question } from './constants'
+import type { Question, User } from './constants'
 
 /// The main store for the application
 export const useMainStore = defineStore('main', () => {
@@ -21,6 +21,9 @@ export const useMainStore = defineStore('main', () => {
   /// Raw token from the ID provider, e.g. Google or Github
   const token = ref<string | undefined>()
 
+  /// DDB profile data for the logged in user
+  const user = ref<User | undefined>()
+
   /// Returns the last selected topic or a random one if none are selected
   const lastSelectedTopic = computed(() => {
     if (selectedTopics.value.length) {
@@ -30,5 +33,5 @@ export const useMainStore = defineStore('main', () => {
     }
   });
 
-  return { question, selectedTopics, lastSelectedTopic, currentTopic, email, token }
+  return { question, selectedTopics, lastSelectedTopic, currentTopic, email, token, user }
 })

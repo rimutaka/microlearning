@@ -6,7 +6,7 @@ use aws_lambda_events::{
 use bitie_types::{
     ddb::fields,
     jwt,
-    lambda::text_response,
+    lambda::{json_response, text_response},
     // question::{Question, QuestionFormat},
     topic::Topic,
 };
@@ -58,6 +58,7 @@ pub(crate) async fn my_handler(
     };
     info!("Method: {}", method);
 
+    // can only proceed if the user is authenticated with an email
     let email = match get_email_from_token(&event.payload.headers) {
         Some(v) => v,
         None => {
@@ -66,39 +67,51 @@ pub(crate) async fn my_handler(
         }
     };
 
-    // topics param is required for get queries
+    // topics param is optional
     let topics = match event.payload.query_string_parameters.get(fields::TOPICS) {
-        Some(v) if !v.trim().is_empty() => v
-            .trim()
-            .to_lowercase()
-            .split('.')
-            .filter_map(|t| {
-                let t = t.trim();
-                if t.is_empty() {
-                    None
-                } else {
-                    Some(t.to_string())
-                }
-            })
-            .collect::<Vec<String>>(),
+        // ?topic= is present, but is empty -> unsubscribe from all topics
+        Some(v) if v.trim().is_empty() => {
+            info!("Empty list of topics in the query string");
+            Some(Vec::new())
+        }
+        Some(v) => {
+            let topics = v
+                .trim()
+                .to_lowercase()
+                .split('.')
+                .filter_map(|t| {
+                    let t = t.trim();
+                    if t.is_empty() {
+                        None
+                    } else {
+                        Some(t.to_string())
+                    }
+                })
+                .collect::<Vec<String>>();
+            info!("Found topics in the query string");
+            Some(Topic::filter_valid_topics(topics))
+        }
 
-        _ => {
-            info!("No topic found in the query string");
-            return text_response(Some("No topic found in the query string".to_string()), 400);
+        None => {
+            info!("No topics param in the query string");
+            None
         }
     };
-    let topics = Topic::filter_valid_topics(topics);
 
     //decide on the action depending on the HTTP method
     match method {
         Method::GET => {
-            if topics.is_empty() {
-                text_response(Some("No valid topics found".to_string()), 400)
-            } else {
-                match user::update_subscription(email, topics).await {
-                    Ok(_) => text_response(None, 204),
-                    Err(e) => text_response(Some(e.to_string()), 400),
-                }
+            // get the user or update the user subscription
+            let user = match topics {
+                Some(v) => user::update_subscription(email, v).await,
+                None => user::get_user(email).await,
+            };
+
+            // return the right response
+            match user {
+                Ok(Some(v)) => json_response(Some(&v), 200),
+                Ok(None) => text_response(Some("User not found".to_owned()), 404),
+                Err(e) => text_response(Some(e.to_string()), 400),
             }
         }
 

@@ -54,6 +54,11 @@ pub struct User {
     /// The list of asked questions
     #[serde(default = "Vec::new")]
     pub questions: Vec<AskedQuestion>,
+    /// A unique string to use an unsubscribe key
+    /// A shortened base58 encoded UUID
+    pub unsubscribe: String,
+    /// When the subscription was last updated
+    pub updated: DateTime<Utc>,
 }
 
 // Convert it into c2024-01-01T00:00:00Z format
