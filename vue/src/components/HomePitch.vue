@@ -1,8 +1,8 @@
 <template>
   <div class="mb-8">
-    <h1 class="mb-4 md:mb-12 text-primary">How do you know what you don't know, but probably should?</h1>
+    <h1 class="mb-4 md:mb-12 text-primary w-full">How do you know what you don't know, but probably should?</h1>
 
-    <div class="flex">
+    <div class="flex w-full">
       <div class="flex-shrink md:flex-grow">
       </div>
 

@@ -13,8 +13,7 @@
       </div>
       <p class="w-full text-center my-4">or</p>
       <div class="flex-grow text-center mb-4">
-        <Button v-if="currentTopic" label="Try a different question" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
-        <Button v-else label="Try a random question now" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
+        <RandomQuestionButton />
       </div>
     </div>
     <TransitionSlot>
@@ -36,21 +35,11 @@ import Button from 'primevue/button';
 import TopicsList from './TopicsList.vue';
 import TransitionSlot from "./TransitionSlot.vue";
 import SampleQuestion from "./SampleQuestion.vue";
+import RandomQuestionButton from './RandomQuestionButton.vue';
 
 const store = useMainStore();
 const { selectedTopics, currentTopic } = storeToRefs(store);
 const nonce = ref<string | undefined>(undefined); // needed to force re-render of SampleQuestion for the same topic
-
-/// Show a random question from the selected topics or all topics
-function showRandomQuestion() {
-  if (selectedTopics.value.length) {
-    currentTopic.value = selectedTopics.value[Math.floor(Math.random() * selectedTopics.value.length)];
-  } else {
-    currentTopic.value = TOPICS[Math.floor(Math.random() * TOPICS.length)].id;
-  }
-  nonce.value = Math.random().toString(36); // e.g. 0.cbm9x4v2kyi
-  console.log("showRandomQuestion", currentTopic.value);
-}
 
 async function navigateToSubscription() {
   console.log("Subscribing to topics: ", selectedTopics.value);

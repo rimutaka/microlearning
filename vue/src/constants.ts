@@ -20,6 +20,9 @@ export const TOKEN_HEADER_NAME = "x-bitie-token";
 /// The user is asked to auth if the key is present.
 export const LAST_AUTH_TIMESTAMP = "auth";
 
+/// Used for defining emits, e.g. defineEmits([VUE_EVENT_HYDRATED]);
+export const VUE_EVENT_HYDRATED = "hydrated";
+
 /// Keypair for the topic title and DDB topic ID, e.g. "AWS"/"aws".
 export interface TopicFields {
   t: string,

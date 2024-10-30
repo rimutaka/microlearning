@@ -13,7 +13,11 @@ export const useMainStore = defineStore('main', () => {
 
   /// Either a random topic or the last selected topic
   /// The component decides which one to use
+  /// Used to show a new question
   const currentTopic = ref<string | undefined>()
+
+  /// A random string to force the question update if the topic does not change
+  const currentTopicKey = ref<string | undefined>()
 
   /// Email from the token from the ID provider, e.g. Google or Github
   const email = ref<string | undefined>()
@@ -33,14 +37,36 @@ export const useMainStore = defineStore('main', () => {
     }
   });
 
+  /// Show a random question from the selected topics or all topics
+  function showRandomQuestion() {
+    if (selectedTopics.value.length) {
+      currentTopic.value = selectedTopics.value[Math.floor(Math.random() * selectedTopics.value.length)];
+    } else {
+      currentTopic.value = TOPICS[Math.floor(Math.random() * TOPICS.length)].id;
+    }
+    currentTopicKey.value = Math.random().toString(36); // e.g. 0.cbm9x4v2kyi
+  }
+
   const reset = () => {
     question.value = undefined;
     selectedTopics.value = [];
     currentTopic.value = undefined;
+    currentTopicKey.value = undefined;
     email.value = undefined;
     token.value = undefined;
     user.value = undefined;
   }
 
-  return { question, selectedTopics, lastSelectedTopic, currentTopic, email, token, user, reset }
+  return {
+    question,
+    selectedTopics,
+    lastSelectedTopic,
+    currentTopic,
+    currentTopicKey,
+    email,
+    token,
+    user,
+    reset,
+    showRandomQuestion
+  }
 })

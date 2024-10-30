@@ -45,36 +45,32 @@
 
       <div v-if="!inUpdateMode && loading !== LoadingStatus.Loading" class="text-center mb-4">
         <p class="w-full text-center mt-2 mb-4 text-sm">or</p>
-        <Button v-if="lastSelectedTopic" :label="`View a question about ${findTopicById(lastSelectedTopic)}`" icon="pi pi-sparkles" severity="secondary" class="whitespace-nowrap" @click="showRandomQuestion" />
-        <Button v-else label="`View questions about selected topics" icon="pi pi-sparkles" severity="secondary" class="whitespace-nowrap" @click="showRandomQuestion" />
+        <RandomQuestionButton />
       </div>
     </div>
-    <TransitionSlot>
-      <SampleQuestion v-if="sampleQuestionTopic" :topic="sampleQuestionTopic" />
-    </TransitionSlot>
   </div>
 </template>
 
 
 <script setup lang="ts">
-import { computed, ref, watchEffect } from "vue";
+import { computed, ref, watchEffect, watch } from "vue";
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import { USER_HANDLER_URL, TOKEN_HEADER_NAME, URL_PARAM_TOPICS, URL_PARAM_LIST_SEPARATOR, findTopicById } from "@/constants";
+import { USER_HANDLER_URL, TOKEN_HEADER_NAME, URL_PARAM_TOPICS, URL_PARAM_LIST_SEPARATOR, findTopicById, VUE_EVENT_HYDRATED } from "@/constants";
 import { type User, LoadingStatus } from "@/constants";
 
 import Button from 'primevue/button';
 import TopicsList from './TopicsList.vue';
-import TransitionSlot from "./TransitionSlot.vue";
-import SampleQuestion from "./SampleQuestion.vue";
+import RandomQuestionButton from "./RandomQuestionButton.vue";
+
+const emit = defineEmits([VUE_EVENT_HYDRATED]);
 
 const store = useMainStore();
-const { selectedTopics, lastSelectedTopic, token, email, user } = storeToRefs(store);
+const { selectedTopics, lastSelectedTopic, token, email, user, currentTopic, currentTopicKey } = storeToRefs(store);
 const route = useRoute();
 
 const topicsReminder = ref(false); // true if attempted to subscribe without selecting topics to show a prompt
-const sampleQuestionTopic = ref<string | undefined>();
 const loading = ref<LoadingStatus>(); // user details fetch status: loading, loaded, none
 const saving = ref<LoadingStatus>(); // set while updating user subs, only loading and error are used, otherwise undefined
 const inUpdateMode = ref(false); // true if the update panel is expanded
@@ -97,18 +93,6 @@ const updateDate = computed(() => {
   if (!user.value?.updated) return "";
   return new Date(user.value.updated).toLocaleString();
 });
-
-/// Show a random question from the selected topics or all topics
-function showRandomQuestion() {
-  // if no topics are selected, show a prompt and return
-  if (!canSubscribe.value) {
-    topicsReminder.value = true;
-    return;
-  }
-
-  console.log("showRandomQuestion", lastSelectedTopic.value);
-  sampleQuestionTopic.value = lastSelectedTopic.value;
-}
 
 async function subscribe() {
   // console.log("Subscribing to topics: ", selectedTopics.value);
@@ -167,8 +151,19 @@ async function subscribe() {
   }
 }
 
+// emit an event to notify the parent that the component is hydrated
+watch(loading, (newVal) => {
+  if (newVal === LoadingStatus.Loaded || newVal === LoadingStatus.NoData) {
+    emit(VUE_EVENT_HYDRATED);
+  }
+});
+
 watchEffect(async () => {
   console.log(`Fetching user details for: ${email.value}`);
+
+  // reset the current topic so that no questions are showing until the user presses the button to show one
+  store.currentTopic = undefined;
+
   // only fetch if the user is known
   if (!email.value) return;
 

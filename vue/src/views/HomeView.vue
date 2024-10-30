@@ -1,6 +1,6 @@
 <template>
   <TransitionSlot>
-    <HomePitch v-if="!currentTopic && !isLoading" />
+    <HomePitch />
   </TransitionSlot>
   <HomeForm />
 </template>
