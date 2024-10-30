@@ -3,7 +3,10 @@ use aws_sdk_dynamodb::{
     types::{AttributeValue, ReturnValue},
     Client,
 };
-use bitie_types::{ddb::fields, ddb::tables, user::User};
+use bitie_types::{
+    ddb::{fields, tables},
+    user::User,
+};
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 use tracing::{error, info, warn};
@@ -22,6 +25,14 @@ pub(crate) async fn update_subscription(email: String, topics: Vec<String>) -> R
     // this has to be an update to prevent overwriting photo IDs
     const UPDATE_EXPRESSION: &str = "SET #topics = :topics, #unsubscribe = :unsubscribe, #updated = :updated";
 
+    // empty list of topics = unsubscribe and requires deletion of topics
+    // ideally it should remove TOPICS via REMOVE action, but complicates the code
+    let topics = if topics.is_empty() {
+        AttributeValue::Null(true)
+    } else {
+        AttributeValue::Ss(topics)
+    };
+
     match client
         .update_item()
         .table_name(tables::USERS)
@@ -29,7 +40,7 @@ pub(crate) async fn update_subscription(email: String, topics: Vec<String>) -> R
         .key(fields::EMAIL, AttributeValue::S(email.clone()))
         .key(fields::SORT_KEY, AttributeValue::S("sub".to_string()))
         .expression_attribute_names("#topics", fields::TOPICS)
-        .expression_attribute_values([":", fields::TOPICS].concat(), AttributeValue::Ss(topics))
+        .expression_attribute_values([":", fields::TOPICS].concat(), topics)
         .expression_attribute_names("#unsubscribe", fields::UNSUBSCRIBE)
         .expression_attribute_values([":", fields::UNSUBSCRIBE].concat(), AttributeValue::S(unsubscribe))
         .expression_attribute_names("#updated", fields::UPDATED)
