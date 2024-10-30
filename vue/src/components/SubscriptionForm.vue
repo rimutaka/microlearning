@@ -1,21 +1,52 @@
 <template>
   <div class="card mt-8">
-    <h3>Select your topics of interest</h3>
-    <TransitionSlot>
-      <TopicsList :key="user?.updated" />
-    </TransitionSlot>
+    <h3 v-if="loading == LoadingStatus.Loading || !loading">Loading topics ...</h3>
+    <h3 v-else-if="loading == LoadingStatus.Loaded">Your topics of interest</h3>
+    <h3 v-else-if="loading == LoadingStatus.NoData">Select your topics of interest</h3>
+    <TopicsList v-if="loading == LoadingStatus.Loaded || loading == LoadingStatus.NoData" :key="user?.updated" />
 
-    <p class="text-center text-red-600 text-sm" :class="topicsReminder && !canSubscribe ? 'visible' : 'invisible'">Select at least one topic</p>
+    <div class="mt-12 mb-12">
+      <div v-if="loading == LoadingStatus.Loaded" class="text-center">
+        <div v-if="inUpdateMode" class="update-sub">
+          <div class="flex mb-4">
+            <div class="mx-auto">
+              <ul>
+                <li>Topics to add: </li>
+                <li v-for="topic in topicsToAdd" :key="topic">{{ findTopicById(topic) }}</li>
+                <li v-if="!topicsToAdd?.length">none</li>
+              </ul>
+              <ul>
+                <li>Topics to remove: </li>
+                <li v-for="topic in topicsToRemove" :key="topic">{{ findTopicById(topic) }}</li>
+                <li v-if="!topicsToRemove?.length">none</li>
+              </ul>
+            </div>
+          </div>
+          <Button label="Cancel" icon="pi pi-times" raised severity="secondary" class="font-bold px-8 py-4 me-2 mb-2 whitespace-nowrap" @click="inUpdateMode = false" />
+          <Button label="Confirm" icon="pi pi-check" raised class="font-bold px-8 py-4 ms-2 mb-2 whitespace-nowrap" :disabled="!canUpdateSub" @click="subscribe" />
+          <p v-if="saving == LoadingStatus.Loading" class="">Saving ...</p>
+          <p v-if="saving == LoadingStatus.Error" class="text-red-600">Failed to update your subscription. Refresh the page and try again.</p>
+        </div>
 
-    <div class="mt-4 mb-12">
-      <div class="text-center">
-        <Button :label="user?.topics.length ? 'Update subscription' : `Subscribe`" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 md:me-4 mb-2 whitespace-nowrap" @click="subscribe" />
+        <Button v-if="!inUpdateMode" label="Update subscription" icon="pi pi-pencil" raised class="font-bold px-8 py-4 mb-2 whitespace-nowrap" @click="inUpdateMode = true" />
+        <p v-if="loading == LoadingStatus.Loaded && !inUpdateMode" class="mb-4 text-xs text-slate-500">Last updated: {{ updateDate }} </p>
+
       </div>
-      <p class="w-full text-center mt-2 mb-4 text-sm">or</p>
 
-      <div class="text-center mb-4">
-        <Button v-if="lastSelectedTopic" :label="`View a question about ${findTopicById(lastSelectedTopic)}`" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
-        <Button v-else label="`View questions about selected topics" icon="pi pi-sparkles" severity="secondary" rounded class="whitespace-nowrap" @click="showRandomQuestion" />
+      <div v-if="loading == LoadingStatus.NoData" class="update-sub">
+        <p class="mb-4">
+          <span v-if="topicsReminder && !canSubscribe" class="text-red-600 mb-4">Select at least one topic</span>
+          <span v-else-if="saving == LoadingStatus.Loading" class="">Saving ...</span>
+          <span v-else-if="saving == LoadingStatus.Error" class="text-red-600">Failed to update your subscription. Refresh the page and try again.</span>
+          <span v-else>&nbsp;</span>
+        </p>
+        <Button label="Subscribe" icon="pi pi-envelope" raised class="font-bold px-8 py-4 mb-2 whitespace-nowrap" :disabled="saving == LoadingStatus.Loading" @click="subscribe" />
+      </div>
+
+      <div v-if="!inUpdateMode && loading !== LoadingStatus.Loading" class="text-center mb-4">
+        <p class="w-full text-center mt-2 mb-4 text-sm">or</p>
+        <Button v-if="lastSelectedTopic" :label="`View a question about ${findTopicById(lastSelectedTopic)}`" icon="pi pi-sparkles" severity="secondary" class="whitespace-nowrap" @click="showRandomQuestion" />
+        <Button v-else label="`View questions about selected topics" icon="pi pi-sparkles" severity="secondary" class="whitespace-nowrap" @click="showRandomQuestion" />
       </div>
     </div>
     <TransitionSlot>
@@ -27,10 +58,11 @@
 
 <script setup lang="ts">
 import { computed, ref, watchEffect } from "vue";
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { USER_HANDLER_URL, TOKEN_HEADER_NAME, URL_PARAM_TOPICS, URL_PARAM_LIST_SEPARATOR, findTopicById } from "@/constants";
-import type { User } from "@/constants";
+import { type User, LoadingStatus } from "@/constants";
 
 import Button from 'primevue/button';
 import TopicsList from './TopicsList.vue';
@@ -39,11 +71,32 @@ import SampleQuestion from "./SampleQuestion.vue";
 
 const store = useMainStore();
 const { selectedTopics, lastSelectedTopic, token, email, user } = storeToRefs(store);
+const route = useRoute();
+
 const topicsReminder = ref(false); // true if attempted to subscribe without selecting topics to show a prompt
 const sampleQuestionTopic = ref<string | undefined>();
+const loading = ref<LoadingStatus>(); // user details fetch status: loading, loaded, none
+const saving = ref<LoadingStatus>(); // set while updating user subs, only loading and error are used, otherwise undefined
+const inUpdateMode = ref(false); // true if the update panel is expanded
 
-const canSubscribe = computed(() => selectedTopics.value.length > 0);
+/// A new sub requires at least one topic, an update may have no topics selected
+const canSubscribe = computed(() => selectedTopics.value.length || user.value);
 
+const topicsToRemove = computed(() => {
+  return user.value?.topics.filter((t) => !selectedTopics.value.includes(t));
+});
+
+const topicsToAdd = computed(() => {
+  return selectedTopics.value.filter((t) => !user.value?.topics.includes(t));
+});
+
+const canUpdateSub = computed(() => topicsToAdd.value.length || topicsToRemove.value?.length);
+
+/// Format RFC3339 date string to a human-readable date
+const updateDate = computed(() => {
+  if (!user.value?.updated) return "";
+  return new Date(user.value.updated).toLocaleString();
+});
 
 /// Show a random question from the selected topics or all topics
 function showRandomQuestion() {
@@ -58,7 +111,7 @@ function showRandomQuestion() {
 }
 
 async function subscribe() {
-  console.log("Subscribing to topics: ", selectedTopics.value);
+  // console.log("Subscribing to topics: ", selectedTopics.value);
   const subTopics = selectedTopics.value.map((t) => t).join(URL_PARAM_LIST_SEPARATOR);
 
   // if no topics are selected, show a prompt and return
@@ -78,6 +131,7 @@ async function subscribe() {
   // create a URL with list of topics
   const url = `${USER_HANDLER_URL}${URL_PARAM_TOPICS}=${subTopics}`;
   try {
+    saving.value = LoadingStatus.Loading;
     const response = await fetch(url, {
       headers: {
         [TOKEN_HEADER_NAME]: token.value,
@@ -94,16 +148,21 @@ async function subscribe() {
 
         // set selected topics to user's topics
         selectedTopics.value = user.value.topics;
-
+        saving.value = undefined;
+        loading.value = LoadingStatus.Loaded;
+        inUpdateMode.value = false;
       } catch (error) {
+        saving.value = LoadingStatus.Error;
         console.error(error);
       }
 
     }
     else {
+      saving.value = LoadingStatus.Error;
       console.error("Failed to subscribe: ", response.status);
     }
   } catch (error) {
+    saving.value = LoadingStatus.Error;
     console.error(error);
   }
 }
@@ -120,6 +179,7 @@ watchEffect(async () => {
   }
 
   try {
+    loading.value = LoadingStatus.Loading;
     const response = await fetch(USER_HANDLER_URL, {
       headers: {
         [TOKEN_HEADER_NAME]: token.value,
@@ -137,15 +197,35 @@ watchEffect(async () => {
 
         // set selected topics to user's topics
         selectedTopics.value = user.value.topics;
+        loading.value = LoadingStatus.Loaded;
 
       } catch (error) {
+        loading.value = LoadingStatus.Error;
         console.error(error);
       }
+    }
+    else if (response.status === 404) {
+      loading.value = LoadingStatus.NoData;
+      // use query string parameters to preset the selected topics
+      const qsTopics = route.query[URL_PARAM_TOPICS]?.toString();
+      if (qsTopics) {
+        console.log("Setting selected topics from query string: ", qsTopics);
+        selectedTopics.value = qsTopics.split(URL_PARAM_LIST_SEPARATOR);
+      }
     } else {
+      // only 200 and 404 come from lambda, any other code is an error
+      loading.value = LoadingStatus.Error;
       console.error("Failed to get user. Status: ", response.status);
     }
   } catch (error) {
+    loading.value = LoadingStatus.Error;
     console.error("Failed to get user.", error);
+  }
+  finally {
+    if (!loading.value) {
+      console.log("Loading status was not updated. Setting to error");
+      loading.value = LoadingStatus.Error
+    };
   }
 });
 

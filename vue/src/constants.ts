@@ -78,3 +78,11 @@ export interface User {
     /// When the user sub was last updated
     updated: string,
 }
+
+/// Indicates the status of loading / fetching data
+export enum LoadingStatus {
+  Loading, // awaiting response
+  Loaded, // data found and is loaded into the app
+  NoData, // checked the DB, but no data found
+  Error // something went wrong
+}

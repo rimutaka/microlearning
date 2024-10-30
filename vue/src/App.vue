@@ -12,19 +12,17 @@
 
 <script setup lang="ts">
 import { watch, watchEffect } from 'vue';
-import { RouterView, useRoute } from 'vue-router'
+import { RouterView } from 'vue-router'
 import { useAuth0 } from '@auth0/auth0-vue';
 import { storeToRefs } from 'pinia'
-import { URL_PARAM_TOPICS, URL_PARAM_LIST_SEPARATOR } from "@/constants";
 import { useMainStore } from '@/store';
 
 import TopHeader from './components/TopHeader.vue';
 import FooterStatic from './components/FooterStatic.vue';
 
-const { isAuthenticated, isLoading, loginWithRedirect, getAccessTokenSilently, idTokenClaims } = useAuth0();
+const { isAuthenticated, isLoading, idTokenClaims } = useAuth0();
 const store = useMainStore();
-const { selectedTopics, email, token } = storeToRefs(store);
-const route = useRoute();
+const { email, token } = storeToRefs(store);
 
 console.log(`App load/auth: ${isLoading.value}/${isAuthenticated.value}`);
 
@@ -49,16 +47,7 @@ function addTokenClaimsToStore() {
   token.value = idTokenClaims.value?.__raw;
 }
 
-/// 1. copy the list of topics from the URL to the store
-/// 2. copy the token details to the store
 watchEffect(() => {
-  // use query string parameters to preset the selected topics
-  const qsTopics = route.query[URL_PARAM_TOPICS]?.toString();
-  if (qsTopics) {
-    console.log("Setting selected topics from query string: ", qsTopics);
-    selectedTopics.value = qsTopics.split(URL_PARAM_LIST_SEPARATOR);
-  }
-
   addTokenClaimsToStore();
 });
 

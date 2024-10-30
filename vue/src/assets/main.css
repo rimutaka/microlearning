@@ -48,6 +48,29 @@ ul#signup-pitch li i {
   @apply me-2 font-normal text-slate-500;
 }
 
+/* Subscription update block */
+.update-sub ul {
+  @apply text-sm text-slate-500 flex flex-shrink mb-2;
+}
+
+.update-sub li {
+  @apply me-2;
+}
+
+.update-sub li:not(:first-child):not(:last-child)::after {
+  @apply ms-1;
+  content: ',';
+}
+
+.update-sub li:first-child {
+  @apply font-bold;
+}
+
+.update-sub p {
+  @apply text-sm text-center;
+}
+
+/* FOOTER */
 footer a {
   @apply text-inherit no-underline;
 }
