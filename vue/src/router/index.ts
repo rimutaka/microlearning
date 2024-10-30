@@ -22,31 +22,41 @@ const router = createRouter({
     {
       path: '/',
       name: PageNames.HOME,
-      component: HomeView
+      component: HomeView,
     },
     {
       path: '/' + PageNames.ADD,
       name: PageNames.ADD,
       component: QuestionFormView,
-      beforeEnter: authGuard
+      beforeEnter: authGuard,
+      meta: { title: 'Contribute' }
     },
     {
       path: '/' + PageNames.QUESTION,
       name: PageNames.QUESTION,
       component: QuestionView,
+      meta: { title: 'Question' }
     },
     {
       path: '/' + PageNames.ABOUT,
       name: PageNames.ABOUT,
-      component: AboutView
+      component: AboutView,
+      meta: { title: 'About' }
     },
     {
       path: '/' + PageNames.SUBSCRIPTION,
       name: PageNames.SUBSCRIPTION,
       component: SubscriptionView,
-      beforeEnter: authGuard
+      beforeEnter: authGuard,
+      meta: { title: 'Subscription' }
     }
   ]
 })
+
+router.afterEach((to, from) => {
+  const title = <string>to.meta?.title;
+  const websiteTitle = 'Bite-sized learning';
+  window.document.title = title ? `${title} | ${websiteTitle}` : websiteTitle;
+});
 
 export default router
