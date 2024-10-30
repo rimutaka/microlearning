@@ -33,5 +33,14 @@ export const useMainStore = defineStore('main', () => {
     }
   });
 
-  return { question, selectedTopics, lastSelectedTopic, currentTopic, email, token, user }
+  const reset = () => {
+    question.value = undefined;
+    selectedTopics.value = [];
+    currentTopic.value = undefined;
+    email.value = undefined;
+    token.value = undefined;
+    user.value = undefined;
+  }
+
+  return { question, selectedTopics, lastSelectedTopic, currentTopic, email, token, user, reset }
 })

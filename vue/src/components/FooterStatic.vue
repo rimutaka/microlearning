@@ -26,10 +26,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import router from "@/router";
+import { useMainStore } from '@/store';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { LAST_AUTH_TIMESTAMP } from "@/constants";
 
 const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
+const store = useMainStore();
 
 const menuItems = ref([
   {
@@ -68,6 +70,7 @@ function signin() {
 function signout() {
   if (isAuthenticated.value) {
     localStorage.removeItem(LAST_AUTH_TIMESTAMP);
+    store.reset();
     logout({
       openUrl(url) {
         console.log("Redirecting to logout: ", url);
