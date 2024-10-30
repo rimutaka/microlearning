@@ -5,12 +5,13 @@
       </div>
 
       <div class="mt-4 card flex-grow md:flex-shrink">
-        <h3 class="text-justify md:text-center text-slate-700">It takes 2 minutes per day if you know the answer, 5 - 10 minutes if you don't</h3>
+        <h3 class="text-justify md:text-center text-slate-700">It takes 2 minutes per day if you know the answer or 5 - 10 minutes of reading if you don't:</h3>
         <ul id="signup-pitch">
-          <li><i class="pi pi-question-circle"></i>you get one question with detailed answers per email</li>
+          <li><i class="pi pi-lock-open"></i>as a <strong>free subscriber</strong> you get</li>
+          <li><i class="pi pi-question-circle"></i>one question with detailed answers per email</li>
           <li><i class="pi pi-envelope"></i>sent daily to <strong>{{ store.email }}</strong> </li>
           <li><i class="pi pi-pause-circle"></i>paused automatically if you have a backlog</li>
-          <li><i class="pi pi-ban"></i>every email includes an unsubscribe link</li>
+          <li><i class="pi pi-ban"></i>one-click unsubscribe</li>
         </ul>
 
         <div class="my-12 mx-auto text-center">
