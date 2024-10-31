@@ -67,7 +67,7 @@ import RandomQuestionButton from "./RandomQuestionButton.vue";
 const emit = defineEmits([VUE_EVENT_HYDRATED]);
 
 const store = useMainStore();
-const { selectedTopics, lastSelectedTopic, token, email, user, currentTopic, currentTopicKey } = storeToRefs(store);
+const { selectedTopics, token, email, user } = storeToRefs(store);
 const route = useRoute();
 
 const topicsReminder = ref(false); // true if attempted to subscribe without selecting topics to show a prompt
@@ -104,9 +104,6 @@ async function subscribe() {
     return;
   }
 
-  // prepare the list of topics to subscribe to
-
-  // redirect the user to login with the list of topics as a parameter
   if (!token.value) {
     console.log("No token found.");
     return; // unreachable code

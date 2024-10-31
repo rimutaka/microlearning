@@ -1,3 +1,7 @@
+/// SK is not used at the moment and is set to a constant value.
+pub const DEFAULT_USER_TABLE_SK_VALUE: &str = "sub";
+
+/// The list of table names in the DynamoDB.
 pub mod tables {
     /// Contains the full text of the questions along with the metadata.
     pub const QUESTIONS: &str = "questions_20241009_1118";
@@ -20,6 +24,8 @@ pub mod fields {
     pub const ANSWERS: &str = "answers";
     /// A markdown text for the question.
     pub const QUESTION: &str = "question";
+    /// A list of questions sent to the user or the user interacted with.
+    pub const QUESTIONS: &str = "questions";
     /// A Number Set of correct answers.
     pub const CORRECT: &str = "correct";
     /// User ID - a base58 encoded UUID7.

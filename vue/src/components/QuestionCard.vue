@@ -51,9 +51,9 @@
 import { ref, watchEffect, computed, watch } from "vue";
 import router from "@/router";
 import type { Question } from "@/constants";
-import { QUESTION_HANDLER_URL, URL_PARAM_QID, URL_PARAM_TOPIC, TOKEN_HEADER_NAME } from "@/constants";
-import { Sha256 } from '@aws-crypto/sha256-js';
-import { toHex } from "uint8array-tools";
+import { QUESTION_HANDLER_URL, URL_PARAM_QID, URL_PARAM_TOPIC, TOKEN_HEADER_NAME, URL_PARAM_LIST_SEPARATOR, URL_PARAM_ANSWERS } from "@/constants";
+import { storeToRefs } from 'pinia'
+import { useMainStore } from '@/store';
 
 import Button from 'primevue/button';
 import Tag from "primevue/tag";
@@ -63,6 +63,9 @@ const props = defineProps<{
   topic: string,
   qid?: string,
 }>()
+
+const store = useMainStore();
+const { token } = storeToRefs(store);
 
 // as fetched from the server
 const questionMarkdown = ref<Question | undefined>();
@@ -138,51 +141,58 @@ async function submitQuestion() {
     return;
   }
 
-  // the lambda expects a string array of answers
-  const answers = JSON.stringify(questionMarkdown.value?.correct == 1 ? [learnerAnswerRadio.value] : learnerAnswersCheck.value);
+  // the lambda expects a list of answers in the URL
+  const answers = questionMarkdown.value?.correct == 1 ? learnerAnswerRadio.value : learnerAnswersCheck.value.join(URL_PARAM_LIST_SEPARATOR);
 
   // calculate the hash of the request body for x-amz-content-sha256 header
   // as required by CloudFront
-  const hash = new Sha256();
-  hash.update(answers);
-  const bodyHash = toHex(await hash.digest());
+  // const hash = new Sha256();
+  // hash.update(answers);
+  // const bodyHash = toHex(await hash.digest());
 
-  const response = await fetch(`${QUESTION_HANDLER_URL}${URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${URL_PARAM_QID}=${questionMarkdown.value?.qid}`, {
-    method: "POST",
-    body: answers,
-    headers: {
-      "x-amz-content-sha256": bodyHash,
-    },
-  });
+  const url = `${QUESTION_HANDLER_URL}${URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${URL_PARAM_QID}=${questionMarkdown.value?.qid}&${URL_PARAM_ANSWERS}=${answers}`;
+  // add a toke with the email, if there is one (logged in users)
+  const headers = new Headers();
+  if (token.value) headers.append(TOKEN_HEADER_NAME, token.value);
 
-  // a successful response should contain the saved question
-  // an error may contain JSON or plain text, depending on where the errror occurred
-  if (response.status === 200) {
-    try {
-      // update the question with the full details
-      const question = <Question>await response.json();
-      questionMarkdown.value = question;
-      console.log("Full question received", questionMarkdown.value);
-
-      // reset the user selection because the answers got rearranged with the correct ones at the top
-      learnerAnswersCheck.value = [];
-      question.answers.forEach((answer, index) => {
-        if (answer.sel) {
-          if (question.correct == 1) {
-            learnerAnswerRadio.value = index.toString();
-            console.log("learnerAnswerRadio", learnerAnswerRadio.value);
-          } else {
-            learnerAnswersCheck.value.push(index.toString());
-            console.log("learnerAnswersCheck", learnerAnswersCheck.value);
-          }
-        }
+  try {
+    const response = await fetch(url,
+      {
+        headers: headers,
       });
 
-    } catch (error) {
-      console.error(error);
+    // a successful response should contain the saved question
+    // an error may contain JSON or plain text, depending on where the errror occurred
+    if (response.status === 200) {
+      try {
+        // update the question with the full details
+        const question = <Question>await response.json();
+        questionMarkdown.value = question;
+        console.log("Full question received", questionMarkdown.value);
+
+        // reset the user selection because the answers got rearranged with the correct ones at the top
+        learnerAnswersCheck.value = [];
+        question.answers.forEach((answer, index) => {
+          if (answer.sel) {
+            if (question.correct == 1) {
+              learnerAnswerRadio.value = index.toString();
+              console.log("learnerAnswerRadio", learnerAnswerRadio.value);
+            } else {
+              learnerAnswersCheck.value.push(index.toString());
+              console.log("learnerAnswersCheck", learnerAnswersCheck.value);
+            }
+          }
+        });
+
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      console.error("Failed to submit answers: ", response.status);
     }
-  } else {
-    console.error("Failed to save the question: ", response.status);
+  } catch (error) {
+    console.error("Failed to submit answers.");
+    console.error(error);
   }
 }
 

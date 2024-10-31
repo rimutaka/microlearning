@@ -9,6 +9,8 @@ export const URL_PARAM_TOPIC = "topic"
 export const URL_PARAM_TOPICS = "topics"
 /// E.g. .../q?topic=foo&qid=bar
 export const URL_PARAM_QID = "qid"
+/// E.g. .../q?topic=foo&qid=bar&answers=0.1
+export const URL_PARAM_ANSWERS = "answers"
 /// A character used to separate values within the same param value,
 /// e.g. .../q?topics=foo.bar
 export const URL_PARAM_LIST_SEPARATOR = "."

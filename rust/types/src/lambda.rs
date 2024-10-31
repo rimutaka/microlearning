@@ -2,6 +2,7 @@ use aws_lambda_events::{
     http::{HeaderMap, HeaderValue},
     lambda_function_urls::LambdaFunctionUrlResponse,
 };
+use crate::jwt;
 use lambda_runtime::Error;
 use serde::Serialize;
 use tracing::info;
@@ -57,4 +58,27 @@ pub fn json_response<T: Serialize>(body: Option<&T>, status: i64) -> Result<Lamb
         body,
         is_base64_encoded: false,
     })
+}
+
+/// Returns an email from the token if the token is valid, normalized to lower case.
+/// Returns None in any other case.
+pub fn get_email_from_token(headers: &HeaderMap) -> Option<String> {
+    const TOKEN_HEADER_NAME: &str = "x-bitie-token";
+
+    // get the token from the headers
+    let jwt = match headers.get(TOKEN_HEADER_NAME) {
+        Some(v) => match v.to_str() {
+            Ok(v) => v,
+            Err(e) => {
+                info!("Error converting token to string: {:?}", e);
+                return None;
+            }
+        },
+        None => {
+            info!("Missing {TOKEN_HEADER_NAME} header");
+            return None;
+        }
+    };
+
+    jwt::get_email_from_token(jwt)
 }

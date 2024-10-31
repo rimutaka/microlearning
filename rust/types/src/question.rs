@@ -1,9 +1,9 @@
+use crate::topic::Topic;
 use anyhow::{Error, Result};
 use pulldown_cmark::{html::push_html, Parser};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use tracing::error;
-use crate::topic::Topic;
 
 /// The possible formats for the question response.
 /// The value is taken from the `QUESTION_FORMAT_HEADER_NAME` header.
@@ -14,25 +14,13 @@ pub enum QuestionFormat {
     /// Return the full question in HTML format for rendering with explanations.
     /// Learner answers are enclosed in the Vec<u8>.
     /// This is only valid in the context of a learner answering the question.
-    HtmlFull(Option<Vec<u8>>),
+    HtmlFull(Option<Vec<usize>>),
     /// Return the short question in HTML format for the user to answer.
     HtmlShort,
 }
 
-// impl FromStr for QuestionFormat {
-//     type Err = ();
-
-//     fn from_str(s: &str) -> Result<Self, Self::Err> {
-//         match s {
-//             "markdown_full" => Ok(QuestionFormat::MarkdownFull),
-//             "html_full" => Ok(QuestionFormat::HtmlFull),
-//             _ => Ok(QuestionFormat::HtmlShort),
-//         }
-//     }
-// }
-
 /// A question with multiple answers.
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Answer {
     /// The short answer that in Markdown format that appears as an option
@@ -52,7 +40,7 @@ pub struct Answer {
 }
 
 /// A question with multiple answers.
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Question {
     /// Base-58 encoded UUID4
@@ -78,7 +66,7 @@ impl Question {
     /// Converts markdown members (question, answers) to HTML.
     /// Supports CommonMark only.
     /// See https://crates.io/crates/pulldown-cmark for more information.
-    fn into_html(self, learner_answers: Option<Vec<u8>>) -> Self {
+    fn into_html(self, learner_answers: Option<Vec<usize>>) -> Self {
         // the parser can have Options for extended MD support, but they don't seem to be needed
 
         // convert the question to HTML
@@ -119,7 +107,7 @@ impl Question {
                 let mut answered = Vec::with_capacity(self.correct as usize);
                 let mut unanswered = Vec::with_capacity(answers_as_html.len() - self.correct as usize);
                 for (idx, answer) in answers_as_html.into_iter().enumerate() {
-                    if v.contains(&(idx as u8)) {
+                    if v.contains(&idx) {
                         answered.push(Answer {
                             sel: Some(true),
                             ..answer
@@ -185,8 +173,31 @@ impl Question {
             }
         }
     }
+
+    /// Returns True if the the list of answers matches the correct answers in the question.
+    /// Returns False if the list cannot be converted into numbers or there is a mismatch.
+    pub fn is_correct(&self, answers: &[usize]) -> bool {
+        // is it the right number of answers?
+        if self.correct as usize != answers.len() {
+            return false;
+        }
+
+        // loop thru the answers and check if they are correct
+        for (idx, a) in self.answers.iter().enumerate() {
+            if a.c.unwrap_or_default() && !answers.contains(&idx) {
+                return false;
+            }
+        }
+
+        // the number of answers matches the number of correct answers
+        // and all correct answers are in the list, so it must be correct
+        true
+    }
 }
 
+/// Converts a JSON string to a Question struct with validation:
+/// - qid is a valid UUID4 in Base58 encoding or a new random one is generated
+/// - topic is present in the TOPICS list
 impl FromStr for Question {
     type Err = anyhow::Error;
 
@@ -224,5 +235,120 @@ impl FromStr for Question {
             correct,
             ..q
         })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_question_is_correct_1() {
+        let q = Question {
+            qid: "1".to_string(),
+            topic: "math".to_string(),
+            question: "What is 1+1?".to_string(),
+            answers: vec![
+                Answer {
+                    a: "1".to_string(),
+                    e: None,
+                    c: Some(false),
+                    sel: None,
+                },
+                Answer {
+                    a: "2".to_string(),
+                    e: None,
+                    c: Some(true),
+                    sel: None,
+                },
+                Answer {
+                    a: "3".to_string(),
+                    e: None,
+                    c: Some(false),
+                    sel: None,
+                },
+            ],
+            correct: 1,
+        };
+
+        assert!(q.is_correct(&[1]), "correct");
+        assert!(!q.is_correct(&[0]), "incorrect");
+        assert!(!q.is_correct(&[1, 2]), "too many");
+        assert!(!q.is_correct(&[1, 2, 3, 4, 5]), "way too many");
+        assert!(!q.is_correct(&[]), "empty");
+    }
+
+    #[test]
+    fn test_question_is_correct_2() {
+        let q = Question {
+            qid: "1".to_string(),
+            topic: "math".to_string(),
+            question: "What is red?".to_string(),
+            answers: vec![
+                Answer {
+                    a: "tomato".to_string(),
+                    e: None,
+                    c: Some(true),
+                    sel: None,
+                },
+                Answer {
+                    a: "2".to_string(),
+                    e: None,
+                    c: Some(false),
+                    sel: None,
+                },
+                Answer {
+                    a: "cherry".to_string(),
+                    e: None,
+                    c: Some(true),
+                    sel: None,
+                },
+            ],
+            correct: 2,
+        };
+
+        assert!(q.is_correct(&[0, 2]), "correct");
+        assert!(!q.is_correct(&[1, 2]), "incorrect");
+        assert!(!q.is_correct(&[0]), "not enough");
+        assert!(!q.is_correct(&[1, 5]), "out of bound");
+        assert!(!q.is_correct(&[1, 2, 3]), "too many");
+        assert!(!q.is_correct(&[1, 2, 3, 4, 5]), "way too many");
+        assert!(!q.is_correct(&[]), "empty");
+    }
+
+    #[test]
+    fn test_question_to_from_str() {
+        let q = Question {
+            qid: "89yZBXJBa9t2LB6xfj46Rm".to_string(),
+            topic: "aws".to_string(),
+            question: "What is 1+1?".to_string(),
+            answers: vec![
+                Answer {
+                    a: "1".to_string(),
+                    e: None,
+                    c: Some(false),
+                    sel: None,
+                },
+                Answer {
+                    a: "2".to_string(),
+                    e: None,
+                    c: Some(true),
+                    sel: None,
+                },
+                Answer {
+                    a: "3".to_string(),
+                    e: None,
+                    c: Some(false),
+                    sel: None,
+                },
+            ],
+            correct: 1,
+        };
+
+        let s = serde_json::to_string(&q).unwrap();
+        println!("{}", s);
+        let q2 = Question::from_str(&s).unwrap();
+
+        assert_eq!(q, q2);
     }
 }
