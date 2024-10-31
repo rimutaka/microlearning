@@ -1,6 +1,6 @@
 <template>
   <TransitionSlot>
-    <SubscriptionPitch v-if="formHydrated && !user" />
+    <SubscriptionPitch v-if="formHydrated && (!user || !user?.topics.length)" />
   </TransitionSlot>
   <SubscriptionForm @hydrated="formHydrated = true" />
   <TransitionSlot>
