@@ -4,7 +4,7 @@ use aws_sdk_dynamodb::{
     Client,
 };
 use bitie_types::{
-    ddb::{fields, tables},
+    ddb::{fields, tables, DEFAULT_USER_TABLE_SK_VALUE},
     user::User,
 };
 use chrono::{DateTime, Utc};
@@ -38,7 +38,10 @@ pub(crate) async fn update_subscription(email: String, topics: Vec<String>) -> R
         .table_name(tables::USERS)
         .update_expression(UPDATE_EXPRESSION)
         .key(fields::EMAIL, AttributeValue::S(email.clone()))
-        .key(fields::SORT_KEY, AttributeValue::S("sub".to_string()))
+        .key(
+            fields::SORT_KEY,
+            AttributeValue::S(DEFAULT_USER_TABLE_SK_VALUE.to_string()),
+        )
         .expression_attribute_names("#topics", fields::TOPICS)
         .expression_attribute_values([":", fields::TOPICS].concat(), topics)
         .expression_attribute_names("#unsubscribe", fields::UNSUBSCRIBE)
@@ -109,10 +112,7 @@ fn query_output_to_user(
     if let Some(item) = query_output {
         let unsubscribe = match item.get(fields::UNSUBSCRIBE) {
             Some(AttributeValue::S(v)) => v.clone(),
-            _ => {
-                warn!("Invalid user {email}: missing unsubscribe attribute");
-                return Err(Error::msg(INVALID_USER.to_string()));
-            }
+            _ => String::new(),
         };
 
         let topics = match item.get(fields::TOPICS) {
@@ -123,16 +123,13 @@ fn query_output_to_user(
 
         let updated = match item.get(fields::UPDATED) {
             Some(AttributeValue::S(v)) => match DateTime::parse_from_rfc3339(v) {
-                Ok(v) => v.with_timezone(&Utc),
+                Ok(v) => Some(v.with_timezone(&Utc)),
                 Err(e) => {
                     warn!("Invalid updated field: {v},{:?}", e);
                     return Err(Error::msg(INVALID_USER.to_string()));
                 }
             },
-            _ => {
-                warn!("Invalid user {email}: missing unsubscribe attribute");
-                return Err(Error::msg(INVALID_USER.to_string()));
-            }
+            _ => None,
         };
 
         info!("Returning user dets");

@@ -1,12 +1,10 @@
 use aws_lambda_events::{
-    http::header::HeaderMap,
     http::method::Method,
     lambda_function_urls::{LambdaFunctionUrlRequest, LambdaFunctionUrlResponse},
 };
 use bitie_types::{
     ddb::fields,
-    jwt,
-    lambda::{json_response, text_response},
+    lambda::{get_email_from_token, json_response, text_response},
     // question::{Question, QuestionFormat},
     topic::Topic,
 };
@@ -118,27 +116,4 @@ pub(crate) async fn my_handler(
         // unsupported method
         _ => text_response(Some("Unsupported HTTP method".to_string()), 400),
     }
-}
-
-/// Returns an email from the token if the token is valid, normalized to lower case.
-/// Returns None in any other case.
-fn get_email_from_token(headers: &HeaderMap) -> Option<String> {
-    const TOKEN_HEADER_NAME: &str = "x-bitie-token";
-
-    // get the token from the headers
-    let jwt = match headers.get(TOKEN_HEADER_NAME) {
-        Some(v) => match v.to_str() {
-            Ok(v) => v,
-            Err(e) => {
-                info!("Error converting token to string: {:?}", e);
-                return None;
-            }
-        },
-        None => {
-            info!("Missing {TOKEN_HEADER_NAME} header");
-            return None;
-        }
-    };
-
-    jwt::get_email_from_token(jwt)
 }
