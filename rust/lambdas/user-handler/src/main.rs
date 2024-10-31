@@ -4,7 +4,7 @@ use aws_lambda_events::{
 };
 use bitie_types::{
     ddb::fields,
-    lambda::{get_email_from_token, json_response, text_response},
+    lambda,
     // question::{Question, QuestionFormat},
     topic::Topic,
 };
@@ -12,7 +12,6 @@ use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
 use tracing::info;
 use tracing_subscriber::filter::LevelFilter;
 
-// mod photo;
 mod user;
 
 #[tokio::main]
@@ -46,55 +45,28 @@ pub(crate) async fn my_handler(
                 method
             } else {
                 info!("Invalid HTTP method: {v}");
-                return text_response(Some("Invalid HTTP method".to_string()), 400);
+                return lambda::text_response(Some("Invalid HTTP method".to_string()), 400);
             }
         }
         None => {
             info!("Missing HTTP method");
-            return text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
+            return lambda::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
         }
     };
     info!("Method: {}", method);
 
     // can only proceed if the user is authenticated with an email
-    let email = match get_email_from_token(&event.payload.headers) {
+    let email = match lambda::get_email_from_token(&event.payload.headers) {
         Some(v) => v,
         None => {
             info!("Returning Unauthorized");
-            return text_response(Some("Unauthorized".to_string()), 401);
+            return lambda::text_response(Some("Unauthorized".to_string()), 401);
         }
     };
 
     // topics param is optional
-    let topics = match event.payload.query_string_parameters.get(fields::TOPICS) {
-        // ?topic= is present, but is empty -> unsubscribe from all topics
-        Some(v) if v.trim().is_empty() => {
-            info!("Empty list of topics in the query string");
-            Some(Vec::new())
-        }
-        Some(v) => {
-            let topics = v
-                .trim()
-                .to_lowercase()
-                .split('.')
-                .filter_map(|t| {
-                    let t = t.trim();
-                    if t.is_empty() {
-                        None
-                    } else {
-                        Some(t.to_string())
-                    }
-                })
-                .collect::<Vec<String>>();
-            info!("Found topics in the query string");
-            Some(Topic::filter_valid_topics(topics))
-        }
-
-        None => {
-            info!("No topics param in the query string");
-            None
-        }
-    };
+    let topics = lambda::url_list_to_vec(event.payload.query_string_parameters.get(fields::TOPICS))
+        .map(Topic::filter_valid_topics);
 
     //decide on the action depending on the HTTP method
     match method {
@@ -107,13 +79,13 @@ pub(crate) async fn my_handler(
 
             // return the right response
             match user {
-                Ok(Some(v)) => json_response(Some(&v), 200),
-                Ok(None) => text_response(Some("User not found".to_owned()), 404),
-                Err(e) => text_response(Some(e.to_string()), 400),
+                Ok(Some(v)) => lambda::json_response(Some(&v), 200),
+                Ok(None) => lambda::text_response(Some("User not found".to_owned()), 404),
+                Err(e) => lambda::text_response(Some(e.to_string()), 400),
             }
         }
 
         // unsupported method
-        _ => text_response(Some("Unsupported HTTP method".to_string()), 400),
+        _ => lambda::text_response(Some("Unsupported HTTP method".to_string()), 400),
     }
 }

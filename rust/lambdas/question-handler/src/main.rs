@@ -5,7 +5,7 @@ use aws_lambda_events::{
 };
 use bitie_types::{
     ddb::fields,
-    lambda::{get_email_from_token, json_response, text_response},
+    lambda,
     question::{Question, QuestionFormat},
 };
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
@@ -47,44 +47,21 @@ pub(crate) async fn my_handler(
                 method
             } else {
                 info!("Invalid HTTP method: {v}");
-                return text_response(Some("Invalid HTTP method".to_string()), 400);
+                return lambda::text_response(Some("Invalid HTTP method".to_string()), 400);
             }
         }
         None => {
             info!("Missing HTTP method");
-            return text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
+            return lambda::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
         }
     };
     info!("Method: {}", method);
 
     // the user may be authenticated with an email inside the token
-    let email = get_email_from_token(&event.payload.headers);
+    let email = lambda::get_email_from_token(&event.payload.headers);
     // topics param is optional
-    let answers = match event.payload.query_string_parameters.get(fields::ANSWERS) {
-        Some(v) if v.trim().is_empty() => {
-            info!("Empty list of answers in the query string");
-            Some(Vec::new())
-        }
-        Some(v) => {
-            let answers = v
-                .trim()
-                .to_lowercase()
-                .split('.')
-                .filter_map(|t| {
-                    let t = t.trim();
-                    if t.is_empty() {
-                        None
-                    } else {
-                        Some(t.to_string())
-                    }
-                })
-                .collect::<Vec<String>>();
-            // convert the list of answers to a Vec<u8>
-            let answers = answers.iter().filter_map(|v| v.parse::<usize>().ok()).collect();
-            info!("Found answers in the query string");
-            Some(answers)
-        }
-
+    let answers = match lambda::url_list_to_vec(event.payload.query_string_parameters.get(fields::ANSWERS)) {
+        Some(v) => Some(v.iter().filter_map(|v| v.parse::<usize>().ok()).collect()),
         None => {
             info!("No answers param in the query string");
             None
@@ -99,7 +76,7 @@ pub(crate) async fn my_handler(
                 Some(v) if !v.trim().is_empty() => v.trim().to_lowercase(),
                 _ => {
                     info!("No topic found in the query string");
-                    return text_response(Some("No topic found in the query string".to_string()), 400);
+                    return lambda::text_response(Some("No topic found in the query string".to_string()), 400);
                 }
             };
 
@@ -108,7 +85,7 @@ pub(crate) async fn my_handler(
                 Some(qid) if !qid.is_empty() => {
                     let question = match question::get_exact(&topic, qid).await {
                         Ok(v) => v,
-                        Err(e) => return text_response(Some(e.to_string()), 400),
+                        Err(e) => return lambda::text_response(Some(e.to_string()), 400),
                     };
 
                     // update the answers if they are present and the user is logged in
@@ -132,11 +109,11 @@ pub(crate) async fn my_handler(
                         QuestionFormat::HtmlShort
                     };
 
-                    json_response(Some(&question.format(response_format)), 200)
+                    lambda::json_response(Some(&question.format(response_format)), 200)
                 }
                 _ => match question::get_random(&topic).await {
-                    Ok(v) => json_response(Some(&v.format(QuestionFormat::HtmlShort)), 200),
-                    Err(e) => text_response(Some(e.to_string()), 400),
+                    Ok(v) => lambda::json_response(Some(&v.format(QuestionFormat::HtmlShort)), 200),
+                    Err(e) => lambda::text_response(Some(e.to_string()), 400),
                 },
             }
         }
@@ -144,25 +121,25 @@ pub(crate) async fn my_handler(
         Method::PUT => {
             // all put events must be authorized
             if !is_valid_token(&event.payload.headers) {
-                return text_response(Some("Unauthorized".to_string()), 401);
+                return lambda::text_response(Some("Unauthorized".to_string()), 401);
             }
 
             let body = match event.payload.body {
                 Some(v) => v,
                 None => {
                     info!("Missing body");
-                    return text_response(Some("Missing body".to_string()), 400);
+                    return lambda::text_response(Some("Missing body".to_string()), 400);
                 }
             };
 
             let q = match Question::from_str(&body) {
                 Ok(v) => v,
-                Err(_) => return text_response(Some("Invalid question".to_string()), 400),
+                Err(_) => return lambda::text_response(Some("Invalid question".to_string()), 400),
             };
 
             match question::save(&q).await {
-                Ok(_) => json_response(Some(&q.format(QuestionFormat::MarkdownFull)), 200),
-                Err(e) => text_response(Some(e.to_string()), 400),
+                Ok(_) => lambda::json_response(Some(&q.format(QuestionFormat::MarkdownFull)), 200),
+                Err(e) => lambda::text_response(Some(e.to_string()), 400),
             }
         }
 
@@ -211,7 +188,7 @@ pub(crate) async fn my_handler(
         // }
 
         // unsupported method
-        _ => text_response(Some("Unsupported HTTP method".to_string()), 400),
+        _ => lambda::text_response(Some("Unsupported HTTP method".to_string()), 400),
     }
 }
 

@@ -1,8 +1,8 @@
+use crate::jwt;
 use aws_lambda_events::{
     http::{HeaderMap, HeaderValue},
     lambda_function_urls::LambdaFunctionUrlResponse,
 };
-use crate::jwt;
 use lambda_runtime::Error;
 use serde::Serialize;
 use tracing::info;
@@ -81,4 +81,38 @@ pub fn get_email_from_token(headers: &HeaderMap) -> Option<String> {
     };
 
     jwt::get_email_from_token(jwt)
+}
+
+/// Converts a .-separated list of values in a URL to a Vec<String>.
+/// E.g. for "?topics=a.b.c" it is "a.b.c" -> ["a", "b", "c"]
+pub fn url_list_to_vec(url_list: Option<&String>) -> Option<Vec<String>> {
+    match url_list {
+        Some(v) if v.trim().is_empty() => {
+            info!("URL list is empty");
+            Some(Vec::new())
+        }
+        Some(v) => {
+            let values = v
+                .trim()
+                .to_lowercase()
+                .split('.')
+                .filter_map(|t| {
+                    let t = t.trim();
+                    if t.is_empty() {
+                        None
+                    } else {
+                        Some(t.to_string())
+                    }
+                })
+                .collect::<Vec<String>>();
+            // convert the list of answers to a Vec<u8>
+            info!("URL list len: {}", values.len());
+            Some(values)
+        }
+
+        None => {
+            info!("No answers param in the query string");
+            None
+        }
+    }
 }
