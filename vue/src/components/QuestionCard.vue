@@ -151,7 +151,7 @@ async function submitQuestion() {
   // const bodyHash = toHex(await hash.digest());
 
   const url = `${QUESTION_HANDLER_URL}${URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${URL_PARAM_QID}=${questionMarkdown.value?.qid}&${URL_PARAM_ANSWERS}=${answers}`;
-  // add a toke with the email, if there is one (logged in users)
+  // add a token with the email, if there is one (logged in users)
   const headers = new Headers();
   if (token.value) headers.append(TOKEN_HEADER_NAME, token.value);
 
@@ -206,7 +206,12 @@ watchEffect(async () => {
   // only fetch if topic is set
   if (!props.topic) return;
 
+  // make sure nothing is showing if the component is reused
   questionMarkdown.value = undefined;
+
+  // add a token with the email, if there is one (logged in users)
+  const headers = new Headers();
+  if (token.value) headers.append(TOKEN_HEADER_NAME, token.value);
 
   try {
 
@@ -215,7 +220,10 @@ watchEffect(async () => {
     const fetchParams = `${URL_PARAM_TOPIC}=${props.topic}`.concat(props.qid ? `&${URL_PARAM_QID}=${props.qid}` : "");
     console.log("fetchParams", fetchParams);
 
-    const response = await fetch(`${QUESTION_HANDLER_URL}${fetchParams}`);
+    const response = await fetch(`${QUESTION_HANDLER_URL}${fetchParams}`,
+      {
+        headers: headers,
+      });
     console.log(`Fetched. Status: ${response.status}`);
 
     // a successful response should contain the saved question

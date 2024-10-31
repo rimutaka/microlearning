@@ -88,7 +88,7 @@ pub fn get_email_from_token(headers: &HeaderMap) -> Option<String> {
 pub fn url_list_to_vec(url_list: Option<&String>) -> Option<Vec<String>> {
     match url_list {
         Some(v) if v.trim().is_empty() => {
-            info!("URL list is empty");
+            // info!("URL list is empty");
             Some(Vec::new())
         }
         Some(v) => {
@@ -106,13 +106,35 @@ pub fn url_list_to_vec(url_list: Option<&String>) -> Option<Vec<String>> {
                 })
                 .collect::<Vec<String>>();
             // convert the list of answers to a Vec<u8>
-            info!("URL list len: {}", values.len());
+            // info!("URL list len: {}", values.len());
             Some(values)
         }
 
         None => {
-            info!("No answers param in the query string");
+            // info!("No answers param in the query string");
             None
         }
     }
+}
+
+#[test]
+fn test_url_list_to_vec() {
+    assert_eq!(url_list_to_vec(None), None);
+    assert_eq!(url_list_to_vec(Some(&"".to_string())), Some(Vec::new()));
+    assert_eq!(
+        url_list_to_vec(Some(&"a".to_string())),
+        Some(vec!["a"].into_iter().map(|v| v.to_string()).collect())
+    );
+    assert_eq!(
+        url_list_to_vec(Some(&"a.b.c".to_string())),
+        Some(vec!["a", "b", "c"].into_iter().map(|v| v.to_string()).collect())
+    );
+    assert_eq!(
+        url_list_to_vec(Some(&"a.b.c...".to_string())),
+        Some(vec!["a", "b", "c"].into_iter().map(|v| v.to_string()).collect())
+    );
+    assert_eq!(
+        url_list_to_vec(Some(&"a.b.c..d".to_string())),
+        Some(vec!["a", "b", "c", "d"].into_iter().map(|v| v.to_string()).collect())
+    );
 }

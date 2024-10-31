@@ -81,41 +81,30 @@ pub(crate) async fn my_handler(
             };
 
             // get the question from the DB
-            match event.payload.query_string_parameters.get(fields::QID) {
-                Some(qid) if !qid.is_empty() => {
-                    let question = match question::get_exact(&topic, qid).await {
-                        Ok(v) => v,
-                        Err(e) => return lambda::text_response(Some(e.to_string()), 400),
-                    };
+            let question = match event.payload.query_string_parameters.get(fields::QID) {
+                Some(qid) if !qid.is_empty() => question::get_exact(&topic, qid).await,
 
-                    // update the answers if they are present and the user is logged in
-                    let response_format = if email.is_none() && answers.is_some() {
-                        // the user is not logged in, but the answers are present
-                        info!("Answers found, no email - full HTML");
-                        QuestionFormat::HtmlFull(answers)
-                    } else if let (Some(email), Some(answers)) = (&email, answers) {
-                        // there is nothing we can do if the call failed - we have to return the full question
-                        // any errors are logged inside the function
-                        user::update_answers(email, &question, &answers).await;
-                        QuestionFormat::HtmlFull(Some(answers))
-                    // } else if is_valid_token(&event.payload.headers) {
-                    //     // this is a hack to log the admin in for question editing
-                    //     // the caller will include the token only if markdown is requested
-                    //     info!("Token found - full markdown");
-                    //     QuestionFormat::MarkdownFull
-                    } else {
-                        // initial question display
-                        info!("No answers or email - short HTML");
-                        QuestionFormat::HtmlShort
-                    };
+                _ => question::get_random(&topic).await,
+            };
 
-                    lambda::json_response(Some(&question.format(response_format)), 200)
-                }
-                _ => match question::get_random(&topic).await {
-                    Ok(v) => lambda::json_response(Some(&v.format(QuestionFormat::HtmlShort)), 200),
-                    Err(e) => lambda::text_response(Some(e.to_string()), 400),
-                },
+            let question = match question {
+                Ok(v) => v,
+                Err(e) => return lambda::text_response(Some(e.to_string()), 400),
+            };
+
+            // update the user answers if the user is known
+            if let Some(email) = &email {
+                user::update_answers(email, &question, &answers).await;
             }
+
+            // no answers means initial question display and no explanations
+            let response_format = if answers.is_some() {
+                QuestionFormat::HtmlFull(answers.clone())
+            } else {
+                QuestionFormat::HtmlShort
+            };
+
+            lambda::json_response(Some(&question.format(response_format)), 200)
         }
 
         Method::PUT => {
