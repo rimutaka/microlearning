@@ -309,10 +309,41 @@ watch([selectedTopic, questionText, answers.value], () => {
   }
 });
 
+/// Loads all local variables with the question data, if present.
+/// Otherwise resets the local values to their initial state to create a new question.
+function loadOrResetQuestion(question: Question | undefined) {
+
+  if (!question) {
+    answersDebounced.value.length = 0;
+    questionTextDebounced.value = "";
+    selectedTopic.value = "";
+    questionText.value = "";
+    answers.value.length = 0;
+    return;
+  }
+
+  // set debounced values before the main values to avoid triggering out of index errors
+  // in the template
+  answersDebounced.value = JSON.parse(JSON.stringify(question.answers));
+  questionTextDebounced.value = question.question;
+
+  // copy DDB values to the form models
+  selectedTopic.value = question.topic;
+  questionText.value = question.question;
+
+  // copy the array while maintaining a reference to the original object
+  // https://stackoverflow.com/questions/71353509/why-would-a-vue3-watcher-of-a-prop-not-be-triggered-composition-api
+  answers.value.length = 0;
+  question.answers.forEach((answer: Answer) => {
+    answers.value.push(answer);
+  });
+}
+
 watchEffect(async () => {
   // if no topic/qid is set, this is a new question
   if (!(props.topic && props.qid)) {
     console.log("Adding a new question");
+    loadOrResetQuestion(undefined);
     return;
   }
 
@@ -342,21 +373,7 @@ watchEffect(async () => {
         const question = <Question>await response.json();
         // console.log(question);
 
-        // set debounced values before the main values to avoid triggering out of index errors
-        // in the template
-        answersDebounced.value = JSON.parse(JSON.stringify(question.answers));
-        questionTextDebounced.value = question.question;
-
-        // copy DDB values to the form models
-        selectedTopic.value = question.topic;
-        questionText.value = question.question;
-
-        // copy the array while maintaining a reference to the original object
-        // https://stackoverflow.com/questions/71353509/why-would-a-vue3-watcher-of-a-prop-not-be-triggered-composition-api
-        answers.value.length = 0;
-        question.answers.forEach((answer: Answer) => {
-          answers.value.push(answer);
-        });
+        loadOrResetQuestion(question);
 
       } catch (error) {
         console.error(error);
