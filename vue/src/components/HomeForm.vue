@@ -17,7 +17,7 @@
       </div>
     </div>
     <TransitionSlot>
-      <SampleQuestion v-if="currentTopic" :topic="currentTopic" :nonce="nonce" />
+      <SampleQuestion v-if="currentTopic" :topic="currentTopic" :nonce="currentTopicKey" />
     </TransitionSlot>
   </div>
 </template>
@@ -38,8 +38,7 @@ import SampleQuestion from "./SampleQuestion.vue";
 import RandomQuestionButton from './RandomQuestionButton.vue';
 
 const store = useMainStore();
-const { selectedTopics, currentTopic } = storeToRefs(store);
-const nonce = ref<string | undefined>(undefined); // needed to force re-render of SampleQuestion for the same topic
+const { selectedTopics, currentTopic, currentTopicKey } = storeToRefs(store);
 
 async function navigateToSubscription() {
   console.log("Subscribing to topics: ", selectedTopics.value);

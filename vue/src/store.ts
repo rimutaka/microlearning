@@ -44,7 +44,7 @@ export const useMainStore = defineStore('main', () => {
     } else {
       currentTopic.value = TOPICS[Math.floor(Math.random() * TOPICS.length)].id;
     }
-    currentTopicKey.value = Math.random().toString(36); // e.g. 0.cbm9x4v2kyi
+    currentTopicKey.value = Date.now().toString(36); // e.g. 0.cbm9x4v2kyi
   }
 
   const reset = () => {
