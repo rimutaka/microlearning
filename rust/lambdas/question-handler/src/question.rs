@@ -131,6 +131,14 @@ async fn get_question(
                         }
                     };
 
+                    let author = match item.get(fields::AUTHOR) {
+                        Some(AttributeValue::S(v)) => Some(v.clone()),
+                        _ => {
+                            warn!("Invalid question {topic} / {item_qid}: missing author attribute");
+                            None
+                        }
+                    };
+
                     info!("Returning {topic} / {item_qid}");
                     return Ok(Some(Question {
                         qid: item_qid,
@@ -138,6 +146,7 @@ async fn get_question(
                         question,
                         answers,
                         correct,
+                        author,
                     }));
                 }
                 //
@@ -165,9 +174,18 @@ pub(crate) async fn save(q: &Question) -> Result<(), Error> {
 
     let client = Client::new(&aws_config::load_from_env().await);
 
+    // this field is optional, but must be present for the question to be saved
+    let author = match &q.author {
+        Some(v) => v.clone(),
+        None => {
+            error!("Missing author field. It's a bug.");
+            return Err(Error::msg("Failed to save question".to_string()));
+        }
+    };
+
     // this has to be an update to prevent overwriting photo IDs
     const UPDATE_EXPRESSION: &str =
-        "SET #question = :question, #answers = :answers, #correct = :correct, #updated = :updated";
+        "SET #question = :question, #answers = :answers, #correct = :correct, #author = if_not_exists(#author, :author), #updated = :updated, #details = :details";
 
     match client
         .update_item()
@@ -176,22 +194,18 @@ pub(crate) async fn save(q: &Question) -> Result<(), Error> {
         .key(fields::TOPIC, AttributeValue::S(q.topic.clone()))
         .key(fields::QID, AttributeValue::S(q.qid.clone()))
         .expression_attribute_names("#question", fields::QUESTION)
-        .expression_attribute_values([":", fields::QUESTION].concat(), AttributeValue::S(q.question.clone()))
+        .expression_attribute_values(":question", AttributeValue::S(q.question.clone()))
         .expression_attribute_names("#answers", fields::ANSWERS)
-        .expression_attribute_values(
-            [":", fields::ANSWERS].concat(),
-            AttributeValue::S(q.serialize_answers()?),
-        )
+        .expression_attribute_values(":answers", AttributeValue::S(q.serialize_answers()?))
         .expression_attribute_names("#correct", fields::CORRECT)
-        .expression_attribute_values(
-            [":", fields::CORRECT].concat(),
-            AttributeValue::N(q.correct.to_string()),
-        )
+        .expression_attribute_values(":correct", AttributeValue::N(q.correct.to_string()))
+        .expression_attribute_names("#author", fields::AUTHOR)
+        .expression_attribute_values(":author", AttributeValue::S(author))
         .expression_attribute_names("#updated", fields::UPDATED)
-        .expression_attribute_values(
-            [":", fields::UPDATED].concat(),
-            AttributeValue::S(chrono::Utc::now().to_rfc3339()),
-        )
+        .expression_attribute_values(":updated", AttributeValue::S(chrono::Utc::now().to_rfc3339()))
+        .expression_attribute_names("#details", fields::DETAILS)
+        .expression_attribute_values(":details", AttributeValue::S(q.to_string()))
+        .condition_expression("#author = :author")// makes the query fail with an error if the author is different
         .send()
         .await
     {

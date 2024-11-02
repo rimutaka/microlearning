@@ -57,6 +57,15 @@
 
 <script setup lang="ts">
 import { ref, watch, watchEffect } from "vue";
+import { storeToRefs } from 'pinia'
+import { useMainStore } from '@/store';
+import { useRouter } from "vue-router";
+import { Sha256 } from '@aws-crypto/sha256-js';
+import { toHex } from "uint8array-tools";
+import debounce from "lodash.debounce"
+
+import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME } from "@/constants";
+import type { Answer, Question } from "@/constants";
 
 import Button from 'primevue/button';
 import RadioButton from 'primevue/radiobutton';
@@ -64,20 +73,14 @@ import Textarea from 'primevue/textarea';
 import Popover from "primevue/popover";
 import QuestionFieldMarkdown from "./QuestionFieldMarkdown.vue";
 
-import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME } from "@/constants";
-
-import type { Answer, Question } from "@/constants";
-import { useRouter } from "vue-router";
-import { Sha256 } from '@aws-crypto/sha256-js';
-import { toHex } from "uint8array-tools";
-import debounce from "lodash.debounce"
-
 const props = defineProps<{
   topic: string | undefined,
   qid?: string | undefined,
 }>()
 
 const router = useRouter();
+const store = useMainStore();
+const { token } = storeToRefs(store);
 
 const topics = ref(TOPICS);
 const selectedTopic = ref(""); // the topic of the question from TOPICS
@@ -215,9 +218,8 @@ function formattingKeypress(event: KeyboardEvent) {
 
 async function submitQuestion() {
 
-  // this is a temporary hack to limit who can update DDB
-  let token = localStorage.getItem(TOKEN_HEADER_NAME);
-  if (!token) {
+  if (!token.value) {
+    // unlikely to get here because there is a page guard in the router
     console.log("No token found. Redirecting to homepage.");
     router.push("/");
     return;
@@ -244,7 +246,7 @@ async function submitQuestion() {
     body: submissionQuestion,
     headers: {
       "x-amz-content-sha256": bodyHash,
-      [TOKEN_HEADER_NAME]: token,
+      [TOKEN_HEADER_NAME]: token.value,
     },
   });
 
@@ -308,16 +310,7 @@ watch([selectedTopic, questionText, answers.value], () => {
 });
 
 watchEffect(async () => {
-
-  // this is a temporary hack to limit who can update DDB
-  let token = localStorage.getItem(TOKEN_HEADER_NAME);
-  if (!token) {
-    console.log("No token found. Redirecting to homepage.");
-    router.push("/");
-    return;
-  }
-
-  // if no topic is set, this is a new question
+  // if no topic/qid is set, this is a new question
   if (!(props.topic && props.qid)) {
     console.log("Adding a new question");
     return;
@@ -325,21 +318,28 @@ watchEffect(async () => {
 
   // fetching an existing question for editing
   console.log(`Fetching question for ${props.topic}/${props.qid}`);
+  if (!token.value) {
+    console.log("No token found. Redirecting to homepage.");
+    router.push("/");
+    return;
+  }
 
   try {
     const response = await fetch(`${QUESTION_HANDLER_URL}${URL_PARAM_TOPIC}=${props.topic}&${URL_PARAM_QID}=${props.qid}`, {
-      method: "GET",
+      method: "PUT",
       headers: {
-        [TOKEN_HEADER_NAME]: token,
-      }
+        "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", // empty body hash
+        [TOKEN_HEADER_NAME]: token.value,
+      },
     });
+
 
     // a successful response should contain the saved question
     // an error may contain JSON or plain text, depending on where the errror occurred
     if (response.status === 200) {
       try {
-        const question = <Question>await response.json();
         console.log(`Fetched. Status: ${response.status}`);
+        const question = <Question>await response.json();
         // console.log(question);
 
         // set debounced values before the main values to avoid triggering out of index errors

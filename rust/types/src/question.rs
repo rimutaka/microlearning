@@ -2,6 +2,7 @@ use crate::topic::Topic;
 use anyhow::{Error, Result};
 use pulldown_cmark::{html::push_html, Parser};
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 use std::str::FromStr;
 use tracing::error;
 
@@ -60,6 +61,14 @@ pub struct Question {
     /// Calculated from the `answers` attribute inside `from_str()`.
     #[serde(default)]
     pub correct: u8,
+    /// A hash of the email of the user who created the question.
+    /// The value is set at the server side.
+    /// User-submitted data is ignored.
+    /// 
+    /// The values are hex-encoded to make it easier to generate a matching value in JS.
+    /// E.g. 0e3bf888c95b085a7172b2e819692bb5b46c26ad067f9405c8ba1dd950732b65
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub author: Option<String>,
 }
 
 impl Question {
@@ -160,6 +169,15 @@ impl Question {
         bs58::encode(uuid::Uuid::new_v4().as_bytes()).into_string()
     }
 
+    /// Sets the author field.
+    /// e.g. 0e3bf888c95b085a7172b2e819692bb5b46c26ad067f9405c8ba1dd950732b65
+    pub fn with_author(self, email_hash: &str) -> Self {
+        Question {
+            author: Some(email_hash.to_string()),
+            ..self
+        }
+    }
+
     /// Serializes `answers` attribute to a JSON string.
     pub fn serialize_answers(&self) -> Result<String> {
         match serde_json::to_string(&self.answers) {
@@ -238,6 +256,20 @@ impl FromStr for Question {
     }
 }
 
+impl Display for Question {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let contents = match serde_json::to_string(self) {
+            Ok(v) => v,
+            Err(e) => {
+                error!("Cannot serialize question: {:?}, error: {:?}", self, e);
+                return write!(f, "Cannot serialize question");
+            }
+        };
+
+        write!(f, "{}", contents)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -269,6 +301,7 @@ mod test {
                 },
             ],
             correct: 1,
+            author: Some("you@me.us".to_string()),
         };
 
         assert!(q.is_correct(&[1]), "correct");
@@ -305,6 +338,7 @@ mod test {
                 },
             ],
             correct: 2,
+            author: Some("you@me.us".to_string()),
         };
 
         assert!(q.is_correct(&[0, 2]), "correct");
@@ -343,9 +377,10 @@ mod test {
                 },
             ],
             correct: 1,
+            author: Some("you@me.us".to_string()),
         };
 
-        let s = serde_json::to_string(&q).unwrap();
+        let s = q.to_string();
         println!("{}", s);
         let q2 = Question::from_str(&s).unwrap();
 

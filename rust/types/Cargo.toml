@@ -18,3 +18,5 @@ uuid = { workspace = true }
 pulldown-cmark = "0.12.1"
 anyhow = { workspace = true }
 jsonwebtoken = "9.3.0"
+sha2 = { workspace = true }
+hex = { workspace = true }

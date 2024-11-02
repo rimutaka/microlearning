@@ -1,5 +1,6 @@
 use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
 use serde::Deserialize;
+use sha2::{Digest, Sha256};
 use tracing::info;
 
 // these N and E values are exracted manually from JWK found at https://dev-lbpjc402mmk4uxbs.us.auth0.com/.well-known/jwks.json
@@ -15,10 +16,18 @@ struct Claims {
     email_verified: bool,
 }
 
-/// Returns the user email in lower case from the given JWT token, if the token is valid,
-/// otherwise returns None.
+/// Details extracted from the JWT token.
+pub struct JwtUser {
+    /// The user email in lower case from the given JWT token
+    pub email: String,
+    /// A hash of the email with a salt for a public user ID
+    pub email_hash: String,
+}
+
+/// Returns user details, if the token is valid :
+/// Otherwise returns None.
 /// All errors are logged inside the function.
-pub fn get_email_from_token(token: &str) -> Option<String> {
+pub fn get_email_from_token(token: &str) -> Option<JwtUser> {
     // do we have a token?
     if token.is_empty() {
         info!("No token provided: empty");
@@ -79,5 +88,14 @@ pub fn get_email_from_token(token: &str) -> Option<String> {
     // emails must be normalized to lower case
     let email = claims.email.to_ascii_lowercase();
 
-    Some(email)
+    // id hashing with the salt
+    // do not change the salt ever without converting the existing user IDs
+    // the salt is not secret
+    // it is used to prevent use of rainbow tables to discover emails
+    let mut hasher = Sha256::new();
+    hasher.update(crate::PUBLIC_SALT);
+    hasher.update(email.clone());
+    let email_hash = hex::encode(hasher.finalize());
+
+    Some(JwtUser { email, email_hash })
 }

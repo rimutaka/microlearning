@@ -56,7 +56,7 @@ pub(crate) async fn my_handler(
     info!("Method: {}", method);
 
     // can only proceed if the user is authenticated with an email
-    let email = match lambda::get_email_from_token(&event.payload.headers) {
+    let jwt_user = match lambda::get_email_from_token(&event.payload.headers) {
         Some(v) => v,
         None => {
             info!("Returning Unauthorized");
@@ -73,8 +73,8 @@ pub(crate) async fn my_handler(
         Method::GET => {
             // get the user or update the user subscription
             let user = match topics {
-                Some(v) => user::update_subscription(email, v).await,
-                None => user::get_user(email).await,
+                Some(v) => user::update_subscription(jwt_user.email, v).await,
+                None => user::get_user(jwt_user.email).await,
             };
 
             // return the right response

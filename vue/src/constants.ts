@@ -69,6 +69,9 @@ export interface Question {
   answers: Array<Answer>,
   /// It is recalculated on the server on submission
   correct: number,
+  /// A hash of the email address of the original author
+  /// The value submitted by the user is ignored
+  readonly author: string | undefined,
 }
 
 /// A mirror of the Rust's type

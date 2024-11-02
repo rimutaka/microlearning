@@ -38,4 +38,6 @@ pub mod fields {
     pub const EMAIL: &str = "email";
     /// A unique unsubscribe token in lower-case
     pub const UNSUBSCRIBE: &str = "unsubscribe";
+    /// The email address of the user who created the question.
+    pub const AUTHOR: &str = "author";
 }

@@ -1,10 +1,10 @@
 use aws_lambda_events::{
-    http::header::HeaderMap,
     http::method::Method,
     lambda_function_urls::{LambdaFunctionUrlRequest, LambdaFunctionUrlResponse},
 };
 use bitie_types::{
     ddb::fields,
+    jwt::JwtUser,
     lambda,
     question::{Question, QuestionFormat},
 };
@@ -58,7 +58,7 @@ pub(crate) async fn my_handler(
     info!("Method: {}", method);
 
     // the user may be authenticated with an email inside the token
-    let email = lambda::get_email_from_token(&event.payload.headers);
+    let jwt_user = lambda::get_email_from_token(&event.payload.headers);
     // topics param is optional
     let answers = match lambda::url_list_to_vec(event.payload.query_string_parameters.get(fields::ANSWERS)) {
         Some(v) => Some(v.iter().filter_map(|v| v.parse::<usize>().ok()).collect()),
@@ -68,11 +68,14 @@ pub(crate) async fn my_handler(
         }
     };
 
+    let topic = event.payload.query_string_parameters.get(fields::TOPIC);
+    let qid = event.payload.query_string_parameters.get(fields::QID);
+
     //decide on the action depending on the HTTP method
     match method {
         Method::GET => {
             // topic param is required for get queries
-            let topic = match event.payload.query_string_parameters.get(fields::TOPIC) {
+            let topic = match topic {
                 Some(v) if !v.trim().is_empty() => v.trim().to_lowercase(),
                 _ => {
                     info!("No topic found in the query string");
@@ -81,7 +84,7 @@ pub(crate) async fn my_handler(
             };
 
             // get the question from the DB
-            let question = match event.payload.query_string_parameters.get(fields::QID) {
+            let question = match qid {
                 Some(qid) if !qid.is_empty() => question::get_exact(&topic, qid).await,
 
                 _ => question::get_random(&topic).await,
@@ -93,8 +96,8 @@ pub(crate) async fn my_handler(
             };
 
             // update the user answers if the user is known
-            if let Some(email) = &email {
-                user::update_answers(email, &question, &answers).await;
+            if let Some(jwt_user) = &jwt_user {
+                user::update_answers(&jwt_user.email, &question, &answers).await;
             }
 
             // no answers means initial question display and no explanations
@@ -108,85 +111,54 @@ pub(crate) async fn my_handler(
         }
 
         Method::PUT => {
-            // all put events must be authorized
-            if !is_valid_token(&event.payload.headers) {
+            // a temporary hack to limit who can post questions
+            if !can_post(&jwt_user) {
                 return lambda::text_response(Some("Unauthorized".to_string()), 401);
             }
 
-            let body = match event.payload.body {
-                Some(v) => v,
-                None => {
-                    info!("Missing body");
-                    return lambda::text_response(Some("Missing body".to_string()), 400);
+            if let Some(jwt_user) = jwt_user {
+                if let Some(body) = event.payload.body {
+                    let q = match Question::from_str(&body) {
+                        Ok(v) => v.with_author(&jwt_user.email_hash),
+                        Err(_) => return lambda::text_response(Some("Invalid question".to_string()), 400),
+                    };
+
+                    match question::save(&q).await {
+                        Ok(_) => lambda::json_response(Some(&q.format(QuestionFormat::MarkdownFull)), 200),
+                        Err(e) => lambda::text_response(Some(e.to_string()), 400),
+                    }
+                } else {
+                    let (topic, qid) = match (topic, qid) {
+                        (Some(topic), Some(qid)) => (topic, qid),
+                        _ => {
+                            info!("Missing topic or qid in the query string: {:?} / {:?}", topic, qid);
+                            return lambda::text_response(
+                                Some("Missing topic or qid in the query string".to_string()),
+                                400,
+                            );
+                        }
+                    };
+                    // return the question in markdown format
+                    match question::get_exact(topic, qid).await {
+                        Ok(v) => lambda::json_response(Some(&v.format(QuestionFormat::MarkdownFull)), 200),
+                        Err(e) => lambda::text_response(Some(e.to_string()), 400),
+                    }
                 }
-            };
-
-            let q = match Question::from_str(&body) {
-                Ok(v) => v,
-                Err(_) => return lambda::text_response(Some("Invalid question".to_string()), 400),
-            };
-
-            match question::save(&q).await {
-                Ok(_) => lambda::json_response(Some(&q.format(QuestionFormat::MarkdownFull)), 200),
-                Err(e) => lambda::text_response(Some(e.to_string()), 400),
+            } else {
+                lambda::text_response(Some("Unauthorized".to_string()), 401)
             }
         }
-
-        // Method::POST => {
-        //     // topic param is required for POST queries
-        //     let topic = match event.payload.query_string_parameters.get(fields::TOPIC) {
-        //         Some(v) if !v.trim().is_empty() => v.trim().to_lowercase(),
-        //         _ => {
-        //             info!("No topic found in the query string");
-        //             return text_response(Some("No topic found in the query string".to_string()), 400);
-        //         }
-        //     };
-
-        //     let qid = match event.payload.query_string_parameters.get(fields::QID) {
-        //         Some(v) if !v.is_empty() => v,
-        //         _ => {
-        //             info!("No qid found in the query string");
-        //             return text_response(Some("No qid found in the query string".to_string()), 400);
-        //         }
-        //     };
-
-        //     // get the list of answers from the body
-        //     let body = match event.payload.body {
-        //         Some(v) => v,
-        //         None => {
-        //             info!("Missing body");
-        //             return text_response(Some("Missing body".to_string()), 400);
-        //         }
-        //     };
-
-        //     // parse them, but we have nowhere to save them yet
-        //     let answers = match serde_json::from_str::<Vec<u8>>(&body) {
-        //         Ok(v) if !v.is_empty() => v,
-        //         _ => {
-        //             info!("Invalid list of answers: {body}");
-        //             return text_response(Some("Invalid list of answers".to_string()), 400);
-        //         }
-        //     };
-        //     info!("Answers: {:?}", answers);
-
-        //     // get the question from the DB and return as HTML with explanations
-        //     match question::get_exact(&topic, qid).await {
-        //         Ok(v) => json_response(Some(&v.format(QuestionFormat::HtmlFull(Some(answers)))), 200),
-        //         Err(e) => text_response(Some(e.to_string()), 400),
-        //     }
-        // }
 
         // unsupported method
         _ => lambda::text_response(Some("Unsupported HTTP method".to_string()), 400),
     }
 }
 
-/// Returns true if the token in the headers matches the token in the environment var.
+/// Returns true if the email from jwt_user matches the token in the environment var.
 /// It is a temporary solution for authenticating DDB update requests.
 /// Logs an error if the token env var is missing.
-fn is_valid_token(headers: &HeaderMap) -> bool {
+fn can_post(jwt_user: &Option<JwtUser>) -> bool {
     const TOKEN_ENV_VAR: &str = "x_bitie_token";
-    const TOKEN_HEADER_NAME: &str = "x-bitie-token";
 
     // get the token from the environment
     let token_env = match std::env::var(TOKEN_ENV_VAR) {
@@ -204,10 +176,10 @@ fn is_valid_token(headers: &HeaderMap) -> bool {
     }
 
     // get the token from the headers and compare
-    match headers.get(TOKEN_HEADER_NAME) {
-        Some(v) => v.to_str().unwrap_or_default() == token_env,
+    match jwt_user {
+        Some(v) => v.email == token_env,
         None => {
-            info!("Missing {TOKEN_HEADER_NAME} header");
+            info!("No email. Cannot allow posting.");
             false
         }
     }

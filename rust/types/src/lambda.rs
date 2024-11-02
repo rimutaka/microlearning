@@ -60,9 +60,10 @@ pub fn json_response<T: Serialize>(body: Option<&T>, status: i64) -> Result<Lamb
     })
 }
 
-/// Returns an email from the token if the token is valid, normalized to lower case.
-/// Returns None in any other case.
-pub fn get_email_from_token(headers: &HeaderMap) -> Option<String> {
+/// Returns user details, if the token is valid :
+/// Otherwise returns None.
+/// All errors are logged inside the function.
+pub fn get_email_from_token(headers: &HeaderMap) -> Option<jwt::JwtUser> {
     const TOKEN_HEADER_NAME: &str = "x-bitie-token";
 
     // get the token from the headers
