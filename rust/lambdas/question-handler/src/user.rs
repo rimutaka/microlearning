@@ -1,6 +1,7 @@
 use aws_sdk_dynamodb::{types::AttributeValue, Client};
 use bitie_types::{
     ddb::{fields, tables, DEFAULT_USER_TABLE_SK_VALUE},
+    jwt::JwtUser,
     question::Question,
     user::{AnswerStatus, AskedQuestion},
 };
@@ -11,8 +12,23 @@ use tracing::{error, info};
 /// List present - check if correct
 /// Blank list - skipped
 /// No list - asked
-pub(crate) async fn update_answers(email: &str, question: &Question, answers: &Option<Vec<usize>>) {
-    info!("Updating user answers: {}", email);
+pub(crate) async fn update_answers(jwt_user: &Option<JwtUser>, question: &Question, answers: &Option<Vec<usize>>) {
+    // do not update answers if the user is the author
+    let email = match &jwt_user {
+        Some(jwt_user) => {
+            if Some(&jwt_user.email_hash) != question.author.as_ref() {
+                info!("Updating user answers: {}", jwt_user.email);
+                jwt_user.email.clone()
+            } else {
+                info!("User is the author - NOT updating user answers");
+                return;
+            }
+        }
+        None => {
+            info!("Unregistered user - NOT updating user answers");
+            return;
+        }
+    };
 
     let client = Client::new(&aws_config::load_from_env().await);
 
