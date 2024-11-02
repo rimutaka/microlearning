@@ -5,7 +5,7 @@
       </div>
 
       <div class="mt-4 card flex-grow md:flex-shrink">
-        <h3 class="text-justify md:text-center text-slate-700">A free subscription to being 1% better every day:</h3>
+        <h3 class="text-justify md:text-center text-slate-700">Your free subscription to being 1% better every day:</h3>
         <ul id="signup-pitch">
           <li><i class="pi pi-question-circle"></i>one question with detailed answers</li>
           <li><i class="pi pi-envelope"></i>emailed daily to <strong>{{ store.email }}</strong> </li>

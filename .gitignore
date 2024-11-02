@@ -34,3 +34,4 @@ Cargo.lock
 bin/
 pkg/
 wasm-pack.log
+deploy-proxy.sh
