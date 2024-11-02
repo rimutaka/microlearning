@@ -60,7 +60,10 @@ const menuItems = ref([
 /// Auth0 login
 function signin() {
   if (!isAuthenticated.value) {
-    loginWithRedirect();
+    console.log("Not authenticated. Will redirect to ", router.currentRoute.value.fullPath);
+    loginWithRedirect({
+      appState: { target: router.currentRoute.value.fullPath }
+    });
   } else {
     console.log("Already authenticated");
   }
