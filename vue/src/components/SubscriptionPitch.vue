@@ -5,12 +5,11 @@
       </div>
 
       <div class="mt-4 card flex-grow md:flex-shrink">
-        <h3 class="text-justify md:text-center text-slate-700">It takes 2 minutes per day if you know the answer or 5 - 10 minutes of reading if you don't.</h3>
+        <h3 class="text-justify md:text-center text-slate-700">A free subscription to being 1% better every day:</h3>
         <ul id="signup-pitch">
-          <li>As a <strong>free subscriber</strong> you get:</li>
-          <li><i class="pi pi-question-circle"></i>one question with detailed answers per email</li>
-          <li><i class="pi pi-envelope"></i>sent daily to <strong>{{ store.email }}</strong> </li>
-          <li><i class="pi pi-pause-circle"></i>paused automatically if you have a backlog</li>
+          <li><i class="pi pi-question-circle"></i>one question with detailed answers</li>
+          <li><i class="pi pi-envelope"></i>emailed daily to <strong>{{ store.email }}</strong> </li>
+          <li><i class="pi pi-pause-circle"></i>auto-paused if you get a backlog of questions</li>
           <li><i class="pi pi-ban"></i>one-click unsubscribe</li>
         </ul>
 
@@ -20,7 +19,7 @@
               <path d="M14.017 18L14.017 10.609C14.017 4.905 17.748 1.039 23 0L23.995 2.151C21.563 3.068 20 5.789 20 8H24V18H14.017ZM0 18V10.609C0 4.905 3.748 1.038 9 0L9.996 2.151C7.563 3.068 6 5.789 6 8H9.983L9.983 18L0 18Z" fill="currentColor" />
             </svg>
             <blockquote>
-              <p class="text-l font-medium text-slate-900">"You will be a better dev if you invest a few minutes per day to learn something new.<br />Speaking from personal experience."</p>
+              <p class="text-l font-medium text-slate-900 max-w-md mx-auto">"I became much more productive after a few weeks of investing 5 minutes per day into learning something new."</p>
             </blockquote>
             <figcaption class="flex items-center justify-center mt-6 space-x-3">
               <img class="hidden sm:block w-6 h-6 rounded-full" src="https://avatars.githubusercontent.com/u/5926028?v=4" alt="profile picture">

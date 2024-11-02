@@ -1,19 +1,18 @@
 <template>
   <div class="mb-8">
-    <h1 class="mb-4 md:mb-12 text-primary w-full">How do you know what you don't know, but probably should?</h1>
+    <h1 class="mb-4 md:mb-8 text-slate-500 w-full">Find and fill gaps in your knowledge,<br/>one question at a time:</h1>
 
     <div class="flex w-full">
       <div class="flex-shrink md:flex-grow">
       </div>
 
-      <div class="card flex-grow md:flex-shrink">
-        <h3 class="text-justify md:text-center text-slate-700">We can help you find and fill gaps in your knowledge, one question at a time:</h3>
+      <div class="card flex-grow md:flex-shrink md:mb-8 text-slate-500">
         <ul id="signup-pitch">
-          <li><i class="pi pi-list-check"></i>hight quality multi-choice questions</li>
-          <li><i class="pi pi-envelope"></i>delivered to your inbox</li>
-          <li><i class="pi pi-info-circle"></i>with <em>bite-sized</em> explanations</li>
-          <li><i class="pi pi-sparkles"></i>to help you become a better dev</li>
-          <li><i class="pi pi-stopwatch"></i>without the massive effort of doing a course</li>
+          <li><h3><i class="pi pi-list-check"></i>high quality multi-choice questions</h3></li>
+          <li><h3><i class="pi pi-envelope"></i>delivered to your inbox</h3></li>
+          <li><h3><i class="pi pi-info-circle"></i>with <em>bite-sized</em> explanations</h3></li>
+          <li><h3><i class="pi pi-sparkles"></i>to help you become a better dev</h3></li>
+          <li><h3><i class="pi pi-stopwatch"></i>without the massive effort of doing a course</h3></li>
         </ul>
       </div>
 
