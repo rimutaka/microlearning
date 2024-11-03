@@ -1,6 +1,7 @@
 use anyhow::Error;
 use aws_sdk_dynamodb::{types::AttributeValue, Client};
 use bitie_types::{ddb::fields, ddb::tables, jwt::JwtUser, question::Question};
+use chrono::Utc;
 use std::str::FromStr;
 use tracing::{error, info, warn};
 
@@ -11,12 +12,13 @@ pub(crate) async fn get_random(topic: &str) -> Result<Question, Error> {
 
     // generate a random question ID to choose the one before that
     let random_qid = Question::generate_random_qid();
+    let comparison_op = if Utc::now().timestamp() % 2 == 0 { "<" } else { ">" };
 
-    match get_question(&client, topic, &random_qid, "<").await {
+    match get_question(&client, topic, &random_qid, comparison_op, 10).await {
         Ok(Some(v)) => Ok(v),
         Ok(None) => {
             // if no question found, try to find the one after the random ID
-            match get_question(&client, topic, &random_qid, ">").await {
+            match get_question(&client, topic, &random_qid, ">", 10).await {
                 Ok(Some(v)) => Ok(v),
                 Ok(None) => {
                     warn!("No questions found for {topic}");
@@ -34,7 +36,7 @@ pub(crate) async fn get_random(topic: &str) -> Result<Question, Error> {
 pub(crate) async fn get_exact(topic: &str, qid: &str) -> Result<Question, Error> {
     let client = Client::new(&aws_config::load_from_env().await);
 
-    match get_question(&client, topic, qid, "=").await {
+    match get_question(&client, topic, qid, "=", 1).await {
         Ok(Some(v)) => Ok(v),
         Ok(None) => {
             warn!("No question found for {topic} / {qid}");
@@ -52,6 +54,7 @@ async fn get_question(
     topic: &str,
     query_qid: &str,
     comparison_op: &str,
+    limit: i32,
 ) -> Result<Option<Question>, Error> {
     info!("Query for {topic} / {query_qid} / {comparison_op}");
 
@@ -67,22 +70,35 @@ async fn get_question(
         .expression_attribute_values(":topic", AttributeValue::S(topic.to_owned()))
         .expression_attribute_names("#qid", fields::QID)
         .expression_attribute_values(":qid", AttributeValue::S(query_qid.to_owned()))
-        .limit(1)
+        .limit(limit)
         .scan_index_forward(ascending)
         .send()
         .await
     {
         Ok(v) => match v.items {
-            // extract a single item from the response - there should be only one
+            // extract a single item from the response
             Some(items) => {
-                // check how many items there are
-                if items.len() > 1 {
-                    // should not happen, but carry on anyway
-                    warn!("Found multiple records for {topic} / {query_qid} / {comparison_op}. Returning one only.");
-                }
+                // decide which item to pick from the returned list if there are multiple
+                let idx = match items.len() {
+                    0 => {
+                        warn!("No items in query response for {topic} / {query_qid} / {comparison_op}");
+                        return Ok(None);
+                    }
+                    1 => 0,
+                    _ => {
+                        // pick a random item
+                        let idx = (Utc::now().timestamp() % items.len() as i64) as usize;
+                        info!(
+                            "Selecting item {}/{} for {topic} / {query_qid} / {comparison_op}.",
+                            idx + 1,
+                            items.len()
+                        );
+                        idx
+                    }
+                };
 
                 // process a single item
-                if let Some(item) = items.into_iter().next() {
+                if let Some(item) = items.into_iter().nth(idx) {
                     let item_qid = match item.get(fields::QID) {
                         Some(AttributeValue::S(v)) => v.clone(),
                         _ => {
