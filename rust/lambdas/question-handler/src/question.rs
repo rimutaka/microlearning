@@ -1,10 +1,7 @@
 use anyhow::Error;
 use aws_sdk_dynamodb::{types::AttributeValue, Client};
-use bitie_types::{
-    ddb::fields,
-    ddb::tables,
-    question::{Answer, Question},
-};
+use bitie_types::{ddb::fields, ddb::tables, question::Question};
+use std::str::FromStr;
 // use chrono::{DateTime, Utc};
 use tracing::{error, info, warn};
 
@@ -95,63 +92,26 @@ async fn get_question(
                         }
                     };
 
-                    let answers = match item.get(fields::ANSWERS) {
-                        Some(AttributeValue::S(v)) => match serde_json::from_str::<Vec<Answer>>(v) {
-                            Ok(v) => v,
+                    match item.get(fields::DETAILS) {
+                        Some(AttributeValue::S(v)) => match Question::from_str(v) {
+                            Ok(v) => {
+                                info!("Returning {topic} / {item_qid}");
+                                Ok(Some(v))
+                            }
                             Err(_) => {
-                                warn!("Invalid question {topic} / {item_qid}: cannot deserialize answers attribute");
-                                return Err(Error::msg("Invalid question in DDB".to_string()));
+                                warn!("Cannot deser details attribute: {topic} / {item_qid}: ");
+                                Err(Error::msg("Invalid question in DDB".to_string()))
                             }
                         },
                         _ => {
-                            warn!("Invalid question {topic} / {item_qid}: missing answers attribute");
-                            return Err(Error::msg("Invalid question in DDB".to_string()));
+                            warn!("Invalid question {topic} / {item_qid}: missing details attribute");
+                            Err(Error::msg("Invalid question in DDB".to_string()))
                         }
-                    };
-
-                    let question = match item.get(fields::QUESTION) {
-                        Some(AttributeValue::S(v)) => v.clone(),
-                        _ => {
-                            warn!("Invalid question {topic} / {item_qid}: missing question attribute");
-                            return Err(Error::msg("Invalid question in DDB".to_string()));
-                        }
-                    };
-
-                    let correct = match item.get(fields::CORRECT) {
-                        Some(AttributeValue::N(v)) => match v.parse::<u8>() {
-                            Ok(v) => v,
-                            Err(_) => {
-                                warn!("Invalid question {topic} / {item_qid}: invalid correct attribute");
-                                return Err(Error::msg("Invalid question in DDB".to_string()));
-                            }
-                        },
-                        _ => {
-                            warn!("Invalid question {topic} / {item_qid}: missing correct attribute");
-                            return Err(Error::msg("Invalid question in DDB".to_string()));
-                        }
-                    };
-
-                    let author = match item.get(fields::AUTHOR) {
-                        Some(AttributeValue::S(v)) => Some(v.clone()),
-                        _ => {
-                            warn!("Invalid question {topic} / {item_qid}: missing author attribute");
-                            None
-                        }
-                    };
-
-                    info!("Returning {topic} / {item_qid}");
-                    return Ok(Some(Question {
-                        qid: item_qid,
-                        topic: topic.to_string(),
-                        question,
-                        answers,
-                        correct,
-                        author,
-                    }));
+                    }
+                } else {
+                    warn!("No items in query response for {topic} / {query_qid} / {comparison_op}");
+                    Ok(None)
                 }
-                //
-                warn!("No items in query response for {topic} / {query_qid} / {comparison_op}");
-                Ok(None)
             }
             None => {
                 warn!("No query response for {topic} / {query_qid} / {comparison_op}");
@@ -185,7 +145,7 @@ pub(crate) async fn save(q: &Question) -> Result<(), Error> {
 
     // this has to be an update to prevent overwriting photo IDs
     const UPDATE_EXPRESSION: &str =
-        "SET #question = :question, #answers = :answers, #correct = :correct, #author = if_not_exists(#author, :author), #updated = :updated, #details = :details";
+        "SET #author = if_not_exists(#author, :author), #updated = :updated, #details = :details";
 
     match client
         .update_item()
@@ -193,19 +153,13 @@ pub(crate) async fn save(q: &Question) -> Result<(), Error> {
         .update_expression(UPDATE_EXPRESSION)
         .key(fields::TOPIC, AttributeValue::S(q.topic.clone()))
         .key(fields::QID, AttributeValue::S(q.qid.clone()))
-        .expression_attribute_names("#question", fields::QUESTION)
-        .expression_attribute_values(":question", AttributeValue::S(q.question.clone()))
-        .expression_attribute_names("#answers", fields::ANSWERS)
-        .expression_attribute_values(":answers", AttributeValue::S(q.serialize_answers()?))
-        .expression_attribute_names("#correct", fields::CORRECT)
-        .expression_attribute_values(":correct", AttributeValue::N(q.correct.to_string()))
         .expression_attribute_names("#author", fields::AUTHOR)
         .expression_attribute_values(":author", AttributeValue::S(author))
         .expression_attribute_names("#updated", fields::UPDATED)
         .expression_attribute_values(":updated", AttributeValue::S(chrono::Utc::now().to_rfc3339()))
         .expression_attribute_names("#details", fields::DETAILS)
         .expression_attribute_values(":details", AttributeValue::S(q.to_string()))
-        .condition_expression("#author = :author OR attribute_not_exists(#author)")// makes the query fail with an error if the author is different
+        .condition_expression("#author = :author OR attribute_not_exists(#author)") // makes the query fail with an error if the author is different
         .send()
         .await
     {
