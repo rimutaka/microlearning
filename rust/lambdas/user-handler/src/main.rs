@@ -9,7 +9,7 @@ use bitie_types::{
     topic::Topic,
 };
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
-use tracing::info;
+use tracing::{error, info};
 use tracing_subscriber::filter::LevelFilter;
 
 mod user;
@@ -73,14 +73,24 @@ pub(crate) async fn my_handler(
         Method::GET => {
             // get the user or update the user subscription
             let user = match topics {
-                Some(v) => user::update_subscription(jwt_user.email, v).await,
-                None => user::get_user(jwt_user.email).await,
+                Some(v) => user::update_subscription(jwt_user.email.clone(), v).await,
+                None => user::get_user(jwt_user.email.clone()).await,
+            };
+
+            // create a new user if it's the first time login
+            let user = match user {
+                Ok(Some(v)) => Ok(Some(v)),
+                Ok(None) => user::create_new(jwt_user.email).await,
+                _ => user,
             };
 
             // return the right response
             match user {
                 Ok(Some(v)) => lambda::json_response(Some(&v), 200),
-                Ok(None) => lambda::text_response(Some("User not found".to_owned()), 404),
+                Ok(None) => {
+                    error!("User not found after it was created");
+                    lambda::text_response(Some("Failed to created a new user".to_owned()), 500)
+                }
                 Err(e) => lambda::text_response(Some(e.to_string()), 400),
             }
         }

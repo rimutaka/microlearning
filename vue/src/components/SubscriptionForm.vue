@@ -187,24 +187,27 @@ watchEffect(async () => {
         user.value = <User>await response.json();
         console.log(user.value);
 
-        // set selected topics to user's topics
-        selectedTopics.value = user.value.topics;
-        loading.value = LoadingStatus.Loaded;
-
+          // set selected topics to user's topics if there is an active subscription
+        if (user.value?.topics?.length) {
+          selectedTopics.value = user.value.topics;
+          loading.value = LoadingStatus.Loaded;
+        }
+        else {
+          // a user may have no topics or the user may have been created just now
+          loading.value = LoadingStatus.NoData;
+          // use query string parameters to preset the selected topics
+          const qsTopics = route.query[URL_PARAM_TOPICS]?.toString();
+          if (qsTopics) {
+            console.log("Setting selected topics from query string: ", qsTopics);
+            selectedTopics.value = qsTopics.split(URL_PARAM_LIST_SEPARATOR);
+          }
+        }
       } catch (error) {
         loading.value = LoadingStatus.Error;
         console.error(error);
       }
     }
-    else if (response.status === 404) {
-      loading.value = LoadingStatus.NoData;
-      // use query string parameters to preset the selected topics
-      const qsTopics = route.query[URL_PARAM_TOPICS]?.toString();
-      if (qsTopics) {
-        console.log("Setting selected topics from query string: ", qsTopics);
-        selectedTopics.value = qsTopics.split(URL_PARAM_LIST_SEPARATOR);
-      }
-    } else {
+    else {
       // only 200 and 404 come from lambda, any other code is an error
       loading.value = LoadingStatus.Error;
       console.error("Failed to get user. Status: ", response.status);

@@ -7,7 +7,7 @@ use bitie_types::{
     ddb::{fields, tables, DEFAULT_USER_TABLE_SK_VALUE},
     user::User,
 };
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, SecondsFormat, Utc};
 use std::collections::HashMap;
 use tracing::{error, info, warn};
 
@@ -49,7 +49,7 @@ pub(crate) async fn update_subscription(email: String, topics: Vec<String>) -> R
         .expression_attribute_names("#updated", fields::UPDATED)
         .expression_attribute_values(
             [":", fields::UPDATED].concat(),
-            AttributeValue::S(Utc::now().to_rfc3339()),
+            AttributeValue::S(Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true)),
         )
         .return_values(ReturnValue::AllNew)
         .send()
@@ -59,6 +59,40 @@ pub(crate) async fn update_subscription(email: String, topics: Vec<String>) -> R
         Err(e) => {
             error!("Failed to save user subs {}: {:?}", email, e);
             Err(Error::msg("Failed to save question".to_string()))
+        }
+    }
+}
+
+pub(crate) async fn create_new(email: String) -> Result<Option<User>, Error> {
+    info!("Creating new user: {}", email);
+
+    let client = Client::new(&aws_config::load_from_env().await);
+
+    // this has to be an update to prevent overwriting photo IDs
+    const UPDATE_EXPRESSION: &str = "SET #updated = :updated";
+
+    match client
+        .update_item()
+        .table_name(tables::USERS)
+        .update_expression(UPDATE_EXPRESSION)
+        .key(fields::EMAIL, AttributeValue::S(email.clone()))
+        .key(
+            fields::SORT_KEY,
+            AttributeValue::S(DEFAULT_USER_TABLE_SK_VALUE.to_string()),
+        )
+        .expression_attribute_names("#updated", fields::UPDATED)
+        .expression_attribute_values(
+            [":", fields::UPDATED].concat(),
+            AttributeValue::S(Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true)),
+        )
+        .return_values(ReturnValue::AllNew)
+        .send()
+        .await
+    {
+        Ok(v) => query_output_to_user(v.attributes, email),
+        Err(e) => {
+            error!("Failed to create user {}: {:?}", email, e);
+            Err(Error::msg("Failed to create user".to_string()))
         }
     }
 }
