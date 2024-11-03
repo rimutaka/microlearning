@@ -98,6 +98,7 @@ pub(crate) async fn my_handler(
             // update the user answers if the user is known
             // the logic to update or not is inside the function
             user::update_answers(&jwt_user, &question, &answers).await;
+            question::update_answer_stats(&jwt_user, &question, &answers).await;
 
             // no answers means initial question display and no explanations
             let response_format = if answers.is_some() {

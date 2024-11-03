@@ -1,6 +1,6 @@
 use anyhow::Error;
 use aws_sdk_dynamodb::{types::AttributeValue, Client};
-use bitie_types::{ddb::fields, ddb::tables, question::Question};
+use bitie_types::{ddb::fields, ddb::tables, jwt::JwtUser, question::Question};
 use std::str::FromStr;
 use tracing::{error, info, warn};
 
@@ -91,11 +91,24 @@ async fn get_question(
                         }
                     };
 
+                    let correct = match item.get(fields::QUESTION_STATS_CORRECT) {
+                        Some(AttributeValue::N(v)) => Some(v.as_str()),
+                        _ => None,
+                    };
+                    let incorrect = match item.get(fields::QUESTION_STATS_INCORRECT) {
+                        Some(AttributeValue::N(v)) => Some(v.as_str()),
+                        _ => None,
+                    };
+                    let skipped = match item.get(fields::QUESTION_STATS_SKIPPED) {
+                        Some(AttributeValue::N(v)) => Some(v.as_str()),
+                        _ => None,
+                    };
+
                     match item.get(fields::DETAILS) {
                         Some(AttributeValue::S(v)) => match Question::from_str(v) {
                             Ok(v) => {
                                 info!("Returning {topic} / {item_qid}");
-                                Ok(Some(v))
+                                Ok(Some(v.with_stats(correct, incorrect, skipped)))
                             }
                             Err(_) => {
                                 warn!("Cannot deser details attribute: {topic} / {item_qid}: ");
@@ -178,6 +191,51 @@ pub(crate) async fn save(q: &Question) -> Result<(), Error> {
         Err(e) => {
             error!("Failed to save question {}/{}: {:?}", q.topic, q.qid, e);
             Err(Error::msg("Failed to save question".to_string()))
+        }
+    }
+}
+
+/// Increments the stats counters for the given question.
+/// Ignores the request if the user is the author or answers == None
+pub(crate) async fn update_answer_stats(jwt_user: &Option<JwtUser>, question: &Question, answers: &Option<Vec<usize>>) {
+    // do not update answers if the user is the author
+    if let Some(jwt_user) = jwt_user {
+        if Some(&jwt_user.email_hash) == question.author.as_ref() {
+            info!("User is the author - NOT updating user answers");
+            return;
+        }
+    }
+
+    let client = Client::new(&aws_config::load_from_env().await);
+
+    let update_expression = match answers {
+        None => return,
+        Some(v) => {
+            if v.is_empty() {
+                fields::QUESTION_STATS_SKIPPED
+            } else if question.is_correct(v) {
+                fields::QUESTION_STATS_CORRECT
+            } else {
+                fields::QUESTION_STATS_INCORRECT
+            }
+        }
+    };
+
+    match client
+        .update_item()
+        .table_name(tables::QUESTIONS)
+        .update_expression(["ADD ", update_expression, " :v"].concat())
+        .key(fields::TOPIC, AttributeValue::S(question.topic.to_string()))
+        .key(fields::QID, AttributeValue::S(question.qid.to_string()))
+        .expression_attribute_values(":v", AttributeValue::N("1".to_string()))
+        .send()
+        .await
+    {
+        Ok(_) => {
+            info!("Question stats updated");
+        }
+        Err(e) => {
+            error!("Failed to update question stats: {:?}", e);
         }
     }
 }

@@ -41,6 +41,20 @@ pub struct Answer {
     sel: Option<bool>,
 }
 
+/// Stats about the user answers, correct, incorrect, skipped.
+/// The counters are DDB fields.
+/// The struct values are set during DDB reads.
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Stats {
+    /// The total number of correct answers.
+    pub correct: u32,
+    /// The total number of incorrect answers.
+    pub incorrect: u32,
+    /// The total number the use chose to skipped the question.
+    pub skipped: u32,
+}
+
 /// A question with multiple answers.
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -73,6 +87,12 @@ pub struct Question {
     /// The date when the question was last modified.
     /// This value only changes when the contents are updated.
     pub updated: Option<DateTime<Utc>>,
+    /// Counters for correct, incorrect and skipped user interactions with the question
+    /// to provide the data to the front-end.
+    /// The values are set during DDB reads.
+    /// It is removed during writes and is never deserialized.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub stats: Option<Stats>,
 }
 
 impl Question {
@@ -194,6 +214,23 @@ impl Question {
         }
     }
 
+    /// Sets the stats counters for correct, incorrect, and skipped answers.
+    /// Uses zeros for missing or incorrect values.
+    pub fn with_stats(self, correct: Option<&str>, incorrect: Option<&str>, skipped: Option<&str>) -> Self {
+        let correct = correct.unwrap_or_default().parse::<u32>().unwrap_or_default();
+        let incorrect = incorrect.unwrap_or_default().parse::<u32>().unwrap_or_default();
+        let skipped = skipped.unwrap_or_default().parse::<u32>().unwrap_or_default();
+
+        Question {
+            stats: Some(Stats {
+                correct,
+                incorrect,
+                skipped,
+            }),
+            ..self
+        }
+    }
+
     /// Serializes `answers` attribute to a JSON string.
     pub fn serialize_answers(&self) -> Result<String> {
         match serde_json::to_string(&self.answers) {
@@ -232,6 +269,8 @@ impl Question {
 /// Converts a JSON string to a Question struct with validation:
 /// - qid is a valid UUID4 in Base58 encoding or a new random one is generated
 /// - topic is present in the TOPICS list
+/// - correct is recalculated from the answers
+/// - answering stats are set to None
 impl FromStr for Question {
     type Err = anyhow::Error;
 
@@ -267,6 +306,7 @@ impl FromStr for Question {
             qid,
             topic,
             correct,
+            stats: None,
             ..q
         })
     }
@@ -319,6 +359,7 @@ mod test {
             correct: 1,
             author: Some("you@me.us".to_string()),
             updated: Some(Utc::now()),
+            stats: None,
         };
 
         assert!(q.is_correct(&[1]), "correct");
@@ -357,6 +398,7 @@ mod test {
             correct: 2,
             author: Some("you@me.us".to_string()),
             updated: Some(Utc::now()),
+            stats: None,
         };
 
         assert!(q.is_correct(&[0, 2]), "correct");
@@ -397,6 +439,7 @@ mod test {
             correct: 1,
             author: Some("you@me.us".to_string()),
             updated: Some(Utc::now()),
+            stats: None,
         };
 
         let s = q.to_string();
@@ -404,5 +447,48 @@ mod test {
         let q2 = Question::from_str(&s).unwrap();
 
         assert_eq!(q, q2);
+    }
+
+    #[test]
+    fn test_question_to_from_str_with_stats() {
+        let q = Question {
+            qid: "89yZBXJBa9t2LB6xfj46Rm".to_string(),
+            topic: "aws".to_string(),
+            question: "What is 1+1?".to_string(),
+            answers: vec![
+                Answer {
+                    a: "1".to_string(),
+                    e: None,
+                    c: Some(false),
+                    sel: None,
+                },
+                Answer {
+                    a: "2".to_string(),
+                    e: None,
+                    c: Some(true),
+                    sel: None,
+                },
+                Answer {
+                    a: "3".to_string(),
+                    e: None,
+                    c: Some(false),
+                    sel: None,
+                },
+            ],
+            correct: 1,
+            author: Some("you@me.us".to_string()),
+            updated: Some(Utc::now()),
+            stats: Some(Stats {
+                correct: 1,
+                incorrect: 2,
+                skipped: 3,
+            }),
+        };
+
+        let s = q.to_string();
+        println!("{}", s);
+        let q2 = Question::from_str(&s).unwrap();
+
+        assert_ne!(q, q2);
     }
 }

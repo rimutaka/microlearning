@@ -17,6 +17,7 @@ struct Claims {
 }
 
 /// Details extracted from the JWT token.
+#[derive(Clone)]
 pub struct JwtUser {
     /// The user email in lower case from the given JWT token
     pub email: String,

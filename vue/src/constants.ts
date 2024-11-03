@@ -42,7 +42,7 @@ export const TOPICS = <Array<TopicFields>>[
 ];
 
 /// Returns the topic title by its ID
-export function findTopicById (id: string | undefined): string | undefined { 
+export function findTopicById(id: string | undefined): string | undefined {
   if (!id) return undefined;
   return TOPICS.find((topic) => topic.id === id)?.t;
 }
@@ -60,6 +60,13 @@ export interface Answer {
 }
 
 /// A mirror of the Rust's type
+export interface Stats {
+  correct: number,
+  incorrect: number,
+  skipped: number,
+}
+
+/// A mirror of the Rust's type
 export interface Question {
   /// Leave blank for new questions
   qid: string,
@@ -72,19 +79,23 @@ export interface Question {
   /// A hash of the email address of the original author
   /// The value submitted by the user is ignored
   readonly author: string | undefined,
+  /// When the question was last updated
+  updated: string | undefined,
+  /// Stats for how the question is used
+  stats: Stats | undefined,
 }
 
 /// A mirror of the Rust's type
 export interface User {
-    /// User's email address
-    email: String,
-    /// The list of subscribed topics
-    topics: string[],
-    /// A unique string to use an unsubscribe key
-    /// A shortened base58 encoded UUID
-    unsubscribe: string,
-    /// When the user sub was last updated
-    updated: string,
+  /// User's email address
+  email: String,
+  /// The list of subscribed topics
+  topics: string[],
+  /// A unique string to use an unsubscribe key
+  /// A shortened base58 encoded UUID
+  unsubscribe: string,
+  /// When the user sub was last updated
+  updated: string,
 }
 
 /// Indicates the status of loading / fetching data

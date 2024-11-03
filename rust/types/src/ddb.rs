@@ -40,4 +40,10 @@ pub mod fields {
     pub const UNSUBSCRIBE: &str = "unsubscribe";
     /// The email address of the user who created the question.
     pub const AUTHOR: &str = "author";
+/// A counter for the number of correct answers.    
+    pub const QUESTION_STATS_CORRECT: &str = "stat_c";
+    /// A counter for the number of incorrect answers.
+    pub const QUESTION_STATS_INCORRECT: &str = "stat_i";
+    /// A counter for the number of skipped answers.
+    pub const QUESTION_STATS_SKIPPED: &str = "stat_s";
 }
