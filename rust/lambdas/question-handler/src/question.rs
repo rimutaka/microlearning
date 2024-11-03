@@ -17,8 +17,9 @@ pub(crate) async fn get_random(topic: &str) -> Result<Question, Error> {
     match get_question(&client, topic, &random_qid, comparison_op, 10).await {
         Ok(Some(v)) => Ok(v),
         Ok(None) => {
-            // if no question found, try to find the one after the random ID
-            match get_question(&client, topic, &random_qid, ">", 10).await {
+            // if no questions found, try to find the one in the different sorting direction
+            let comparison_op = if comparison_op == "<" { ">" } else { "<" };
+            match get_question(&client, topic, &random_qid, comparison_op, 10).await {
                 Ok(Some(v)) => Ok(v),
                 Ok(None) => {
                     warn!("No questions found for {topic}");

@@ -20,8 +20,10 @@ pub(crate) async fn update_answers(jwt_user: &Option<JwtUser>, question: &Questi
                 info!("Updating user answers: {}", jwt_user.email);
                 jwt_user.email.clone()
             } else {
-                info!("User is the author - NOT updating user answers");
-                return;
+                // info!("User is the author - NOT updating user answers");
+                // return;
+                info!("User is the author - TEMPORARILY updating user answers");
+                jwt_user.email.clone()
             }
         }
         None => {
