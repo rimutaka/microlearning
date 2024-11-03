@@ -19,7 +19,7 @@
               <path d="M14.017 18L14.017 10.609C14.017 4.905 17.748 1.039 23 0L23.995 2.151C21.563 3.068 20 5.789 20 8H24V18H14.017ZM0 18V10.609C0 4.905 3.748 1.038 9 0L9.996 2.151C7.563 3.068 6 5.789 6 8H9.983L9.983 18L0 18Z" fill="currentColor" />
             </svg>
             <blockquote>
-              <p class="text-l font-medium text-slate-900 max-w-md mx-auto">"I became much more productive after a few weeks of investing 5 minutes per day into learning something new."</p>
+              <p class="text-l font-medium text-slate-900 max-w-md mx-auto">"I became much more productive after I started investing a few minutes per day into learning something new."</p>
             </blockquote>
             <figcaption class="flex items-center justify-center mt-6 space-x-3">
               <img class="hidden sm:block w-6 h-6 rounded-full" src="https://avatars.githubusercontent.com/u/5926028?v=4" alt="profile picture">
