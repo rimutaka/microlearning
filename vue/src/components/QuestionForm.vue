@@ -1,5 +1,5 @@
 <template>
-  <div class="card mt-12">
+  <div v-if="hydrated" class="card mt-12">
     <div class="flex flex-wrap gap-4 mb-4">
       <h4>Topics: </h4>
       <div class="flex" v-for="topic in topics" :key="topic.id">
@@ -49,6 +49,9 @@
 
     </div>
   </div>
+  <div v-else>
+    <p>Loading...</p>
+  </div>
   <Popover ref="mdPreviewPopover" class="max-w-screen-md w-screen">
     <QuestionFieldMarkdown :text="mdTextForPreview" :correct="mdCorrectForPreview" />
   </Popover>
@@ -82,6 +85,7 @@ const router = useRouter();
 const store = useMainStore();
 const { token } = storeToRefs(store);
 
+const hydrated = ref(false); // toggles the form between loading and the full form
 const topics = ref(TOPICS);
 const selectedTopic = ref(""); // the topic of the question from TOPICS
 
@@ -91,7 +95,6 @@ const questionTextDebounced = ref(""); // for HTML conversion
 const answers = ref<Array<Answer>>([{ a: "", e: "", c: false, sel: false }]); // the list of answers
 const answersDebounced = ref<Array<Answer>>([{ a: "", e: "", c: false, sel: false }]); // for HTML conversion
 
-const questionReady = ref(false); // enables Submit button
 const mdPreviewPopover = ref();
 const mdTextForPreview = ref(""); // debounced markdown text from the input in focus to be displayed in the popover
 const mdCorrectForPreview = ref<boolean | undefined>(undefined); // status of answer.c (correct/incorrect) from the answer in focus for the popover
@@ -100,6 +103,7 @@ let inFocusInputId = ""; // the ID of the input field that is currently in focus
 
 /// used to inform the user what steps are required
 /// affects questionReady
+/// updated via watch
 const questionReadiness = ref({
   topic: false,
   question: false,
@@ -107,6 +111,7 @@ const questionReadiness = ref({
   correct: false,
   explanations: false,
 });
+const questionReady = ref(false); // enables Submit button
 
 /// Turns on a Popover with a Markdown preview
 const showMdPreview = (event: FocusEvent) => {
@@ -314,11 +319,21 @@ watch([selectedTopic, questionText, answers.value], () => {
 function loadOrResetQuestion(question: Question | undefined) {
 
   if (!question) {
-    answersDebounced.value.length = 0;
-    questionTextDebounced.value = "";
     selectedTopic.value = "";
+
     questionText.value = "";
+    questionTextDebounced.value = "";
+
     answers.value.length = 0;
+    answers.value.push({ a: "", e: "", c: false, sel: false });
+
+    answersDebounced.value.length = 0;
+    answersDebounced.value.push({ a: "", e: "", c: false, sel: false });
+
+    mdTextForPreview.value = "";
+    mdCorrectForPreview.value = undefined;
+    inFocusInputId = "";
+
     return;
   }
 
@@ -344,8 +359,12 @@ watchEffect(async () => {
   if (!(props.topic && props.qid)) {
     console.log("Adding a new question");
     loadOrResetQuestion(undefined);
+    hydrated.value = true; // enable the form
     return;
   }
+
+  // disable the form while fetching the question
+  hydrated.value = false;
 
   // fetching an existing question for editing
   console.log(`Fetching question for ${props.topic}/${props.qid}`);
@@ -385,6 +404,9 @@ watchEffect(async () => {
     console.error("Failed to get question.");
     console.error(error);
   }
+
+  hydrated.value = true; // enable the form
+
 });
 
 </script>

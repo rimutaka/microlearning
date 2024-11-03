@@ -205,7 +205,7 @@ pub(crate) async fn save(q: &Question) -> Result<(), Error> {
         .expression_attribute_values(":updated", AttributeValue::S(chrono::Utc::now().to_rfc3339()))
         .expression_attribute_names("#details", fields::DETAILS)
         .expression_attribute_values(":details", AttributeValue::S(q.to_string()))
-        .condition_expression("#author = :author")// makes the query fail with an error if the author is different
+        .condition_expression("#author = :author OR attribute_not_exists(#author)")// makes the query fail with an error if the author is different
         .send()
         .await
     {
