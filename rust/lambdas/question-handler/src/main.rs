@@ -119,7 +119,7 @@ pub(crate) async fn my_handler(
                 if let Some(body) = event.payload.body {
                     // info!("Received question: {body}");
                     let q = match Question::from_str(&body) {
-                        Ok(v) => v.with_author(&jwt_user.email_hash),
+                        Ok(v) => v.with_author(&jwt_user.email_hash).with_updated(),
                         Err(_) => return lambda::text_response(Some("Invalid question".to_string()), 400),
                     };
 

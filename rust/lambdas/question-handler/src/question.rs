@@ -2,7 +2,6 @@ use anyhow::Error;
 use aws_sdk_dynamodb::{types::AttributeValue, Client};
 use bitie_types::{ddb::fields, ddb::tables, question::Question};
 use std::str::FromStr;
-// use chrono::{DateTime, Utc};
 use tracing::{error, info, warn};
 
 /// Returns a single question for the given topic.
@@ -143,6 +142,15 @@ pub(crate) async fn save(q: &Question) -> Result<(), Error> {
         }
     };
 
+    // this field may be needed for sorting later, remove fractional seconds
+    let updated = match q.updated {
+        Some(v) => v.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+        None => {
+            error!("Missing updated field. It's a bug.");
+            return Err(Error::msg("Failed to save question".to_string()));
+        }
+    };
+
     // this has to be an update to prevent overwriting photo IDs
     const UPDATE_EXPRESSION: &str =
         "SET #author = if_not_exists(#author, :author), #updated = :updated, #details = :details";
@@ -156,7 +164,7 @@ pub(crate) async fn save(q: &Question) -> Result<(), Error> {
         .expression_attribute_names("#author", fields::AUTHOR)
         .expression_attribute_values(":author", AttributeValue::S(author))
         .expression_attribute_names("#updated", fields::UPDATED)
-        .expression_attribute_values(":updated", AttributeValue::S(chrono::Utc::now().to_rfc3339()))
+        .expression_attribute_values(":updated", AttributeValue::S(updated))
         .expression_attribute_names("#details", fields::DETAILS)
         .expression_attribute_values(":details", AttributeValue::S(q.to_string()))
         .condition_expression("#author = :author OR attribute_not_exists(#author)") // makes the query fail with an error if the author is different

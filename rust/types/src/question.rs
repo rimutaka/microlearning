@@ -1,5 +1,6 @@
 use crate::topic::Topic;
 use anyhow::{Error, Result};
+use chrono::{DateTime, Timelike, Utc};
 use pulldown_cmark::{html::push_html, Parser};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
@@ -64,11 +65,14 @@ pub struct Question {
     /// A hash of the email of the user who created the question.
     /// The value is set at the server side.
     /// User-submitted data is ignored.
-    /// 
+    ///
     /// The values are hex-encoded to make it easier to generate a matching value in JS.
     /// E.g. 0e3bf888c95b085a7172b2e819692bb5b46c26ad067f9405c8ba1dd950732b65
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub author: Option<String>,
+    /// The date when the question was last modified.
+    /// This value only changes when the contents are updated.
+    pub updated: Option<DateTime<Utc>>,
 }
 
 impl Question {
@@ -174,6 +178,18 @@ impl Question {
     pub fn with_author(self, email_hash: &str) -> Self {
         Question {
             author: Some(email_hash.to_string()),
+            ..self
+        }
+    }
+
+    /// Sets `updated`` field to the current UTC with no fractional seconds.
+    pub fn with_updated(self) -> Self {
+        Question {
+            updated: Some(
+                Utc::now()
+                    .with_nanosecond(0)
+                    .expect("Invalid nanoseconds. This is an impossible bug"),
+            ),
             ..self
         }
     }
@@ -302,6 +318,7 @@ mod test {
             ],
             correct: 1,
             author: Some("you@me.us".to_string()),
+            updated: Some(Utc::now()),
         };
 
         assert!(q.is_correct(&[1]), "correct");
@@ -339,6 +356,7 @@ mod test {
             ],
             correct: 2,
             author: Some("you@me.us".to_string()),
+            updated: Some(Utc::now()),
         };
 
         assert!(q.is_correct(&[0, 2]), "correct");
@@ -378,6 +396,7 @@ mod test {
             ],
             correct: 1,
             author: Some("you@me.us".to_string()),
+            updated: Some(Utc::now()),
         };
 
         let s = q.to_string();
