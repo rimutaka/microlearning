@@ -197,3 +197,50 @@ footer a {
   max-width: 90vw;
   @apply font-mono text-sm rounded-none p-2 md:w-fit block overflow-x-auto;
 }
+
+/* Contribute card */
+
+.contribute-card {
+  @apply max-w-md mx-auto mb-8 pb-4 border-2 rounded-md border-slate-100;
+}
+
+.contribute-card .abstract {
+  @apply  w-full h-24 rounded-t-md ;
+  background-position: bottom center;
+  background-origin: border-box;
+  background-size: cover;
+background-repeat: no-repeat;
+}
+
+.abstract-1 {
+  background-image: url(@/assets/images/abstract_1.webp);
+
+}
+
+.abstract-2 {
+  background-image: url(@/assets/images/abstract_2.webp);
+}
+
+.abstract-3 {
+  background-image: url(@/assets/images/abstract_3.webp);
+}
+
+.contribute-card p {
+  @apply  text-start p-2;
+}
+
+.contribute-card .cta {
+  @apply  text-center mt-4;
+}
+
+.contribute-card .cta a {
+  @apply  me-8;
+}
+
+.contribute-card .cta a:last-child {
+  @apply  me-0;
+}
+
+.contribute-card .cta a i {
+  @apply  text-slate-500;
+}

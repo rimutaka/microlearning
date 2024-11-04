@@ -11,7 +11,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import router from '@/router';
 import { useAuth0 } from '@auth0/auth0-vue';
-import { PageNames } from '@/router';
+import { PageIDs } from '@/router';
 
 
 import TransitionSlot from "@/components/TransitionSlot.vue";
@@ -28,7 +28,7 @@ watchEffect(() => {
   
   if (isAuthenticated.value) {
     console.log("User is authenticated - redirecting to subscription page");
-    router.push({ name: PageNames.SUBSCRIPTION });
+    router.push({ name: PageIDs.SUBSCRIPTION });
   }
 });
 

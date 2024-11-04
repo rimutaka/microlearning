@@ -6,10 +6,12 @@ import QuestionFormView from '@/views/QuestionFormView.vue'
 import QuestionView from '@/views/QuestionView.vue'
 import AboutView from '../views/AboutView.vue'
 import SubscriptionView from '../views/SubscriptionView.vue'
+import ContributeView from '@/views/ContributeView.vue';
 
 /// A list of page names used elsewhere in the app
-export const PageNames = {
+export const PageIDs = {
   HOME: 'home',
+  CONTRIBUTE: 'contribute',
   ADD: 'add',
   QUESTION: 'question',
   ABOUT: 'about',
@@ -21,31 +23,37 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: PageNames.HOME,
+      name: PageIDs.HOME,
       component: HomeView,
     },
     {
-      path: '/' + PageNames.ADD,
-      name: PageNames.ADD,
-      component: QuestionFormView,
-      beforeEnter: authGuard,
+      path: '/' + PageIDs.CONTRIBUTE,
+      name: PageIDs.CONTRIBUTE,
+      component: ContributeView,
       meta: { title: 'Contribute' }
     },
     {
-      path: '/' + PageNames.QUESTION,
-      name: PageNames.QUESTION,
+      path: '/' + PageIDs.ADD,
+      name: PageIDs.ADD,
+      component: QuestionFormView,
+      beforeEnter: authGuard,
+      meta: { title: 'Edit question' }
+    },
+    {
+      path: '/' + PageIDs.QUESTION,
+      name: PageIDs.QUESTION,
       component: QuestionView,
       meta: { title: 'Question' }
     },
     {
-      path: '/' + PageNames.ABOUT,
-      name: PageNames.ABOUT,
+      path: '/' + PageIDs.ABOUT,
+      name: PageIDs.ABOUT,
       component: AboutView,
       meta: { title: 'About' }
     },
     {
-      path: '/' + PageNames.SUBSCRIPTION,
-      name: PageNames.SUBSCRIPTION,
+      path: '/' + PageIDs.SUBSCRIPTION,
+      name: PageIDs.SUBSCRIPTION,
       component: SubscriptionView,
       beforeEnter: authGuard,
       meta: { title: 'Subscription' }

@@ -7,7 +7,7 @@
       <div class="flex-shrink text-start mx-auto">
         <Button label="Browse more questions or subscribe" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 md:me-4 mb-2 whitespace-nowrap" @click="navigateToSubscription" />
         <p class="text-xs text-center md:mb-auto text-slate-500">You will be asked to
-          <a :href="`/${PageNames.SUBSCRIPTION}`" @click.prevent="router.push(PageNames.SUBSCRIPTION)">sign in</a>
+          <a :href="`/${PageIDs.SUBSCRIPTION}`" @click.prevent="router.push(PageIDs.SUBSCRIPTION)">sign in</a>
           with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i><i class="pi pi-microsoft me-2"></i><i class="pi pi-linkedin me-2"></i>
         </p>
       </div>
@@ -29,7 +29,7 @@ import router from '@/router';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { TOPICS, URL_PARAM_LIST_SEPARATOR } from "@/constants";
-import { PageNames } from '@/router';
+import { PageIDs } from '@/router';
 
 import Button from 'primevue/button';
 import TopicsList from './TopicsList.vue';

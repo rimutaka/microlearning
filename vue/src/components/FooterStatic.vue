@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full mb-4 flex gap-2 md:gap-8 justify-center border-t pt-2 mt-12">
+  <div class="w-full mb-4 flex gap-2 md:gap-8 justify-center border-t pt-2 mt-12 text-sm md:text-base">
     <template v-for="item in menuItems" :key="item.label">
       <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
         <a :href="href" @click="navigate">
@@ -26,6 +26,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import router from "@/router";
+import { PageIDs } from '@/router';
 import { useMainStore } from '@/store';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { LAST_AUTH_TIMESTAMP } from "@/constants";
@@ -40,19 +41,18 @@ const menuItems = ref([
     route: '/'
   },
   {
-    label: 'Add',
+    label: 'Contribute',
     icon: 'pi pi-question-circle',
-    route: '/add'
+    route: `/${PageIDs.CONTRIBUTE}`
   },
   {
     label: 'About',
     icon: 'pi pi-info-circle',
-    route: '/about'
+    route: `/${PageIDs.ABOUT}`
   },
   {
     label: 'Contact',
     icon: 'pi pi-envelope',
-    badge: 3,
     url: 'mailto:max@onebro.me'
   }
 ]);
