@@ -7,6 +7,10 @@ use lambda_runtime::Error;
 use serde::Serialize;
 use tracing::info;
 
+/// An HTTP header for the JWT token.
+pub const X_BITIE_TOKEN_HEADER: &str = "x-bitie-token";
+pub const X_BITIE_RECENT: &str = "x-bitie-recent";
+
 // /// The header name for the question format.
 // /// The value should be one of the `QuestionFormat` enum values.
 // /// CloudFront has to be configured to vary the cache depending on the header contents.
@@ -64,10 +68,9 @@ pub fn json_response<T: Serialize>(body: Option<&T>, status: i64) -> Result<Lamb
 /// Otherwise returns None.
 /// All errors are logged inside the function.
 pub fn get_email_from_token(headers: &HeaderMap) -> Option<jwt::JwtUser> {
-    const TOKEN_HEADER_NAME: &str = "x-bitie-token";
 
     // get the token from the headers
-    let jwt = match headers.get(TOKEN_HEADER_NAME) {
+    let jwt = match headers.get(X_BITIE_TOKEN_HEADER) {
         Some(v) => match v.to_str() {
             Ok(v) => v,
             Err(e) => {
@@ -76,7 +79,7 @@ pub fn get_email_from_token(headers: &HeaderMap) -> Option<jwt::JwtUser> {
             }
         },
         None => {
-            info!("Missing {TOKEN_HEADER_NAME} header");
+            info!("Missing {X_BITIE_TOKEN_HEADER} header");
             return None;
         }
     };
@@ -84,7 +87,7 @@ pub fn get_email_from_token(headers: &HeaderMap) -> Option<jwt::JwtUser> {
     jwt::get_email_from_token(jwt)
 }
 
-/// Converts a .-separated list of values in a URL to a Vec<String>.
+/// Converts a .-separated list of values in a URL to a lowercase Vec<String>.
 /// E.g. for "?topics=a.b.c" it is "a.b.c" -> ["a", "b", "c"]
 pub fn url_list_to_vec(url_list: Option<&String>) -> Option<Vec<String>> {
     match url_list {

@@ -1,4 +1,4 @@
-use aws_sdk_dynamodb::{types::AttributeValue, Client};
+use aws_sdk_dynamodb::{types::AttributeValue, Client as DdbClient};
 use bitie_types::{
     ddb::{fields, tables, DEFAULT_USER_TABLE_SK_VALUE},
     jwt::JwtUser,
@@ -12,27 +12,31 @@ use tracing::{error, info};
 /// List present - check if correct
 /// Blank list - skipped
 /// No list - asked
-pub(crate) async fn update_answers(jwt_user: &Option<JwtUser>, question: &Question, answers: &Option<Vec<usize>>) {
+pub(crate) async fn update_answers(
+    client: &DdbClient,
+    jwt_user: &Option<JwtUser>,
+    question: &Question,
+    answers: &Option<Vec<usize>>,
+) {
     // do not update answers if the user is the author
     let email = match &jwt_user {
         Some(jwt_user) => {
             if Some(&jwt_user.email_hash) != question.author.as_ref() {
-                info!("Updating user answers: {}", jwt_user.email);
+                info!("Updating user history: {}", jwt_user.email);
                 jwt_user.email.clone()
             } else {
                 // info!("User is the author - NOT updating user answers");
                 // return;
-                info!("User is the author - TEMPORARILY updating user answers");
+                // REMOVE THESE LINES AFTER TESTING
+                info!("User is the author - TEMPORARILY updating user history for testing");
                 jwt_user.email.clone()
             }
         }
         None => {
-            info!("Unregistered user - NOT updating user answers");
+            info!("Unregistered user - NOT updating user history");
             return;
         }
     };
-
-    let client = Client::new(&aws_config::load_from_env().await);
 
     // prepare the answer struct and convert it to a string with /// separators
     let status = match answers {

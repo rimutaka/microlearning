@@ -1,6 +1,6 @@
 <template>
   <TransitionSlot>
-    <div class="flex" v-if="questionMarkdown">
+    <div class="flex" v-if="questionMarkdown && loadingStatus == constants.LoadingStatus.Loaded">
       <div class="q-card">
         <div class="q-text">
           <div class="" v-html="questionMarkdown?.question"></div>
@@ -41,17 +41,16 @@
         </div>
       </div>
     </div>
+    <h3 v-else-if="loadingStatus == constants.LoadingStatus.Loading" class="mt-8 mb-8 text-slate-500">Loading...</h3>
+    <h3 v-else class="mt-8 mb-8 text-slate-500">Sorry, something went wrong. Try again.</h3>
   </TransitionSlot>
-  <div v-if="!questionMarkdown">
-    <p>Loading...</p>
-  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watchEffect, computed, watch } from "vue";
 import router from "@/router";
-import type { Question } from "@/constants";
-import { QUESTION_HANDLER_URL, URL_PARAM_QID, URL_PARAM_TOPIC, TOKEN_HEADER_NAME, URL_PARAM_LIST_SEPARATOR, URL_PARAM_ANSWERS } from "@/constants";
+import type { Question, LoadingStatus } from "@/constants";
+import * as constants from "@/constants";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 
@@ -60,21 +59,22 @@ import Tag from "primevue/tag";
 import TransitionSlot from "./TransitionSlot.vue";
 
 const props = defineProps<{
-  topic: string,
+  topic?: string,// both are omitted for random questions
   qid?: string,
 }>()
 
 const store = useMainStore();
-const { token } = storeToRefs(store);
+const { token, currentTopic, selectedTopics } = storeToRefs(store);
 
 // as fetched from the server
 const questionMarkdown = ref<Question | undefined>();
 const learnerAnswersCheck = ref<string[]>([]);
 const learnerAnswerRadio = ref<string | undefined>();
+const loadingStatus = ref<LoadingStatus>(constants.LoadingStatus.Loading);
 
 // a temporary solution to enable editing links
 const hasToken = computed(() => {
-  return localStorage.getItem(TOKEN_HEADER_NAME) ? true : false;
+  return localStorage.getItem(constants.TOKEN_HEADER_NAME) ? true : false;
 });
 
 const isAnswered = computed(() => {
@@ -142,7 +142,7 @@ async function submitQuestion() {
   }
 
   // the lambda expects a list of answers in the URL
-  const answers = questionMarkdown.value?.correct == 1 ? learnerAnswerRadio.value : learnerAnswersCheck.value.join(URL_PARAM_LIST_SEPARATOR);
+  const answers = questionMarkdown.value?.correct == 1 ? learnerAnswerRadio.value : learnerAnswersCheck.value.join(constants.URL_PARAM_LIST_SEPARATOR);
 
   // calculate the hash of the request body for x-amz-content-sha256 header
   // as required by CloudFront
@@ -150,10 +150,10 @@ async function submitQuestion() {
   // hash.update(answers);
   // const bodyHash = toHex(await hash.digest());
 
-  const url = `${QUESTION_HANDLER_URL}${URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${URL_PARAM_QID}=${questionMarkdown.value?.qid}&${URL_PARAM_ANSWERS}=${answers}`;
+  const url = `${constants.QUESTION_HANDLER_URL}${constants.URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${constants.URL_PARAM_QID}=${questionMarkdown.value?.qid}&${constants.URL_PARAM_ANSWERS}=${answers}`;
   // add a token with the email, if there is one (logged in users)
   const headers = new Headers();
-  if (token.value) headers.append(TOKEN_HEADER_NAME, token.value);
+  if (token.value) headers.append(constants.TOKEN_HEADER_NAME, token.value);
 
   try {
     const response = await fetch(url,
@@ -198,31 +198,62 @@ async function submitQuestion() {
 
 /// navigates to edit page, but it should only work if the user has a token
 function navigateToEditPage() {
-  router.push(`/add?${URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${URL_PARAM_QID}=${questionMarkdown.value?.qid}`);
+  router.push(`/add?${constants.URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${constants.URL_PARAM_QID}=${questionMarkdown.value?.qid}`);
+}
+
+// Store the qid in a comma-separated list in the local storage.
+// Remove old entries if the list gets longer than 10 items.
+function storeRecentQuestionsInLS(qid: string) {
+  const recent = localStorage.getItem(constants.RECENT_HEADER_NAME);
+  if (recent) {
+    const recentList = recent.split(",");
+    if (recentList.includes(qid)) {
+      // remove the old entry
+      recentList.splice(recentList.indexOf(qid), 1);
+    }
+    recentList.unshift(qid);
+    if (recentList.length > 10) {
+      console.log("Removing old entries from recent questions list");
+      recentList.pop();
+    }
+    localStorage.setItem(constants.RECENT_HEADER_NAME, recentList.join(","));
+  } else {
+    localStorage.setItem(constants.RECENT_HEADER_NAME, qid);
+  }
 }
 
 watchEffect(async () => {
   console.log(`Fetching question for: ${props.topic}/${props.qid}`);
-  // only fetch if topic is set
-  if (!props.topic) return;
+
+  // calculate the topic(s) if not set in properties
+  const topicsToFetch = props.topic ||
+    (selectedTopics.value.length
+      ? selectedTopics.value.join(constants.URL_PARAM_LIST_SEPARATOR)
+      : constants.ANY_TOPIC);
 
   // make sure nothing is showing if the component is reused
   questionMarkdown.value = undefined;
+  currentTopic.value = undefined;
 
   // add a token with the email, if there is one (logged in users)
   const headers = new Headers();
-  if (token.value) headers.append(TOKEN_HEADER_NAME, token.value);
+  if (token.value) headers.append(constants.TOKEN_HEADER_NAME, token.value);
+
+  // add list of recently viewed questions to the request
+  const recent = localStorage.getItem(constants.RECENT_HEADER_NAME);
+  if (recent) headers.append(constants.RECENT_HEADER_NAME, recent);
 
   try {
 
     // fetching by topic returns a random question
     // fetching with qid returns a specific question
-    const fetchParams = `${URL_PARAM_TOPIC}=${props.topic}`.concat(props.qid ? `&${URL_PARAM_QID}=${props.qid}` : "");
+    const fetchParams = `${constants.URL_PARAM_TOPIC}=${topicsToFetch}`.concat(props.qid ? `&${constants.URL_PARAM_QID}=${props.qid}` : "");
     console.log("fetchParams", fetchParams);
 
-    const response = await fetch(`${QUESTION_HANDLER_URL}${fetchParams}`,
+    const response = await fetch(`${constants.QUESTION_HANDLER_URL}${fetchParams}`,
       {
         headers: headers,
+        signal: AbortSignal.timeout(5000),
       });
     console.log(`Fetched. Status: ${response.status}`);
 
@@ -235,19 +266,26 @@ watchEffect(async () => {
         // console.log(question.topic);
         // console.log(question.qid);
 
+        currentTopic.value = question.topic;
         questionMarkdown.value = question;
-
-        // useRouter().push(`/question/${savedQuestion.topic}/${savedQuestion.qid}`);
+        loadingStatus.value = constants.LoadingStatus.Loaded;
+        storeRecentQuestionsInLS(question.qid); // add qid to the list of recent questions
       } catch (error) {
         console.error(error);
       }
-    } else {
+    }
+    else if (response.status === 404) {
+      loadingStatus.value = constants.LoadingStatus.NoData;
+    }
+    else {
+      loadingStatus.value = constants.LoadingStatus.Error;
       console.error("Failed to get question. Status: ", response.status);
     }
   } catch (error) {
+    loadingStatus.value = constants.LoadingStatus.Error;
     console.error("Failed to get question.");
     console.error(error);
   }
-});
+}).stop(); // stop the watcher to prevent the question changing as the selected topics change
 
 </script>

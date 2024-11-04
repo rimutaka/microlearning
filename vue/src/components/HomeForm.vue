@@ -17,7 +17,7 @@
       </div>
     </div>
     <TransitionSlot>
-      <SampleQuestion v-if="currentTopic" :topic="currentTopic" :nonce="currentTopicKey" />
+      <SampleQuestion v-if="currentTopicKey" :nonce="currentTopicKey" />
     </TransitionSlot>
   </div>
 </template>

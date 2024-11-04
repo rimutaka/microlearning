@@ -17,6 +17,8 @@ export const URL_PARAM_LIST_SEPARATOR = "."
 
 /// A temporary measure to limit who can save data in DDB
 export const TOKEN_HEADER_NAME = "x-bitie-token";
+/// A comma-separated list of recently viewed questions
+export const RECENT_HEADER_NAME = "x-bitie-recent";
 
 /// The key name for the last authentication timestamp in the localStorage.
 /// The user is asked to auth if the key is present.
@@ -40,6 +42,10 @@ export const TOPICS = <Array<TopicFields>>[
   { t: "JS / TS", id: "js-ts" },
   { t: "Rust", id: "rust" }
 ];
+
+/// A special topic that shows questions from all topics
+/// this is a temporary hack until the randomness madness is sorted out
+export const ANY_TOPIC = "any";
 
 /// Returns the topic title by its ID
 export function findTopicById(id: string | undefined): string | undefined {

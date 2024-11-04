@@ -2,6 +2,7 @@ use aws_lambda_events::{
     http::method::Method,
     lambda_function_urls::{LambdaFunctionUrlRequest, LambdaFunctionUrlResponse},
 };
+use aws_sdk_dynamodb::Client;
 use bitie_types::{
     ddb::fields,
     jwt::JwtUser,
@@ -67,9 +68,17 @@ pub(crate) async fn my_handler(
             None
         }
     };
+    // get x-bitie-recent header if present
+    let recent_questions = event
+        .payload
+        .headers
+        .get(lambda::X_BITIE_RECENT)
+        .map(|v| v.to_str().unwrap_or_default().to_string());
 
     let topic = event.payload.query_string_parameters.get(fields::TOPIC);
     let qid = event.payload.query_string_parameters.get(fields::QID);
+
+    let client = Client::new(&aws_config::load_from_env().await);
 
     //decide on the action depending on the HTTP method
     match method {
@@ -78,27 +87,31 @@ pub(crate) async fn my_handler(
             let topic = match topic {
                 Some(v) if !v.trim().is_empty() => v.trim().to_lowercase(),
                 _ => {
-                    info!("No topic found in the query string");
-                    return lambda::text_response(Some("No topic found in the query string".to_string()), 400);
+                    info!("No topics found in the query string");
+                    return lambda::text_response(Some("No topics found in the query string".to_string()), 400);
                 }
             };
 
             // get the question from the DB
             let question = match qid {
-                Some(qid) if !qid.is_empty() => question::get_exact(&topic, qid).await,
+                Some(qid) if !qid.is_empty() => question::get_exact(&client, &topic, qid).await,
 
-                _ => question::get_random(&topic).await,
+                _ => question::get_random(&client, &topic, &recent_questions).await,
             };
 
             let question = match question {
-                Ok(v) => v,
+                Ok(Some(v)) => v,
+                Ok(None) => {
+                    info!("No question found for topic: {topic}");
+                    return lambda::text_response(Some("No question found".to_string()), 404);
+                }
                 Err(e) => return lambda::text_response(Some(e.to_string()), 400),
             };
 
             // update the user answers if the user is known
             // the logic to update or not is inside the function
-            user::update_answers(&jwt_user, &question, &answers).await;
-            question::update_answer_stats(&jwt_user, &question, &answers).await;
+            user::update_answers(&client, &jwt_user, &question, &answers).await;
+            question::update_answer_stats(&client, &jwt_user, &question, &answers).await;
 
             // no answers means initial question display and no explanations
             let response_format = if answers.is_some() {
@@ -124,7 +137,7 @@ pub(crate) async fn my_handler(
                         Err(_) => return lambda::text_response(Some("Invalid question".to_string()), 400),
                     };
 
-                    match question::save(&q).await {
+                    match question::save(&client, &q).await {
                         Ok(_) => lambda::json_response(Some(&q.format(QuestionFormat::MarkdownFull)), 200),
                         Err(e) => lambda::text_response(Some(e.to_string()), 400),
                     }
@@ -140,8 +153,9 @@ pub(crate) async fn my_handler(
                         }
                     };
                     // return the question in markdown format
-                    match question::get_exact(topic, qid).await {
-                        Ok(v) => lambda::json_response(Some(&v.format(QuestionFormat::MarkdownFull)), 200),
+                    match question::get_exact(&client, topic, qid).await {
+                        Ok(Some(v)) => lambda::json_response(Some(&v.format(QuestionFormat::MarkdownFull)), 200),
+                        Ok(None) => lambda::text_response(Some("No question found".to_string()), 404), // this would be a bug
                         Err(e) => lambda::text_response(Some(e.to_string()), 400),
                     }
                 }

@@ -4,7 +4,7 @@
   </TransitionSlot>
   <SubscriptionForm @hydrated="formHydrated = true" />
   <TransitionSlot>
-    <SampleQuestion v-if="formHydrated && currentTopic" :topic="currentTopic" :nonce="currentTopicKey" />
+    <SampleQuestion v-if="formHydrated && currentTopicKey" :nonce="currentTopicKey" />
   </TransitionSlot>
 </template>
 
@@ -20,7 +20,7 @@ import SubscriptionForm from '@/components/SubscriptionForm.vue';
 import SampleQuestion from "@/components/SampleQuestion.vue";
 
 const store = useMainStore();
-const { user, currentTopic, currentTopicKey } = storeToRefs(store);
+const { user, currentTopicKey } = storeToRefs(store);
 const formHydrated = ref(false);
 
 </script>
