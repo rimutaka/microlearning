@@ -262,7 +262,7 @@ watchEffect(async () => {
     if (response.status === 200) {
       try {
         const question = <Question>await response.json();
-        console.log(question);
+        // console.log(question);
         // console.log(question.topic);
         // console.log(question.qid);
 

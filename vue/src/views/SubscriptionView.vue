@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 
@@ -22,5 +22,11 @@ import SampleQuestion from "@/components/SampleQuestion.vue";
 const store = useMainStore();
 const { user, currentTopicKey } = storeToRefs(store);
 const formHydrated = ref(false);
+
+watchEffect(() => {
+  // reset the sample question key to make sure it is not showing
+  // when the user transitions from another page
+  currentTopicKey.value = undefined;
+});
 
 </script>

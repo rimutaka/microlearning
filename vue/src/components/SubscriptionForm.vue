@@ -185,7 +185,7 @@ watchEffect(async () => {
     if (response.status === 200) {
       try {
         user.value = <User>await response.json();
-        console.log(user.value);
+        // console.log(user.value);
 
           // set selected topics to user's topics if there is an active subscription
         if (user.value?.topics?.length) {
