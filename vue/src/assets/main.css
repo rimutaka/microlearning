@@ -205,16 +205,14 @@ footer a {
 }
 
 .contribute-card .abstract {
-  @apply  w-full h-24 rounded-t-md ;
+  @apply w-full h-24 rounded-t-md;
   background-position: bottom center;
   background-origin: border-box;
   background-size: cover;
-background-repeat: no-repeat;
 }
 
 .abstract-1 {
   background-image: url(@/assets/images/abstract_1.webp);
-
 }
 
 .abstract-2 {
@@ -226,21 +224,37 @@ background-repeat: no-repeat;
 }
 
 .contribute-card p {
-  @apply  text-start p-2;
+  @apply text-start p-2;
 }
 
 .contribute-card .cta {
-  @apply  text-center mt-4;
+  @apply text-center mt-4;
 }
 
 .contribute-card .cta a {
-  @apply  me-8;
+  @apply me-8;
 }
 
 .contribute-card .cta a:last-child {
-  @apply  me-0;
+  @apply me-0;
 }
 
 .contribute-card .cta a i {
-  @apply  text-slate-500;
+  @apply text-slate-500;
+}
+
+/* About page */
+.about {
+  @apply p-2 max-w-xl mx-auto;
+}
+.about h3 {
+  @apply mt-8 mb-4;
+}
+
+.about h3:first-child {
+  @apply mt-4;
+}
+
+.about p {
+  @apply text-start mb-2;
 }
