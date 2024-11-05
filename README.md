@@ -64,6 +64,7 @@ Technical features:
 * UI components: https://primevue.org/ and https://primevue.org/icons
 * MD to HTML: https://marked.js.org
 * Design ideas and code: https://flowbite.com
+* Fonts: Oswald
 
 ## Notes
 

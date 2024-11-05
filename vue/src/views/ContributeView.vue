@@ -1,4 +1,5 @@
 <template>
+
   <div class="contribute-card">
     <div class="abstract abstract-1">
     </div>
@@ -10,15 +11,17 @@
       <i class="pi pi-pen-to-square me-1"></i><router-link to="/add" class="">Write a draft question</router-link>  
     </p>
   </div>
+
   <div class="contribute-card">
     <div class="abstract abstract-2">
     </div>
-    <h3 class="text-center text-2xl font-bold mt-4 mb-2 text-slate-700">Sponsor a question</h3>
-    <p>Something about gratitude. Something about helping others and paying forward.
-      It will come back to you in spades.</p>
-    <p>Your logo and a link to your website will be displayed with the question
-      on the website and in emails.</p>
+    <h3 class="text-center text-2xl font-bold mt-4 mb-2 text-slate-700">Give feedback</h3>
+    <p>Did you come across a bug or have a suggestion?</p>
+     <p><a href="mailto:max@onebro.me">Email the developer</a> with your ideas, 
+      correction or whatever other feedback you may have.</p>
+    <p>Consider making a <a href="https://github.com/rimutaka/bitesized">pull request</a>.</p>
   </div>
+
   <div class="contribute-card">
     <div class="abstract abstract-3">
     </div>
@@ -37,6 +40,7 @@
       <a href="https://www.tiktok.com" target="_blank"><i class="pi pi-tiktok"></i></a>
     </p>
   </div>
+
 </template>
 
 <script setup lang="ts">

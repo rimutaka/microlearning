@@ -3,6 +3,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Oswald';
+  src:
+    url(@/assets/fonts/oswald.woff2) format('woff2'),
+    url(@/assets/fonts/oswald.woff) format('woff'),
+    url(@/assets/fonts/oswald.ttf) format('ttf');
+}
+
 body {
   @apply flex items-center justify-center w-full;
 }
@@ -224,7 +232,7 @@ footer a {
 }
 
 .contribute-card p {
-  @apply text-start p-2;
+  @apply text-justify p-2;
 }
 
 .contribute-card .cta {
@@ -256,5 +264,5 @@ footer a {
 }
 
 .about p {
-  @apply text-start mb-2;
+  @apply text-justify mb-2;
 }
