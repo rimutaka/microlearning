@@ -17,16 +17,15 @@
     </div>
     <h3 class="text-center text-2xl font-bold mt-4 mb-2 text-slate-700">Give feedback</h3>
     <p>Did you come across a bug or have a suggestion?</p>
-     <p><a href="mailto:max@onebro.me">Email the developer</a> with your ideas, 
-      correction or whatever other feedback you may have.</p>
-    <p>Consider making a <a href="https://github.com/rimutaka/bitesized">pull request</a>.</p>
+     <p>Consider making a <a href="https://github.com/rimutaka/bitesized">pull request</a> or <a href="mailto:max@onebro.me">email the developer</a> with your ideas, 
+      corrections or whatever other feedback you may have.</p>
   </div>
 
   <div class="contribute-card">
     <div class="abstract abstract-3">
     </div>
     <h3 class="text-center text-2xl font-bold mt-4 mb-2 text-slate-700">Spread the word</h3>
-    <p>Share your favorite questions on social media or forward our emails to colleagues
+    <p>Share your favourite questions on social media or forward our emails to colleagues
       to challenge them with a bite-sized piece of fun and knowledge.</p>
     <p>
       Questions are the new funny cat videos.
