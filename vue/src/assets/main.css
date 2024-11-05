@@ -5,8 +5,7 @@
 
 @font-face {
   font-family: 'Title';
-  src:
-    url(@/assets/fonts/roboto-condensed-regular.woff) format('woff');
+  src: url(@/assets/fonts/roboto-condensed-regular.woff) format('woff');
 }
 
 body {
@@ -207,26 +206,19 @@ footer a {
 /* Contribute card */
 
 .contribute-card {
-  @apply max-w-md mx-auto mb-8 pb-4 border-2 rounded-md border-slate-100;
+  @apply max-w-md mx-auto mb-8 pb-4 rounded-md border-slate-100 shadow;
 }
 
 .contribute-card .abstract {
-  @apply w-full h-24 rounded-t-md;
-  background-position: bottom center;
-  background-origin: border-box;
-  background-size: cover;
+  @apply w-full text-center rounded-t-md;
 }
 
-.abstract-1 {
-  background-image: url(@/assets/images/abstract_1.webp);
+.contribute-card .abstract i {
+  @apply text-6xl my-4;
 }
 
-.abstract-2 {
-  background-image: url(@/assets/images/abstract_2.webp);
-}
-
-.abstract-3 {
-  background-image: url(@/assets/images/abstract_3.webp);
+.contribute-card h3 {
+  @apply text-center text-2xl font-bold mt-4 mb-2 text-slate-700;
 }
 
 .contribute-card p {
@@ -243,10 +235,6 @@ footer a {
 
 .contribute-card .cta a:last-child {
   @apply me-0;
-}
-
-.contribute-card .cta a i {
-  @apply text-slate-500;
 }
 
 /* About page */
