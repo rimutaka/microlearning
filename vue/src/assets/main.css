@@ -214,7 +214,7 @@ footer a {
 }
 
 .contribute-card .abstract i {
-  @apply text-6xl my-4;
+  @apply text-6xl my-4 text-gray-300 opacity-30;
 }
 
 .contribute-card h3 {

@@ -2,7 +2,7 @@
 
   <div class="contribute-card">
     <div class="abstract">
-      <i class="pi pi-question-circle text-green-300 opacity-30"></i>
+      <i class="pi pi-pen-to-square"></i>
     </div>
     <h3>Write a question</h3>
     <p>You will be surprised how much you can learn by writing questions,
@@ -15,7 +15,7 @@
 
   <div class="contribute-card">
     <div class="abstract abstract-2">
-      <i class="pi pi-comments text-yellow-500 opacity-20"></i>
+      <i class="pi pi-comments"></i>
     </div>
     <h3>Give feedback</h3>
     <p>Did you come across a bug or have a suggestion?</p>
@@ -25,7 +25,7 @@
 
   <div class="contribute-card">
     <div class="abstract abstract-3">
-      <i class="pi pi-megaphone text-red-600 opacity-20" style="transform: rotate(-12deg);"></i>
+      <i class="pi pi-megaphone" style="transform: rotate(-12deg);"></i>
     </div>
     <h3>Spread the word</h3>
     <p>Share your favourite questions on social media or forward our emails to colleagues
