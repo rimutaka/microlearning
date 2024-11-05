@@ -12,7 +12,7 @@
 
     <h3>Feedback</h3>
     <p>Feedback is welcome. The best way to get in touch is to <a href="mailto:max@onebro.me">email the developer</a>.</p>
-    <p>If you run into bugs, press <em>Ctrl+Shift+I</em> and copy-paste the console output into the email.<br />
-      Your help with making the site better will be much appreciated.</p>
+    <p>Your help with making the site better will be much appreciated.</p>
+    <p>If you run into bugs, press <em>Ctrl+Shift+I</em> and copy-paste the console output into the email.</p>
   </div>
 </template>
