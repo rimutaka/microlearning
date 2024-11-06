@@ -29,14 +29,15 @@
         </div>
 
         <div class="flex">
-          <div v-if="hasToken" class="flex-shrink text-start">
-            <Button label="Edit" icon="pi pi-pencil" severity="secondary" rounded class="whitespace-nowrap" @click="navigateToEditPage" />
-          </div>
-          <div v-if="!isAnswered" class="flex-grow text-end my-auto me-4">
-            <p class="text-xs text-slate-500">{{ optionsToSelect }}</p>
+          <div v-if="hasToken" class="flex-grow text-start">
+            <Button label="Edit" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
+            <Button label="Copy link" :disabled="linkCopiedFlag" icon="pi pi-share-alt" severity="secondary" class="whitespace-nowrap" @click="copyLinkToClipboard" />
+            <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
+            <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
           <div v-if="!isAnswered" class="flex-shrink text-end">
-            <Button label="Submit" icon="pi pi-check" raised rounded class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
+            <Button label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
+            <p class="text-xs text-slate-500">{{ optionsToSelect }}</p>
           </div>
         </div>
       </div>
@@ -48,7 +49,7 @@
 
 <script setup lang="ts">
 import { ref, watchEffect, computed, watch } from "vue";
-import router from "@/router";
+import router, { PageIDs } from "@/router";
 import type { Question, LoadingStatus } from "@/constants";
 import * as constants from "@/constants";
 import { storeToRefs } from 'pinia'
@@ -71,6 +72,7 @@ const questionMarkdown = ref<Question | undefined>();
 const learnerAnswersCheck = ref<string[]>([]);
 const learnerAnswerRadio = ref<string | undefined>();
 const loadingStatus = ref<LoadingStatus>(constants.LoadingStatus.Loading);
+const linkCopiedFlag = ref(false); // controls share button: f: Copy link, t: Link copied
 
 // a temporary solution to enable editing links
 const hasToken = computed(() => {
@@ -123,6 +125,18 @@ const optionsToSelect = computed(() => {
     return `Select ${remainingNumber} ${wordMore} ${wordAnswers}`;
   }
 });
+
+/// Copies the direct link to the question to the clipboard
+/// and changes the button message flag to display link copied msg
+const copyLinkToClipboard = () => {
+  const url = `${document.location.origin}/${PageIDs.QUESTION}/?${constants.URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${constants.URL_PARAM_QID}=${questionMarkdown.value?.qid}`;
+  navigator.clipboard.writeText(url);
+  linkCopiedFlag.value = true;
+  setTimeout(() => {
+    linkCopiedFlag.value = false;
+  }, 3000);
+}
+
 
 /// Changes the parent class of the answer to toggle the explanation
 /// Explanations for incorrect answers NOT selected by the user are hidden by default
