@@ -5,7 +5,7 @@
   <main class="mb-auto w-full">
     <RouterView />
   </main>
-  <footer class="">
+  <footer class="w-full">
     <FooterStatic />
   </footer>
 </template>
