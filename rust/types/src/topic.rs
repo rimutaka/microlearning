@@ -5,6 +5,8 @@ pub struct Topic {}
 impl Topic {
     /// The list of valid topics. Must be synchronized with the front-end manually
     pub const TOPICS: [&'static str; 5] = ["aws", "css", "general", "js-ts", "rust"];
+    /// A user-friendly list of topic names. Must match the TOPICS list
+    pub const TOPIC_NAMES: [&'static str; Self::TOPICS.len()] = ["AWS", "CSS", "Programming", "JS/TS", "Rust"];
 
     /// A placeholder for all topics, e.g. ?topic=any
     pub const ANY_TOPIC: &'static str = "any";
