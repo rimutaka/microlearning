@@ -92,7 +92,7 @@ fn replace_with_regex(index_html: String, topic: &str) -> String {
     //     }
     // };
 
-    let title = [topic_name, ": something I learned today"].concat();
+    let title = [topic_name, ": something new I learned today"].concat();
 
     // replace the title in multiple places if the value is not empty
     // <title>bla-bla</title>
@@ -125,6 +125,6 @@ fn replace_with_regex(index_html: String, topic: &str) -> String {
     // replace images with the topic-specific image
     // e.g. <meta property="og:image" itemprop="image" content="https://bitesized.info/og-image.png" />
     // the new name should be og-aws.png, og-rust.png, etc.
-    let og_image = ["/og-images/og-", topic, ".png"].concat();
-    index_html.replace("/og-images/default.png", &og_image)
+    let og_image = ["/og-", topic, "-627.png"].concat();
+    index_html.replace("/default-627.png", &og_image)
 }
