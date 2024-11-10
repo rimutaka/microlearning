@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { authGuard } from '@auth0/auth0-vue';
+import { findTopicById, URL_PARAM_TOPIC } from '@/constants';
 
 import HomeView from '../views/HomeView.vue'
 import QuestionFormView from '@/views/QuestionFormView.vue'
@@ -62,9 +63,18 @@ const router = createRouter({
 })
 
 router.afterEach((to, from) => {
-  const title = <string>to.meta?.title;
-  const websiteTitle = 'Bite-sized learning';
-  window.document.title = title ? `${title} | ${websiteTitle}` : websiteTitle;
+  const topic = findTopicById(to.query[URL_PARAM_TOPIC]?.toString());
+  const metaTitle = <string>to.meta?.title;
+
+  // question pages have the topic name added at the front of the title
+  if (to.name === PageIDs.QUESTION && topic) {
+    window.document.title = topic ? `${topic} ${metaTitle}` : metaTitle;
+  }
+  else {
+    // other pages use the hardcoded meta property
+    const defaultTitle = 'Bite-sized learning';
+    window.document.title = metaTitle ? `${metaTitle} | ${defaultTitle}` : defaultTitle;
+  }
 });
 
 export default router

@@ -58,13 +58,15 @@ Technical features:
 
 ## Tech stack and attribution
 
-* Cheese logo nicked from https://www.freepik.com/icon/cheese_4900716
 * Front-end: Vue
 * CSS: https://v2.tailwindcss.com/docs/
 * UI components: https://primevue.org/ and https://primevue.org/icons
 * MD to HTML: https://marked.js.org
 * Design ideas and code: https://flowbite.com
-* Fonts: Oswald
+* Fonts: Roboto
+* Graphics:
+  * https://worldvectorlogo.com/
+  * https://www.freepik.com/icon/cheese_4900716
 
 ## Notes
 

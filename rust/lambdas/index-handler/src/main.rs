@@ -63,36 +63,36 @@ fn replace_with_regex(index_html: String, topic: &str) -> String {
     // description should not be empty
     // we use a generic blurb if the book data has none
     // trip it to 500 characters
-    let description = ["Can you answer this question about ", topic_name, "?"].concat();
+    // let description = ["Can you answer this question about ", topic_name, "?"].concat();
 
-    // <meta name="description" content="A pocket assistant ...">
-    let index_html = match regex::Regex::new(r#"("description"[^>]+content=")([^"]+)"#) {
-        Ok(v) => v.replace(&index_html, ["${1}", &description].concat()),
-        Err(e) => {
-            error!("Invalid description regex. It's a bug. {:?}", e);
-            std::borrow::Cow::Borrowed(index_html.as_str())
-        }
-    };
+    // // <meta name="description" content="A pocket assistant ...">
+    // let index_html = match regex::Regex::new(r#"("description"[^>]+content=")([^"]+)"#) {
+    //     Ok(v) => v.replace(&index_html, ["${1}", &description].concat()),
+    //     Err(e) => {
+    //         error!("Invalid description regex. It's a bug. {:?}", e);
+    //         std::borrow::Cow::Borrowed(index_html.as_str())
+    //     }
+    // };
 
-    // <meta property="og:description" content="A pocket assistant for keen readers...">
-    let index_html = match regex::Regex::new(r#"("og:description"[^>]+content=")([^"]+)"#) {
-        Ok(v) => v.replace(&index_html, ["${1}", &description].concat()),
-        Err(e) => {
-            error!("Invalid og:description regex. It's a bug. {:?}", e);
-            index_html
-        }
-    };
+    // // <meta property="og:description" content="A pocket assistant for keen readers...">
+    // let index_html = match regex::Regex::new(r#"("og:description"[^>]+content=")([^"]+)"#) {
+    //     Ok(v) => v.replace(&index_html, ["${1}", &description].concat()),
+    //     Err(e) => {
+    //         error!("Invalid og:description regex. It's a bug. {:?}", e);
+    //         index_html
+    //     }
+    // };
 
-    // <meta name="twitter:description" content="A pocket assistant for keen readers..." />
-    let index_html = match regex::Regex::new(r#"("twitter:description"[^>]+content=")([^"]+)"#) {
-        Ok(v) => v.replace(&index_html, ["${1}", &description].concat()),
-        Err(e) => {
-            error!("Invalid twitter:description regex. It's a bug. {:?}", e);
-            index_html
-        }
-    };
+    // // <meta name="twitter:description" content="A pocket assistant for keen readers..." />
+    // let index_html = match regex::Regex::new(r#"("twitter:description"[^>]+content=")([^"]+)"#) {
+    //     Ok(v) => v.replace(&index_html, ["${1}", &description].concat()),
+    //     Err(e) => {
+    //         error!("Invalid twitter:description regex. It's a bug. {:?}", e);
+    //         index_html
+    //     }
+    // };
 
-    let title = [topic_name, " question"].concat();
+    let title = [topic_name, ": something I learned today"].concat();
 
     // replace the title in multiple places if the value is not empty
     // <title>bla-bla</title>
@@ -100,7 +100,7 @@ fn replace_with_regex(index_html: String, topic: &str) -> String {
         Ok(v) => v.replace(&index_html, ["${1}", &title].concat()),
         Err(e) => {
             error!("Invalid title regex. It's a bug. {:?}", e);
-            index_html
+            std::borrow::Cow::Borrowed(index_html.as_str())
         }
     };
 
@@ -122,5 +122,9 @@ fn replace_with_regex(index_html: String, topic: &str) -> String {
         }
     };
 
-    index_html.to_string()
+    // replace images with the topic-specific image
+    // e.g. <meta property="og:image" itemprop="image" content="https://bitesized.info/og-image.png" />
+    // the new name should be og-aws.png, og-rust.png, etc.
+    let og_image = ["/og-images/og-", topic, ".png"].concat();
+    index_html.replace("/og-images/default.png", &og_image)
 }
