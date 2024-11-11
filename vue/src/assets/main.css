@@ -41,6 +41,11 @@ a,
   @apply text-blue-500 underline cursor-pointer;
 }
 
+a.p-button {
+  /* For links masquarading as buttons */
+  @apply no-underline;
+}
+
 ul#signup-pitch {
   @apply mt-4 text-start  md:pl-8;
 }

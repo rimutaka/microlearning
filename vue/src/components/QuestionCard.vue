@@ -29,9 +29,12 @@
         </div>
 
         <div class="flex">
-          <div v-if="hasToken" class="flex-grow text-start">
-            <Button label="Edit" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
-            <Button label="Copy link" :disabled="linkCopiedFlag" icon="pi pi-share-alt" severity="secondary" class="whitespace-nowrap" @click="copyLinkToClipboard" />
+          <div class="flex-grow text-start">
+            <Button v-if="hasToken" label="Edit" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
+            <a :href="questionPageUrl" class="p-button p-component p-button-secondary whitespace-nowrap" aria-label="Copy link" @click="copyLinkToClipboard">
+              <span class="p-button-icon p-button-icon-left pi pi-share-alt"></span>
+              <span class="p-button-label">Copy link</span>
+            </a>
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
@@ -126,11 +129,15 @@ const optionsToSelect = computed(() => {
   }
 });
 
+/// A URL to the page with the question on its own
+/// for sharing or opening separately
+const questionPageUrl = computed(() => `${document.location.origin}/${PageIDs.QUESTION}/?${constants.URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${constants.URL_PARAM_QID}=${questionMarkdown.value?.qid}`);
+
 /// Copies the direct link to the question to the clipboard
 /// and changes the button message flag to display link copied msg
-const copyLinkToClipboard = () => {
-  const url = `${document.location.origin}/${PageIDs.QUESTION}/?${constants.URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${constants.URL_PARAM_QID}=${questionMarkdown.value?.qid}`;
-  navigator.clipboard.writeText(url);
+const copyLinkToClipboard = (e: MouseEvent) => {
+  e.preventDefault();
+  navigator.clipboard.writeText(questionPageUrl.value);
   linkCopiedFlag.value = true;
   setTimeout(() => {
     linkCopiedFlag.value = false;
