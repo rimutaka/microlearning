@@ -30,17 +30,16 @@
 
         <div class="flex">
           <div class="flex-grow text-start">
-            <Button v-if="hasToken" label="Edit" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
-            <a :href="questionPageUrl" class="p-button p-component p-button-secondary whitespace-nowrap" aria-label="Copy link" @click="copyLinkToClipboard">
-              <span class="p-button-icon p-button-icon-left pi pi-share-alt"></span>
-              <span class="p-button-label">Copy link</span>
-            </a>
+            <Button v-if="hasToken" label="Edit" size="small" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
+            <LinkButton :href="questionPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click="copyLinkToClipboard" />
+            <LinkButton v-if="!isAnswered && standalone" :href="questionTopicUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
+            <LinkButton v-if="isAnswered && standalone" :href="questionTopicUrl" label="Next question" class="mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
-          <div v-if="!isAnswered" class="flex-shrink text-end">
-            <Button label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
-            <p class="text-xs text-slate-500">{{ optionsToSelect }}</p>
+          <div class="flex-shrink text-end">
+            <Button v-if="!isAnswered" label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
+            <p v-if="!isAnswered" class="text-xs text-slate-500">{{ optionsToSelect }}</p>
           </div>
         </div>
       </div>
@@ -61,14 +60,16 @@ import { useMainStore } from '@/store';
 import Button from 'primevue/button';
 import Tag from "primevue/tag";
 import TransitionSlot from "./TransitionSlot.vue";
+import LinkButton from "./LinkButton.vue";
 
 const props = defineProps<{
-  topic?: string,// both are omitted for random questions
-  qid?: string,
+  topic: string,// must have a value or "any" for any topic
+  qid?: string, // returns a random question if omitted
+  standalone?: boolean, // true if the question is on its own page to display extra controls
 }>()
 
 const store = useMainStore();
-const { token, currentTopic, selectedTopics } = storeToRefs(store);
+const { token, currentTopic, selectedTopics, question } = storeToRefs(store);
 
 // as fetched from the server
 const questionMarkdown = ref<Question | undefined>();
@@ -130,8 +131,12 @@ const optionsToSelect = computed(() => {
 });
 
 /// A URL to the page with the question on its own
+/// without the question ID to display a random question
+const questionTopicUrl = computed(() => `${document.location.origin}/${PageIDs.QUESTION}/?${constants.URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}`);
+
+/// A URL to the page with the question on its own
 /// for sharing or opening separately
-const questionPageUrl = computed(() => `${document.location.origin}/${PageIDs.QUESTION}/?${constants.URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${constants.URL_PARAM_QID}=${questionMarkdown.value?.qid}`);
+const questionPageUrl = computed(() => `${questionTopicUrl.value}&${constants.URL_PARAM_QID}=${questionMarkdown.value?.qid}`);
 
 /// Copies the direct link to the question to the clipboard
 /// and changes the button message flag to display link copied msg
@@ -142,6 +147,16 @@ const copyLinkToClipboard = (e: MouseEvent) => {
   setTimeout(() => {
     linkCopiedFlag.value = false;
   }, 3000);
+}
+
+/// Copies the direct link to the question to the clipboard
+/// and changes the button message flag to display link copied msg
+const getNextQuestion = async (e: MouseEvent) => {
+  e.preventDefault();
+
+  watchHandler.stop(); // stop the watcher to prevent the question changing as the selected topics change
+
+  await loadQuestion(true);
 }
 
 
@@ -243,8 +258,10 @@ function storeRecentQuestionsInLS(qid: string) {
   }
 }
 
-watchEffect(async () => {
-  console.log(`Fetching question for: ${props.topic}/${props.qid}`);
+/// The topic always comes from props.topic
+/// The qid comes from props.qid if random is false.
+const loadQuestion = async (random?: boolean) => {
+  console.log(`Fetching question for: ${props.topic}/${props.qid}/${random}`);
 
   // calculate the topic(s) if not set in properties
   const topicsToFetch = props.topic ||
@@ -265,10 +282,10 @@ watchEffect(async () => {
   if (recent) headers.append(constants.RECENT_HEADER_NAME, recent);
 
   try {
-
     // fetching by topic returns a random question
     // fetching with qid returns a specific question
-    const fetchParams = `${constants.URL_PARAM_TOPIC}=${topicsToFetch}`.concat(props.qid ? `&${constants.URL_PARAM_QID}=${props.qid}` : "");
+    // ignore qid if random is true
+    const fetchParams = `${constants.URL_PARAM_TOPIC}=${topicsToFetch}`.concat(props.qid && !random ? `&${constants.URL_PARAM_QID}=${props.qid}` : "");
     console.log("fetchParams", fetchParams);
 
     const response = await fetch(`${constants.QUESTION_HANDLER_URL}${fetchParams}`,
@@ -291,6 +308,10 @@ watchEffect(async () => {
         questionMarkdown.value = question;
         loadingStatus.value = constants.LoadingStatus.Loaded;
         storeRecentQuestionsInLS(question.qid); // add qid to the list of recent questions
+
+        // this should be the only place where the URL is updated
+        router.push({ query: { topic: question.topic, qid: question.qid } });
+
       } catch (error) {
         console.error(error);
       }
@@ -307,6 +328,20 @@ watchEffect(async () => {
     console.error("Failed to get question.");
     console.error(error);
   }
-}).stop(); // stop the watcher to prevent the question changing as the selected topics change
+};
+
+const watchHandler = watchEffect(
+  async () => {
+    console.log("QuestionCard watchEffect");
+    // only reload if the props are different from the current question
+    if (questionMarkdown.value && props.topic == questionMarkdown.value.topic && props.qid == questionMarkdown.value.qid) {
+      console.log("Question already loaded");
+      return;
+    }
+    loadQuestion();
+  }
+);
+
+// stop(); // stop the watcher to prevent the question changing as the selected topics change
 
 </script>
