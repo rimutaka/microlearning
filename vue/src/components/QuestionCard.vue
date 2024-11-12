@@ -32,8 +32,8 @@
           <div class="flex-grow text-start">
             <Button v-if="hasToken" label="Edit" size="small" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
             <LinkButton :href="questionPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click="copyLinkToClipboard" />
-            <LinkButton v-if="!isAnswered && standalone" :href="questionTopicUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
-            <LinkButton v-if="isAnswered && standalone" :href="questionTopicUrl" label="Next question" class="mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
+            <LinkButton v-if="!isAnswered && next" :href="questionTopicUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
+            <LinkButton v-if="isAnswered && next" :href="questionTopicUrl" label="Next question" class="mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
@@ -65,7 +65,7 @@ import LinkButton from "./LinkButton.vue";
 const props = defineProps<{
   topic: string,// must have a value or "any" for any topic
   qid?: string, // returns a random question if omitted
-  standalone?: boolean, // true if the question is on its own page to display extra controls
+  next?: boolean, // true if the question can show the next button
 }>()
 
 const store = useMainStore();
@@ -151,13 +151,11 @@ const copyLinkToClipboard = (e: MouseEvent) => {
 
 /// Copies the direct link to the question to the clipboard
 /// and changes the button message flag to display link copied msg
-const getNextQuestion = async (e: MouseEvent) => {
+const getNextQuestion = (e: MouseEvent) => {
   e.preventDefault();
-  console.log("Pausing watch");
-  watchHandler.pause();
-  await loadQuestion(true);
-  console.log("Resuming watch");
-  watchHandler.resume();
+  console.log("getNextQuestion");
+  loadingStatus.value = constants.LoadingStatus.Loading;
+  question.value = undefined;
 }
 
 
@@ -265,7 +263,7 @@ const loadQuestion = async (random?: boolean) => {
 
   // make sure nothing is showing if the component is reused
   loadingStatus.value = constants.LoadingStatus.Loading;
-  question.value = undefined;
+  // question.value = undefined;
   currentTopic.value = undefined;
 
   // add a token with the email, if there is one (logged in users)
@@ -303,12 +301,6 @@ const loadQuestion = async (random?: boolean) => {
         loadingStatus.value = constants.LoadingStatus.Loaded;
         storeRecentQuestionsInLS(question.value.qid); // add qid to the list of recent questions
 
-        // this should be the only place where the URL is updated
-        if (props.standalone) {
-          console.log("Updating URL to ", question.value.topic, question.value.qid);
-          await router.push({ query: { topic: question.value.topic, qid: question.value.qid } })
-        };
-
       } catch (error) {
         console.error(error);
       }
@@ -327,25 +319,22 @@ const loadQuestion = async (random?: boolean) => {
   }
 };
 
-const watchHandler = watchEffect(
-  async () => {
-    console.log("QuestionCard watchEffect, loading status: ", loadingStatus.value);
-    console.log(`q-t: ${question.value?.topic} / p-t: ${props.topic}, q-qid: ${question.value?.qid} /  p-qid: ${props.qid}`);
-    // only reload if the props are different from the current question
-    if (question.value && props.topic == question.value.topic && props.qid == question.value.qid) {
-      console.log("Question already loaded");
-      loadingStatus.value = constants.LoadingStatus.Loaded;
-      return;
-    }
-    await loadQuestion();
-  }
-);
+// run once on load
+// const watchHandler = watchEffect(
+//   async () => {
+//     console.log("QuestionCard watchEffect, loading status: ", loadingStatus.value);
+//     console.log(`q-t: ${question.value?.topic} / p-t: ${props.topic}, q-qid: ${question.value?.qid} /  p-qid: ${props.qid}`);
+//     // only reload if the props are different from the current question
+//     if (question.value && props.topic == question.value.topic && props.qid == question.value.qid) {
+//       console.log("Question already loaded");
+//       loadingStatus.value = constants.LoadingStatus.Loaded;
+//       return;
+//     }
+//     await loadQuestion();
+//   }
+// ).stop();
 
-// needed to avoid infinite loop with sample questions
-// a new sample question re-renders the component via :key change
-if (!props.standalone) {
-  console.log("Stopping watch");
-  watchHandler.stop();
-}
+console.log("About to load question");
+loadQuestion();
 
 </script>
