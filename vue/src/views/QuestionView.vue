@@ -19,7 +19,13 @@ const topicName = computed(() => {
 
 // route.query.topic and .qid can potentially be an array, but it should not happen in this app,
 // so it is safe to cast them into a string
-const topic = computed(() => route.query.topic ? <string>route.query.topic : ANY_TOPIC);
-const qid = computed(() => route.query.qid ? <string>route.query.qid : undefined);
+const topic = computed(() => {
+  console.log("route.query.topic: ", route.query.topic);
+  return route.query.topic ? <string>route.query.topic : ANY_TOPIC;
+});
+const qid = computed(() => {
+  console.log("route.query.qid: ", route.query.qid);
+  return route.query.qid ? <string>route.query.qid : undefined;
+});
 
 </script>

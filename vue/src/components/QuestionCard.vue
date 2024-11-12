@@ -1,21 +1,21 @@
 <template>
   <TransitionSlot>
-    <div class="flex" v-if="questionMarkdown && loadingStatus == constants.LoadingStatus.Loaded">
+    <div v-if="question && loadingStatus == constants.LoadingStatus.Loaded" class="flex">
       <div class="q-card">
         <div class="q-text">
-          <div class="" v-html="questionMarkdown?.question"></div>
+          <div class="" v-html="question?.question"></div>
         </div>
 
-        <div v-for="(answer, index) in questionMarkdown?.answers" :key="index">
-          <h3 v-if="isAnswered && index === 0 && questionMarkdown?.correct == 1" class="mb-4">Your answer</h3>
-          <h3 v-if="isAnswered && index === 0 && questionMarkdown?.correct > 1" class="mb-4">Your answers</h3>
+        <div v-for="(answer, index) in question?.answers" :key="index">
+          <h3 v-if="isAnswered && index === 0 && question?.correct == 1" class="mb-4">Your answer</h3>
+          <h3 v-if="isAnswered && index === 0 && question?.correct > 1" class="mb-4">Your answers</h3>
           <h3 v-else-if="!isAnswered && index === 0" class="mb-4">Answers</h3>
-          <h3 v-else-if="isAnswered && index === questionMarkdown?.correct" class="mb-4">Other options</h3>
+          <h3 v-else-if="isAnswered && index === question?.correct" class="mb-4">Other options</h3>
 
           <div class="mb-8 border-2 rounded-md" :class="{ 'border-4': isAnswered, 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered, 'hide-explanation': isAnswered && !answer.c && !answer.sel }">
             <div class="flex items-center" :class="{ 'border-b-2': isAnswered, 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered }">
-              <input type="radio" v-if="questionMarkdown?.correct == 1" :name="questionMarkdown?.qid" :value="index" :disabled="isAnswered" v-model="learnerAnswerRadio" />
-              <input type="checkbox" v-if="questionMarkdown?.correct && questionMarkdown.correct > 1" :name="questionMarkdown?.qid" :disabled="isAnswered" :value="index" v-model="learnerAnswersCheck" />
+              <input type="radio" v-if="question?.correct == 1" :name="question?.qid" :value="index" :disabled="isAnswered" v-model="learnerAnswerRadio" />
+              <input type="checkbox" v-if="question?.correct && question.correct > 1" :name="question?.qid" :disabled="isAnswered" :value="index" v-model="learnerAnswersCheck" />
               <div class="q-answer" v-html="answer.a"></div>
             </div>
             <div v-if="answer?.c" class="px-2 my-2">Correct.</div>
@@ -72,7 +72,7 @@ const store = useMainStore();
 const { token, currentTopic, selectedTopics, question } = storeToRefs(store);
 
 // as fetched from the server
-const questionMarkdown = ref<Question | undefined>();
+// const question = ref<Question | undefined>();
 const learnerAnswersCheck = ref<string[]>([]);
 const learnerAnswerRadio = ref<string | undefined>();
 const loadingStatus = ref<LoadingStatus>(constants.LoadingStatus.Loading);
@@ -84,23 +84,23 @@ const hasToken = computed(() => {
 });
 
 const isAnswered = computed(() => {
-  if (questionMarkdown.value?.answers?.[0].e) { return true } else { return false };
+  if (question.value?.answers?.[0].e) { return true } else { return false };
 });
 
 const isQuestionReady = computed(() => {
-  // console.log("isQuestionReady", learnerAnswerRadio.value, learnerAnswersCheck.value, questionMarkdown.value?.correct);
+  // console.log("isQuestionReady", learnerAnswerRadio.value, learnerAnswersCheck.value, question.value?.correct);
   // must be either a single radio answer or multiple checkbox answers matching the number of correct answers
-  return learnerAnswerRadio.value !== undefined && questionMarkdown.value?.correct == 1 || learnerAnswersCheck.value.length == questionMarkdown.value?.correct;
+  return learnerAnswerRadio.value !== undefined && question.value?.correct == 1 || learnerAnswersCheck.value.length == question.value?.correct;
 });
 
 // this fn abstracts the complicated logic of informing the user
 // how many answers they need to select
 const optionsToSelect = computed(() => {
   // this line is needed for type checking
-  if (!questionMarkdown.value) return "";
+  if (!question.value) return "";
 
   // is this a single choice question with radio buttons?
-  if (questionMarkdown.value.correct == 1) {
+  if (question.value.correct == 1) {
     // if a radio button is selected it can be submitted
     // the user can change the answer, but not deselect it
     if (learnerAnswerRadio.value == undefined) {
@@ -113,14 +113,14 @@ const optionsToSelect = computed(() => {
   // assume it is a multichoice question from now on
 
   // perform an exhaustive match by how many answers were selected
-  const remainingNumber = questionMarkdown.value.correct - learnerAnswersCheck.value.length;
+  const remainingNumber = question.value.correct - learnerAnswersCheck.value.length;
   if (remainingNumber == 0) {
     // if the required number of answers is selected, the user can submit
     return "Check your selection and submit";
   }
   else if (remainingNumber < 0) {
     // too many answers selected
-    return `Only ${questionMarkdown.value.correct} options should be selected`;
+    return `Only ${question.value.correct} options should be selected`;
   }
   else {
     // more answers should be selected
@@ -132,11 +132,11 @@ const optionsToSelect = computed(() => {
 
 /// A URL to the page with the question on its own
 /// without the question ID to display a random question
-const questionTopicUrl = computed(() => `${document.location.origin}/${PageIDs.QUESTION}/?${constants.URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}`);
+const questionTopicUrl = computed(() => `${document.location.origin}/${PageIDs.QUESTION}?${constants.URL_PARAM_TOPIC}=${question.value?.topic}`);
 
 /// A URL to the page with the question on its own
 /// for sharing or opening separately
-const questionPageUrl = computed(() => `${questionTopicUrl.value}&${constants.URL_PARAM_QID}=${questionMarkdown.value?.qid}`);
+const questionPageUrl = computed(() => `${questionTopicUrl.value}&${constants.URL_PARAM_QID}=${question.value?.qid}`);
 
 /// Copies the direct link to the question to the clipboard
 /// and changes the button message flag to display link copied msg
@@ -153,10 +153,11 @@ const copyLinkToClipboard = (e: MouseEvent) => {
 /// and changes the button message flag to display link copied msg
 const getNextQuestion = async (e: MouseEvent) => {
   e.preventDefault();
-
-  watchHandler.stop(); // stop the watcher to prevent the question changing as the selected topics change
-
+  console.log("Pausing watch");
+  watchHandler.pause();
   await loadQuestion(true);
+  console.log("Resuming watch");
+  watchHandler.resume();
 }
 
 
@@ -173,12 +174,12 @@ function showExplanation(evt: Event | undefined) {
 async function submitQuestion() {
   // double-check there are answers to submit
   if (!isQuestionReady.value) {
-    console.error("Must select answers:", questionMarkdown.value?.correct);
+    console.error("Must select answers:", question.value?.correct);
     return;
   }
 
   // the lambda expects a list of answers in the URL
-  const answers = questionMarkdown.value?.correct == 1 ? learnerAnswerRadio.value : learnerAnswersCheck.value.join(constants.URL_PARAM_LIST_SEPARATOR);
+  const answers = question.value?.correct == 1 ? learnerAnswerRadio.value : learnerAnswersCheck.value.join(constants.URL_PARAM_LIST_SEPARATOR);
 
   // calculate the hash of the request body for x-amz-content-sha256 header
   // as required by CloudFront
@@ -186,7 +187,7 @@ async function submitQuestion() {
   // hash.update(answers);
   // const bodyHash = toHex(await hash.digest());
 
-  const url = `${constants.QUESTION_HANDLER_URL}${constants.URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${constants.URL_PARAM_QID}=${questionMarkdown.value?.qid}&${constants.URL_PARAM_ANSWERS}=${answers}`;
+  const url = `${constants.QUESTION_HANDLER_URL}${constants.URL_PARAM_TOPIC}=${question.value?.topic}&${constants.URL_PARAM_QID}=${question.value?.qid}&${constants.URL_PARAM_ANSWERS}=${answers}`;
   // add a token with the email, if there is one (logged in users)
   const headers = new Headers();
   if (token.value) headers.append(constants.TOKEN_HEADER_NAME, token.value);
@@ -202,15 +203,14 @@ async function submitQuestion() {
     if (response.status === 200) {
       try {
         // update the question with the full details
-        const question = <Question>await response.json();
-        questionMarkdown.value = question;
-        console.log("Full question received", questionMarkdown.value);
+        question.value = <Question>await response.json();
+        console.log("Full question received", question.value);
 
         // reset the user selection because the answers got rearranged with the correct ones at the top
         learnerAnswersCheck.value = [];
-        question.answers.forEach((answer, index) => {
+        question.value.answers.forEach((answer, index) => {
           if (answer.sel) {
-            if (question.correct == 1) {
+            if (question.value?.correct == 1) {
               learnerAnswerRadio.value = index.toString();
               console.log("learnerAnswerRadio", learnerAnswerRadio.value);
             } else {
@@ -234,7 +234,7 @@ async function submitQuestion() {
 
 /// navigates to edit page, but it should only work if the user has a token
 function navigateToEditPage() {
-  router.push(`/add?${constants.URL_PARAM_TOPIC}=${questionMarkdown.value?.topic}&${constants.URL_PARAM_QID}=${questionMarkdown.value?.qid}`);
+  router.push(`/add?${constants.URL_PARAM_TOPIC}=${question.value?.topic}&${constants.URL_PARAM_QID}=${question.value?.qid}`);
 }
 
 // Store the qid in a comma-separated list in the local storage.
@@ -261,16 +261,11 @@ function storeRecentQuestionsInLS(qid: string) {
 /// The topic always comes from props.topic
 /// The qid comes from props.qid if random is false.
 const loadQuestion = async (random?: boolean) => {
-  console.log(`Fetching question for: ${props.topic}/${props.qid}/${random}`);
-
-  // calculate the topic(s) if not set in properties
-  const topicsToFetch = props.topic ||
-    (selectedTopics.value.length
-      ? selectedTopics.value.join(constants.URL_PARAM_LIST_SEPARATOR)
-      : constants.ANY_TOPIC);
+  console.log(`Fetching question for: ${props.topic} / ${props.qid} / random: ${random}`);
 
   // make sure nothing is showing if the component is reused
-  questionMarkdown.value = undefined;
+  loadingStatus.value = constants.LoadingStatus.Loading;
+  question.value = undefined;
   currentTopic.value = undefined;
 
   // add a token with the email, if there is one (logged in users)
@@ -285,7 +280,7 @@ const loadQuestion = async (random?: boolean) => {
     // fetching by topic returns a random question
     // fetching with qid returns a specific question
     // ignore qid if random is true
-    const fetchParams = `${constants.URL_PARAM_TOPIC}=${topicsToFetch}`.concat(props.qid && !random ? `&${constants.URL_PARAM_QID}=${props.qid}` : "");
+    const fetchParams = `${constants.URL_PARAM_TOPIC}=${props.topic}`.concat(props.qid && !random ? `&${constants.URL_PARAM_QID}=${props.qid}` : "");
     console.log("fetchParams", fetchParams);
 
     const response = await fetch(`${constants.QUESTION_HANDLER_URL}${fetchParams}`,
@@ -299,18 +294,20 @@ const loadQuestion = async (random?: boolean) => {
     // an error may contain JSON or plain text, depending on where the errror occurred
     if (response.status === 200) {
       try {
-        const question = <Question>await response.json();
+        question.value = <Question>await response.json();
         // console.log(question);
         // console.log(question.topic);
-        // console.log(question.qid);
+        console.log(`Loaded ${question.value.topic} / ${question.value.qid}`);
 
-        currentTopic.value = question.topic;
-        questionMarkdown.value = question;
+        currentTopic.value = question.value.topic;
         loadingStatus.value = constants.LoadingStatus.Loaded;
-        storeRecentQuestionsInLS(question.qid); // add qid to the list of recent questions
+        storeRecentQuestionsInLS(question.value.qid); // add qid to the list of recent questions
 
         // this should be the only place where the URL is updated
-        router.push({ query: { topic: question.topic, qid: question.qid } });
+        if (props.standalone) {
+          console.log("Updating URL to ", question.value.topic, question.value.qid);
+          await router.push({ query: { topic: question.value.topic, qid: question.value.qid } })
+        };
 
       } catch (error) {
         console.error(error);
@@ -332,16 +329,23 @@ const loadQuestion = async (random?: boolean) => {
 
 const watchHandler = watchEffect(
   async () => {
-    console.log("QuestionCard watchEffect");
+    console.log("QuestionCard watchEffect, loading status: ", loadingStatus.value);
+    console.log(`q-t: ${question.value?.topic} / p-t: ${props.topic}, q-qid: ${question.value?.qid} /  p-qid: ${props.qid}`);
     // only reload if the props are different from the current question
-    if (questionMarkdown.value && props.topic == questionMarkdown.value.topic && props.qid == questionMarkdown.value.qid) {
+    if (question.value && props.topic == question.value.topic && props.qid == question.value.qid) {
       console.log("Question already loaded");
+      loadingStatus.value = constants.LoadingStatus.Loaded;
       return;
     }
-    loadQuestion();
+    await loadQuestion();
   }
 );
 
-// stop(); // stop the watcher to prevent the question changing as the selected topics change
+// needed to avoid infinite loop with sample questions
+// a new sample question re-renders the component via :key change
+if (!props.standalone) {
+  console.log("Stopping watch");
+  watchHandler.stop();
+}
 
 </script>
