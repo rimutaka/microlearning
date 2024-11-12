@@ -22,4 +22,6 @@ const { currentTopic, selectedTopics } = storeToRefs(store);
 
 const topic = computed(() => selectedTopics.value.length ? selectedTopics.value.join(URL_PARAM_LIST_SEPARATOR) : ANY_TOPIC);
 
+console.log(`topic: ${topic}, currentTopic: ${currentTopic.value}`);
+
 </script>
