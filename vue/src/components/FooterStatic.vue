@@ -42,7 +42,7 @@ const menuItems = ref([
   },
   {
     label: 'Contribute',
-    icon: 'pi pi-sparkles',
+    icon: 'pi pi-heart',
     route: `/${PageIDs.CONTRIBUTE}`
   },
   {

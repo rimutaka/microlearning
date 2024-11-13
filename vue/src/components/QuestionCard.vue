@@ -33,7 +33,7 @@
             <Button v-if="hasToken" label="Edit" size="small" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
             <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click="copyLinkToClipboard" />
             <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
-            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Next question" class="mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
+            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try one more question" class="mb-2" icon="pi pi-sparkles" @click="getNextQuestion" />
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
