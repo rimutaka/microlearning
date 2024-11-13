@@ -4,7 +4,7 @@
       <div class="flex-shrink md:flex-grow">
       </div>
 
-      <div class="mt-4 card flex-grow md:flex-shrink">
+      <div class="card flex-grow md:flex-shrink">
         <h3 class="text-justify md:text-center text-slate-700">Your free subscription to being 1% better every day</h3>
         <ul id="signup-pitch">
           <li><i class="pi pi-question-circle"></i>one question with detailed answers</li>
