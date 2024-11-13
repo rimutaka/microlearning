@@ -1,7 +1,7 @@
 <template>
   <h2 class="mt-8 mb-2 text-start">Question about: <em class="italic">{{ topicName }}</em></h2>
   <QuestionCard :topic="topic" :qid="qid" :next="true" :key="currentTopicKey"/>
-  <SubscriptionPitchAfterAnswering v-if="ctaPitchVisible"/>
+  <PostAnswerCTA v-if="ctaPitchVisible"/>
 </template>
 
 <script setup lang="ts">
@@ -12,7 +12,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 
 import QuestionCard from "../components/QuestionCard.vue";
-import SubscriptionPitchAfterAnswering from '@/components/SubscriptionPitchAfterAnswering.vue';
+import PostAnswerCTA from '@/components/PostAnswerCTA.vue';
 
 const route = useRoute();
 const router = useRouter();

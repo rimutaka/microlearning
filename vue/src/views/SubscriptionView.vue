@@ -1,6 +1,6 @@
 <template>
   <TransitionSlot>
-    <SubscriptionPitch v-if="formHydrated && (!user || !user?.topics.length)" />
+    <SubscriptionCTA v-if="formHydrated && (!user || !user?.topics.length)" />
   </TransitionSlot>
   <SubscriptionForm @hydrated="formHydrated = true" />
   <TransitionSlot>
@@ -15,7 +15,7 @@ import { useMainStore } from '@/store';
 
 import TransitionSlot from "@/components/TransitionSlot.vue";
 
-import SubscriptionPitch from '@/components/SubscriptionPitch.vue';
+import SubscriptionCTA from '@/components/SubscriptionCTA.vue';
 import SubscriptionForm from '@/components/SubscriptionForm.vue';
 import SampleQuestion from "@/components/SampleQuestion.vue";
 

@@ -42,7 +42,7 @@ const menuItems = ref([
   },
   {
     label: 'Contribute',
-    icon: 'pi pi-question-circle',
+    icon: 'pi pi-sparkles',
     route: `/${PageIDs.CONTRIBUTE}`
   },
   {
@@ -52,7 +52,7 @@ const menuItems = ref([
   },
   {
     label: 'Contact',
-    icon: 'pi pi-envelope',
+    icon: 'pi pi-comments',
     url: 'mailto:max@onebro.me'
   }
 ]);

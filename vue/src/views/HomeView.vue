@@ -1,6 +1,6 @@
 <template>
   <TransitionSlot>
-    <HomePitch />
+    <HomeCTA />
   </TransitionSlot>
   <HomeForm />
 </template>
@@ -16,7 +16,7 @@ import { PageIDs } from '@/router';
 
 import TransitionSlot from "@/components/TransitionSlot.vue";
 import HomeForm from '@/components/HomeForm.vue';
-import HomePitch from '@/components/HomePitch.vue';
+import HomeCTA from '@/components/HomeCTA.vue';
 
 const store = useMainStore();
 const { currentTopic } = storeToRefs(store);
