@@ -5,7 +5,7 @@
   <div class=" mt-12 mb-8 p-8 border-2 border-slate-300 rounded-md" v-else>
     <h3 class=" mt-4 mb-8">Sorry, I have not implemented this part yet, but ...</h3>
     <p class="mb-4">I'd love to get your help with adding more questions.</p>
-    <p>Can you email yours to <a class="link" href="mailto:max@onebro.me">max@onebro.me</a> and I'll add it to the database?</p>
+    <p>Can you email yours to <a class="link" href="mailto:max@bitesized.info">max@bitesized.info</a> and I'll add it to the database?</p>
   </div>
 </template>
 

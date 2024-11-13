@@ -53,7 +53,7 @@ const menuItems = ref([
   {
     label: 'Contact',
     icon: 'pi pi-comments',
-    url: 'mailto:max@onebro.me'
+    url: 'mailto:max@bitesized.info'
   }
 ]);
 

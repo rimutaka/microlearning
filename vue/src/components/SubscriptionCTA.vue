@@ -29,7 +29,7 @@
                 <div class="ps-3">
                   <a href="https://github.com/rimutaka" class="text-slate-500 me-2"><i class="pi pi-github ms-1"></i></a>
                   <a href="https://www.linkedin.com/in/maxvoskob" class="text-slate-500 me-2"><i class="pi pi-linkedin"></i></a>
-                  <a href="mailto:max@onebro.me?subject=Feedback about Bite-sized" class="text-slate-500 me-2"><i class="pi pi-envelope"></i></a>
+                  <a href="mailto:max@bitesized.info?subject=Feedback about Bite-sized" class="text-slate-500 me-2"><i class="pi pi-envelope"></i></a>
                 </div>
               </div>
             </figcaption>
