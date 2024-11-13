@@ -5,8 +5,8 @@
     <h3 v-else-if="loading == LoadingStatus.NoData">Select your topics of interest</h3>
     <TopicsList v-if="loading == LoadingStatus.Loaded || loading == LoadingStatus.NoData" :key="user?.updated" />
 
-    <div class="mt-12 mb-12">
-      <div v-if="loading == LoadingStatus.Loaded" class="text-center">
+    <div class="mt-4 md:mt-12 mb-12">
+      <div v-if="subscriptionStatus == SubscriptionStatus.LoadedWithSubs" class="text-center">
         <div v-if="inUpdateMode" class="update-sub">
           <div class="flex mb-4">
             <div class="mx-auto">
@@ -33,7 +33,7 @@
 
       </div>
 
-      <div v-if="loading == LoadingStatus.NoData" class="update-sub">
+      <div v-if="subscriptionStatus == SubscriptionStatus.LoadedNoSubs" class="update-sub">
         <p class="mb-4">
           <span v-if="topicsReminder && !canSubscribe" class="text-red-600 mb-4">Select at least one topic</span>
           <span v-else-if="saving == LoadingStatus.Loading" class="">Saving ...</span>
@@ -43,10 +43,11 @@
         <Button label="Subscribe" icon="pi pi-envelope" raised class="font-bold px-8 py-4 mb-2 whitespace-nowrap" :disabled="saving == LoadingStatus.Loading" @click="subscribe" />
       </div>
 
-      <div v-if="!inUpdateMode && loading !== LoadingStatus.Loading" class="text-center mb-4">
+      <div v-if="!inUpdateMode && loading == LoadingStatus.Loaded" class="text-center mb-4">
         <p class="w-full text-center mt-2 mb-4 text-sm">or</p>
         <RandomQuestionButton />
       </div>
+      <h3 v-if="loading == LoadingStatus.Error" class="mt-8 mb-8 text-center text-slate-500">Sorry, something went wrong. Try again.</h3>
     </div>
   </div>
 </template>
@@ -76,7 +77,20 @@ const saving = ref<LoadingStatus>(); // set while updating user subs, only loadi
 const inUpdateMode = ref(false); // true if the update panel is expanded
 
 /// A new sub requires at least one topic, an update may have no topics selected
-const canSubscribe = computed(() => selectedTopics.value.length || user.value);
+const canSubscribe = computed(() => selectedTopics.value.length || user.value?.topics.length);
+
+enum SubscriptionStatus {
+  LoadedNoSubs,
+  LoadedWithSubs,
+}
+/// A composite of the user subscription status to display Subscribe / Update buttons
+const subscriptionStatus = computed(() => {
+  if (loading.value === LoadingStatus.Loaded && user.value?.topics.length) return SubscriptionStatus.LoadedWithSubs;
+  if (loading.value === LoadingStatus.Loaded && !user.value?.topics.length) return SubscriptionStatus.LoadedNoSubs;
+  if (loading.value === LoadingStatus.NoData) return SubscriptionStatus.LoadedNoSubs; // this one should not happen
+  console.error("Unknown status (it's a bug): ", loading.value);
+});
+
 
 const topicsToRemove = computed(() => {
   return user.value?.topics.filter((t) => !selectedTopics.value.includes(t));
@@ -187,7 +201,7 @@ watchEffect(async () => {
         user.value = <User>await response.json();
         // console.log(user.value);
 
-          // set selected topics to user's topics if there is an active subscription
+        // set selected topics to user's topics if there is an active subscription
         if (user.value?.topics?.length) {
           selectedTopics.value = user.value.topics;
           loading.value = LoadingStatus.Loaded;

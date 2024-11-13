@@ -21,7 +21,7 @@ img {
 }
 
 h1 {
-  @apply text-4xl font-bold;
+  @apply text-3xl font-bold;
 }
 
 h2 {
@@ -52,6 +52,10 @@ ul#signup-pitch {
 
 ul#signup-pitch li {
   @apply my-3;
+}
+
+ul#signup-pitch li h3 {
+  @apply text-base md:text-xl;
 }
 
 ul#signup-pitch li i {

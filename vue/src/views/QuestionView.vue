@@ -1,23 +1,24 @@
 <template>
   <h2 class="mt-8 mb-2 text-start">Question about: <em class="italic">{{ topicName }}</em></h2>
   <QuestionCard :topic="topic" :qid="qid" :next="true" :key="currentTopicKey"/>
+  <SubscriptionPitchAfterAnswering v-if="ctaPitchVisible"/>
 </template>
 
 <script setup lang="ts">
 import { computed, watch, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
-import QuestionCard from "../components/QuestionCard.vue";
-// import SignupForm from '../components/SignupForm.vue';
-// import SignupPitch from '../components/SignupPitch.vue';
 import { TOPICS, ANY_TOPIC } from "@/constants";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
+
+import QuestionCard from "../components/QuestionCard.vue";
+import SubscriptionPitchAfterAnswering from '@/components/SubscriptionPitchAfterAnswering.vue';
 
 const route = useRoute();
 const router = useRouter();
 
 const store = useMainStore();
-const { question, currentTopicKey } = storeToRefs(store);
+const { question, currentTopicKey, user } = storeToRefs(store);
 
 const topicName = computed(() => {
   return (TOPICS.find((t) => t.id == route.query.topic))?.t;
@@ -30,6 +31,10 @@ const initialQid = route.query.qid ? <string>route.query.qid : undefined;
 // so it is safe to cast them into a string
 const topic = ref<string>(initialTopic);
 const qid = ref<string | undefined>(initialQid);
+
+const ctaPitchVisible = computed(() => {
+  if  (!user.value?.topics.length && question.value?.answers?.[0].e) { return true } else { return false };
+});
 
 // update the query string with the next question topic and id when the question changes in the store
 watch(question, (newQuestion) => {
