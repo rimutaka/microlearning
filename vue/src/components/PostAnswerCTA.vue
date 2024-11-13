@@ -22,7 +22,7 @@
         <Button label="View subscription details" icon="pi pi-lock-open" raised rounded class="font-bold px-8 py-4 md:me-4 mb-2 whitespace-nowrap" @click="router.push({ name: 'subscription' })" />
         <p class="text-xs text-center md:mb-auto text-slate-500">You will be asked to
           <a :href="`/${PageIDs.SUBSCRIPTION}`" @click.prevent="router.push(PageIDs.SUBSCRIPTION)">sign in</a>
-          with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i><i class="pi pi-microsoft me-2"></i><i class="pi pi-linkedin me-2"></i>
+          with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i>
         </p>
       </div>
   </div>
