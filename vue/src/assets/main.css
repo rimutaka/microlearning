@@ -256,7 +256,7 @@ footer a {
   @apply p-2 max-w-xl mx-auto;
 }
 .about h3 {
-  @apply mt-12 mb-4;
+  @apply mt-12 mb-4 text-slate-700;
 }
 
 .about h3:first-child {
