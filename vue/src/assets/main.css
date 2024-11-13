@@ -89,6 +89,11 @@ footer a {
   @apply text-inherit no-underline;
 }
 
+/* Call to action box shown to users without subs */
+.cta-box {
+  @apply p-4 pt-8 border-2 rounded-md border-slate-300 border-dashed shadow-md md:shadow-lg;
+}
+
 /* QUESTION FORM */
 .question-readiness li {
   @apply mb-4;

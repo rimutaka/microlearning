@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-8 pt-8 border-t-2 border-slate-300 border-dashed">
+  <div class="mb-8 cta-box">
     <h3 class="mb-4 text-slate-700 w-full">Get more questions like this to find and fill gaps in your knowledge</h3>
 
     <div class="flex w-full">
@@ -8,7 +8,7 @@
 
       <div class="card flex-grow md:flex-shrink mb-8 text-slate-700">
         <ul id="signup-pitch">
-          <li><i class="pi pi-list-check"></i>questions on your topics of interest</li>
+          <li><i class="pi pi-list-check"></i>questions about your topics of interest</li>
           <li><i class="pi pi-envelope"></i>delivered to your inbox</li>
           <li><i class="pi pi-info-circle"></i>with <em>bite-sized</em> explanations</li>
           <li><i class="pi pi-sparkles"></i>to help you become a better dev</li>

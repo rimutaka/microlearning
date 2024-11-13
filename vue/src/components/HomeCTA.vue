@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-8">
+  <div class="mb-8 cta-box">
     <h1 class="mb-4 md:mb-8 text-slate-700 w-full">Find and fill gaps in your knowledge,<br/>one question at a time</h1>
 
     <div class="flex w-full">
