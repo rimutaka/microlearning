@@ -231,7 +231,7 @@ footer a {
 }
 
 .contribute-card p {
-  @apply text-justify p-2;
+  @apply text-justify p-4;
 }
 
 .contribute-card .cta {

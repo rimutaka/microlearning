@@ -1,4 +1,5 @@
 <template>
+    <h1 class="mb-4 md:mb-12 text-slate-700 w-full">Let's make this free learning tool bigger and better</h1>
 
   <div class="contribute-card">
     <div class="abstract">
