@@ -5,7 +5,7 @@
 
     <div class="flex flex-wrap mt-12 mb-4">
       <div class="flex-shrink text-start mx-auto">
-        <Button label="Browse more questions or subscribe" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 md:me-4 mb-2 whitespace-nowrap" @click="navigateToSubscription" />
+        <Button :label="question ? 'Browse more questions or subscribe' : 'Browse questions or subscribe'" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 md:me-4 mb-2 whitespace-nowrap" @click="navigateToSubscription" />
         <p class="text-xs text-center md:mb-auto text-slate-500">You will be asked to
           <a :href="`/${PageIDs.SUBSCRIPTION}`" @click.prevent="router.push(PageIDs.SUBSCRIPTION)">sign in</a>
           with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i>
@@ -38,7 +38,7 @@ import SampleQuestion from "./SampleQuestion.vue";
 import RandomQuestionButton from './RandomQuestionButton.vue';
 
 const store = useMainStore();
-const { selectedTopics, currentTopic, componentKey } = storeToRefs(store);
+const { selectedTopics, currentTopic, componentKey, question } = storeToRefs(store);
 
 async function navigateToSubscription() {
   console.log("Subscribing to topics: ", selectedTopics.value);
