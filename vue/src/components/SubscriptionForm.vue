@@ -43,7 +43,7 @@
         <Button label="Subscribe" icon="pi pi-envelope" raised class="font-bold px-8 py-4 mb-2 whitespace-nowrap" :disabled="saving == LoadingStatus.Loading" @click="subscribe" />
       </div>
 
-      <div v-if="!inUpdateMode && loading == LoadingStatus.Loaded" class="text-center mb-4">
+      <div v-if="!inUpdateMode && (loading == LoadingStatus.Loaded || loading === LoadingStatus.NoData)" class="text-center mb-4">
         <p class="w-full text-center mt-2 mb-4 text-sm">or</p>
         <RandomQuestionButton />
       </div>
@@ -87,7 +87,8 @@ enum SubscriptionStatus {
 const subscriptionStatus = computed(() => {
   if (loading.value === LoadingStatus.Loaded && user.value?.topics.length) return SubscriptionStatus.LoadedWithSubs;
   if (loading.value === LoadingStatus.Loaded && !user.value?.topics.length) return SubscriptionStatus.LoadedNoSubs;
-  if (loading.value === LoadingStatus.NoData) return SubscriptionStatus.LoadedNoSubs; // this one should not happen
+  if (loading.value === LoadingStatus.NoData) return SubscriptionStatus.LoadedNoSubs;
+  if (loading.value === LoadingStatus.Error || loading.value == LoadingStatus.Loading) return undefined;
   console.error("Unknown status (it's a bug): ", loading.value);
 });
 
