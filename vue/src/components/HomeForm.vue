@@ -17,7 +17,7 @@
       </div>
     </div>
     <TransitionSlot>
-      <SampleQuestion v-if="currentTopicKey" :nonce="currentTopicKey" />
+      <SampleQuestion v-if="componentKey" :nonce="componentKey" />
     </TransitionSlot>
   </div>
 </template>
@@ -38,7 +38,7 @@ import SampleQuestion from "./SampleQuestion.vue";
 import RandomQuestionButton from './RandomQuestionButton.vue';
 
 const store = useMainStore();
-const { selectedTopics, currentTopic, currentTopicKey } = storeToRefs(store);
+const { selectedTopics, currentTopic, componentKey } = storeToRefs(store);
 
 async function navigateToSubscription() {
   console.log("Subscribing to topics: ", selectedTopics.value);

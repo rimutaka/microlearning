@@ -4,7 +4,7 @@
   </TransitionSlot>
   <SubscriptionForm @hydrated="formHydrated = true" />
   <TransitionSlot>
-    <SampleQuestion v-if="formHydrated && currentTopicKey" :nonce="currentTopicKey" />
+    <SampleQuestion v-if="formHydrated && componentKey" :nonce="componentKey" />
   </TransitionSlot>
 </template>
 
@@ -20,13 +20,13 @@ import SubscriptionForm from '@/components/SubscriptionForm.vue';
 import SampleQuestion from "@/components/SampleQuestion.vue";
 
 const store = useMainStore();
-const { user, currentTopicKey } = storeToRefs(store);
+const { user, componentKey } = storeToRefs(store);
 const formHydrated = ref(false);
 
 watchEffect(() => {
   // reset the sample question key to make sure it is not showing
   // when the user transitions from another page
-  currentTopicKey.value = undefined;
+  componentKey.value = undefined;
 });
 
 </script>

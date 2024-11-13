@@ -17,7 +17,7 @@ export const useMainStore = defineStore('main', () => {
   const currentTopic = ref<string | undefined>()
 
   /// A random string to force the question update if the topic does not change
-  const currentTopicKey = ref<string | undefined>()
+  const componentKey = ref<string | undefined>()
 
   /// Email from the token from the ID provider, e.g. Google or Github
   const email = ref<string | undefined>()
@@ -38,16 +38,16 @@ export const useMainStore = defineStore('main', () => {
   });
 
   /// Show a random question from the selected topics or all topics
-  /// currentTopicKey controls the question component :key to force an update
+  /// componentKey controls the question component :key to force an update
   function showRandomQuestion() {
-    currentTopicKey.value = Date.now().toString(36); // e.g. 0.cbm9x4v2kyi
+    componentKey.value = Date.now().toString(36); // e.g. 0.cbm9x4v2kyi
   }
 
   const reset = () => {
     question.value = undefined;
     selectedTopics.value = [];
     currentTopic.value = undefined;
-    currentTopicKey.value = undefined;
+    componentKey.value = undefined;
     email.value = undefined;
     token.value = undefined;
     user.value = undefined;
@@ -58,7 +58,7 @@ export const useMainStore = defineStore('main', () => {
     selectedTopics,
     lastSelectedTopic,
     currentTopic,
-    currentTopicKey,
+    componentKey,
     email,
     token,
     user,

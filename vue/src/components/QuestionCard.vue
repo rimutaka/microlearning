@@ -14,8 +14,8 @@
 
           <div class="mb-8 border-2 rounded-md" :class="{ 'border-4': isAnswered, 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered, 'hide-explanation': isAnswered && !answer.c && !answer.sel }">
             <div class="flex items-center" :class="{ 'border-b-2': isAnswered, 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered }">
-              <input type="radio" v-if="question?.correct == 1" :name="question?.qid" :value="index" :disabled="isAnswered" v-model="learnerAnswerRadio" />
-              <input type="checkbox" v-if="question?.correct && question.correct > 1" :name="question?.qid" :disabled="isAnswered" :value="index" v-model="learnerAnswersCheck" />
+              <input type="radio" v-if="question?.correct == 1" :name="question?.qid" :value="index" :disabled="isAnswered" v-model="answerRadio" />
+              <input type="checkbox" v-if="question?.correct && question.correct > 1" :name="question?.qid" :disabled="isAnswered" :value="index" v-model="answersCheckbox" />
               <div class="q-answer" v-html="answer.a"></div>
             </div>
             <div v-if="answer?.c" class="px-2 my-2">Correct.</div>
@@ -31,15 +31,15 @@
         <div class="flex">
           <div class="flex-grow text-start">
             <Button v-if="hasToken" label="Edit" size="small" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
-            <LinkButton :href="questionPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click="copyLinkToClipboard" />
-            <LinkButton v-if="!isAnswered && next" :href="questionTopicUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
-            <LinkButton v-if="isAnswered && next" :href="questionTopicUrl" label="Next question" class="mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
+            <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click="copyLinkToClipboard" />
+            <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
+            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Next question" class="mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
           <div class="flex-shrink text-end">
             <Button v-if="!isAnswered" label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
-            <p v-if="!isAnswered" class="text-xs text-slate-500">{{ optionsToSelect }}</p>
+            <p v-if="!isAnswered" class="text-xs text-slate-500">{{ howManyOptionsLeftToSelect }}</p>
           </div>
         </div>
       </div>
@@ -69,12 +69,11 @@ const props = defineProps<{
 }>()
 
 const store = useMainStore();
-const { token, currentTopic, selectedTopics, question } = storeToRefs(store);
+const { token, currentTopic, question } = storeToRefs(store);
 
 // as fetched from the server
-// const question = ref<Question | undefined>();
-const learnerAnswersCheck = ref<string[]>([]);
-const learnerAnswerRadio = ref<string | undefined>();
+const answersCheckbox = ref<string[]>([]);
+const answerRadio = ref<string | undefined>();
 const loadingStatus = ref<LoadingStatus>(constants.LoadingStatus.Loading);
 const linkCopiedFlag = ref(false); // controls share button: f: Copy link, t: Link copied
 
@@ -88,14 +87,14 @@ const isAnswered = computed(() => {
 });
 
 const isQuestionReady = computed(() => {
-  // console.log("isQuestionReady", learnerAnswerRadio.value, learnerAnswersCheck.value, question.value?.correct);
+  // console.log("isQuestionReady", answerRadio.value, answersCheckbox.value, question.value?.correct);
   // must be either a single radio answer or multiple checkbox answers matching the number of correct answers
-  return learnerAnswerRadio.value !== undefined && question.value?.correct == 1 || learnerAnswersCheck.value.length == question.value?.correct;
+  return answerRadio.value !== undefined && question.value?.correct == 1 || answersCheckbox.value.length == question.value?.correct;
 });
 
 // this fn abstracts the complicated logic of informing the user
 // how many answers they need to select
-const optionsToSelect = computed(() => {
+const howManyOptionsLeftToSelect = computed(() => {
   // this line is needed for type checking
   if (!question.value) return "";
 
@@ -103,7 +102,7 @@ const optionsToSelect = computed(() => {
   if (question.value.correct == 1) {
     // if a radio button is selected it can be submitted
     // the user can change the answer, but not deselect it
-    if (learnerAnswerRadio.value == undefined) {
+    if (answerRadio.value == undefined) {
       return "Select one of the options";
     } else {
       return "Check your selection and submit";
@@ -113,7 +112,7 @@ const optionsToSelect = computed(() => {
   // assume it is a multichoice question from now on
 
   // perform an exhaustive match by how many answers were selected
-  const remainingNumber = question.value.correct - learnerAnswersCheck.value.length;
+  const remainingNumber = question.value.correct - answersCheckbox.value.length;
   if (remainingNumber == 0) {
     // if the required number of answers is selected, the user can submit
     return "Check your selection and submit";
@@ -124,7 +123,7 @@ const optionsToSelect = computed(() => {
   }
   else {
     // more answers should be selected
-    const wordMore = learnerAnswersCheck.value.length ? "more" : "";
+    const wordMore = answersCheckbox.value.length ? "more" : "";
     const wordAnswers = remainingNumber > 1 ? "options" : "option";
     return `Select ${remainingNumber} ${wordMore} ${wordAnswers}`;
   }
@@ -132,17 +131,17 @@ const optionsToSelect = computed(() => {
 
 /// A URL to the page with the question on its own
 /// without the question ID to display a random question
-const questionTopicUrl = computed(() => `${document.location.origin}/${PageIDs.QUESTION}?${constants.URL_PARAM_TOPIC}=${question.value?.topic}`);
+const questionTopicOnlyUrl = computed(() => `${document.location.origin}/${PageIDs.QUESTION}?${constants.URL_PARAM_TOPIC}=${question.value?.topic}`);
 
 /// A URL to the page with the question on its own
 /// for sharing or opening separately
-const questionPageUrl = computed(() => `${questionTopicUrl.value}&${constants.URL_PARAM_QID}=${question.value?.qid}`);
+const questionTopicAndPageUrl = computed(() => `${questionTopicOnlyUrl.value}&${constants.URL_PARAM_QID}=${question.value?.qid}`);
 
 /// Copies the direct link to the question to the clipboard
 /// and changes the button message flag to display link copied msg
 const copyLinkToClipboard = (e: MouseEvent) => {
   e.preventDefault();
-  navigator.clipboard.writeText(questionPageUrl.value);
+  navigator.clipboard.writeText(questionTopicAndPageUrl.value);
   linkCopiedFlag.value = true;
   setTimeout(() => {
     linkCopiedFlag.value = false;
@@ -177,7 +176,7 @@ async function submitQuestion() {
   }
 
   // the lambda expects a list of answers in the URL
-  const answers = question.value?.correct == 1 ? learnerAnswerRadio.value : learnerAnswersCheck.value.join(constants.URL_PARAM_LIST_SEPARATOR);
+  const answers = question.value?.correct == 1 ? answerRadio.value : answersCheckbox.value.join(constants.URL_PARAM_LIST_SEPARATOR);
 
   // calculate the hash of the request body for x-amz-content-sha256 header
   // as required by CloudFront
@@ -205,15 +204,15 @@ async function submitQuestion() {
         console.log("Full question received", question.value);
 
         // reset the user selection because the answers got rearranged with the correct ones at the top
-        learnerAnswersCheck.value = [];
+        answersCheckbox.value = [];
         question.value.answers.forEach((answer, index) => {
           if (answer.sel) {
             if (question.value?.correct == 1) {
-              learnerAnswerRadio.value = index.toString();
-              console.log("learnerAnswerRadio", learnerAnswerRadio.value);
+              answerRadio.value = index.toString();
+              console.log("answerRadio", answerRadio.value);
             } else {
-              learnerAnswersCheck.value.push(index.toString());
-              console.log("learnerAnswersCheck", learnerAnswersCheck.value);
+              answersCheckbox.value.push(index.toString());
+              console.log("answersCheckbox", answersCheckbox.value);
             }
           }
         });
@@ -318,21 +317,6 @@ const loadQuestion = async (random?: boolean) => {
     console.error(error);
   }
 };
-
-// run once on load
-// const watchHandler = watchEffect(
-//   async () => {
-//     console.log("QuestionCard watchEffect, loading status: ", loadingStatus.value);
-//     console.log(`q-t: ${question.value?.topic} / p-t: ${props.topic}, q-qid: ${question.value?.qid} /  p-qid: ${props.qid}`);
-//     // only reload if the props are different from the current question
-//     if (question.value && props.topic == question.value.topic && props.qid == question.value.qid) {
-//       console.log("Question already loaded");
-//       loadingStatus.value = constants.LoadingStatus.Loaded;
-//       return;
-//     }
-//     await loadQuestion();
-//   }
-// ).stop();
 
 console.log("About to load question");
 loadQuestion();

@@ -1,6 +1,6 @@
 <template>
   <h2 class="mt-8 mb-2 text-start">Question about: <em class="italic">{{ topicName }}</em></h2>
-  <QuestionCard :topic="topic" :qid="qid" :next="true" :key="currentTopicKey"/>
+  <QuestionCard :topic="topic" :qid="qid" :next="true" :key="componentKey"/>
   <PostAnswerCTA v-if="ctaPitchVisible"/>
 </template>
 
@@ -18,7 +18,7 @@ const route = useRoute();
 const router = useRouter();
 
 const store = useMainStore();
-const { question, currentTopicKey, user } = storeToRefs(store);
+const { question, componentKey, user } = storeToRefs(store);
 
 const topicName = computed(() => {
   return (TOPICS.find((t) => t.id == route.query.topic))?.t;
