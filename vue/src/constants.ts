@@ -38,7 +38,7 @@ export interface TopicFields {
 export const TOPICS = <Array<TopicFields>>[
   { t: "AWS", id: "aws" },
   { t: "CSS", id: "css" },
-  { t: "General", id: "general" },
+  { t: "Essentials", id: "general" },
   { t: "JS / TS", id: "js-ts" },
   { t: "Rust", id: "rust" }
 ];
