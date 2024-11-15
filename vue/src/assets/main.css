@@ -180,7 +180,7 @@ footer a {
 
 .q-card p:not(:first-child),
 .md-rendered p:not(:first-child) {
-  @apply mt-4;
+  @apply mt-2;
 }
 
 .q-card ul,
@@ -217,6 +217,25 @@ footer a {
   @apply font-mono text-sm rounded-none p-2 md:w-fit block overflow-x-auto;
 }
 
+.q-card h1, .md-rendered h1 {
+  @apply text-2xl font-bold mt-6 mb-4;
+}
+
+.q-card h2, .md-rendered h2 {
+  @apply text-xl font-bold mt-6 mb-2;
+}
+
+.q-card h3, .md-rendered h3 {
+  @apply text-lg font-bold mt-4 mb-1;
+}
+
+.q-card h4, .md-rendered h4 {
+  @apply text-base font-bold mt-4;
+}
+
+.q-card blockquote, .md-rendered blockquote {
+  @apply border-l-4 border-slate-300 ps-2 my-1;
+}
 /* Contribute card */
 
 .contribute-card {
