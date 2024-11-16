@@ -10,7 +10,7 @@
     <p>Individual results and performance stats are only available to that individual.</p>
     <p>The purpose of this app is to help us learn through questions.</p>
 
-    <h3>How subscriptions works</h3>
+    <h3>How subscriptions work</h3>
     <p>You get one email per day with a random question about one of your selected topics.</p>
     <p>The next email is scheduled for the following day when you answer the previous question.</p>
     <p>Emails are automatically paused if you stop answering questions to minimize your backlog.</p>

@@ -12,8 +12,8 @@
           <h3 v-else-if="!isAnswered && index === 0" class="mb-4">Answers</h3>
           <h3 v-else-if="isAnswered && index === question?.correct" class="mb-4">Other options</h3>
 
-          <div class="mb-8 border-2 rounded-md" :class="{ 'border-4': isAnswered, 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered, 'border-slate-100': !isAnswered, 'hide-explanation': isAnswered && !answer.c && !answer.sel }">
-            <div class="flex items-center" :class="{ 'border-b-2': isAnswered, 'border-green-100': answer?.c, 'border-red-100': !answer?.c && isAnswered }">
+          <div class="mb-8 border-2 rounded-md" :class="{ 'border-4': isAnswered, 'border-green-100 dark:border-green-700': answer?.c, 'border-red-100 dark:border-red-700': !answer?.c && isAnswered, 'border-slate-100': !isAnswered, 'hide-explanation': isAnswered && !answer.c && !answer.sel }">
+            <div class="flex items-center" :class="{ 'border-b-2': isAnswered, 'border-green-100 dark:border-green-700': answer?.c, 'border-red-100 dark:border-red-700': !answer?.c && isAnswered }">
               <input type="radio" v-if="question?.correct == 1" :name="question?.qid" :value="index" :disabled="isAnswered" v-model="answerRadio" />
               <input type="checkbox" v-if="question?.correct && question.correct > 1" :name="question?.qid" :disabled="isAnswered" :value="index" v-model="answersCheckbox" />
               <div class="q-answer" v-html="answer.a"></div>
@@ -39,13 +39,13 @@
           </div>
           <div class="flex-shrink text-end">
             <Button v-if="!isAnswered" label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
-            <p v-if="!isAnswered" class="text-xs text-slate-500">{{ howManyOptionsLeftToSelect }}</p>
+            <p v-if="!isAnswered" class="text-xs text-slate-500 dark:text-slate-300">{{ howManyOptionsLeftToSelect }}</p>
           </div>
         </div>
       </div>
     </div>
-    <h3 v-else-if="loadingStatus == constants.LoadingStatus.Loading" class="mt-8 mb-8 text-slate-500">Loading...</h3>
-    <h3 v-else class="mt-8 mb-8 text-slate-500">Sorry, something went wrong. Try again.</h3>
+    <h3 v-else-if="loadingStatus == constants.LoadingStatus.Loading" class="mt-8 mb-8 text-slate-500 dark:text-slate-100">Loading...</h3>
+    <h3 v-else class="mt-8 mb-8 text-slate-500 dark:text-slate-100">Sorry, something went wrong. Try again.</h3>
   </TransitionSlot>
 </template>
 

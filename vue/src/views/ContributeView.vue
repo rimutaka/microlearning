@@ -1,5 +1,5 @@
 <template>
-    <h1 class="mb-4 md:mb-12 text-slate-700 w-full">Let's make this free learning tool bigger and better</h1>
+    <h1 class="mb-4 md:mb-12 text-slate-700 dark:text-neutral-200 w-full">Let's make this free learning tool bigger and better</h1>
 
   <div class="contribute-card">
     <div class="abstract">
@@ -35,12 +35,12 @@
       Questions are the new funny cat videos.
     </p>
     <p class="cta">
-      <a href="https://www.linkedin.com/feed/" target="_blank"><i class="pi pi-linkedin text-sky-300"></i></a>
-      <a href="https://www.reddit.com/submit?type=LINK" target="_blank"><i class="pi pi-reddit text-red-300"></i></a>
+      <a href="https://www.linkedin.com/feed/" target="_blank"><i class="pi pi-linkedin text-sky-300 dark:text-sky-500"></i></a>
+      <a href="https://www.reddit.com/submit?type=LINK" target="_blank"><i class="pi pi-reddit text-red-300 dark:text-red-500"></i></a>
       <a href="https://twitter.com/" target="_blank"><i class="pi pi-twitter text-gray-500"></i></a>
-      <a href="https://www.facebook.com/" target="_blank"><i class="pi pi-facebook text-blue-300"></i></a>
+      <a href="https://www.facebook.com/" target="_blank"><i class="pi pi-facebook text-blue-300 dark:text-blue-500"></i></a>
       <a href="https://www.instagram.com/" target="_blank"><i class="pi pi-instagram" style="color: #ff006999"></i></a>
-      <a href="https://www.tiktok.com" target="_blank"><i class="pi pi-tiktok text-teal-300"></i></a>
+      <a href="https://www.tiktok.com" target="_blank"><i class="pi pi-tiktok text-teal-300 dark:text-teal-500"></i></a>
     </p>
   </div>
 
