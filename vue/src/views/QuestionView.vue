@@ -18,7 +18,7 @@ const route = useRoute();
 const router = useRouter();
 
 const store = useMainStore();
-const { question, componentKey, user } = storeToRefs(store);
+const { question, componentKey, email } = storeToRefs(store);
 
 const topicName = computed(() => {
   return (TOPICS.find((t) => t.id == route.query.topic))?.t;
@@ -33,7 +33,9 @@ const topic = ref<string>(initialTopic);
 const qid = ref<string | undefined>(initialQid);
 
 const ctaPitchVisible = computed(() => {
-  if  (!user.value?.topics.length && question.value?.answers?.[0].e) { return true } else { return false };
+  // checking user subs does not work because this page does not load user details
+  // if  (!user.value?.topics.length && question.value?.answers?.[0].e) { return true } else { return false };
+  if  (!email && question.value?.answers?.[0].e) { return true } else { return false };
 });
 
 // update the query string with the next question topic and id when the question changes in the store
