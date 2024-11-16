@@ -20,9 +20,9 @@
         <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" @focusin="showMdPreview" />
         <div class="flex">
           <div class="flex-grow justify-start text-start ps-4">
-            <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="true" class="h-8 w-8 checked:bg-green-600 text-green-500 p-3" />
+            <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="true" class="h-8 w-8 dark:bg-neutral-700 checked:bg-green-600 p-3" />
             <label class="ms-2" :for="`c${idx}`">Correct</label>
-            <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="false" :checked="!answer.c" class="h-8 w-8 checked:bg-red-600 text-red-500 p-3 ms-6" />
+            <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="false" :checked="!answer.c" class="h-8 w-8 dark:bg-neutral-700 checked:bg-red-600 p-3 ms-6" />
             <label class="ms-2" :for="`c${idx}`">Incorrect</label>
           </div>
           <div class="flex-shrink">
@@ -37,7 +37,7 @@
         <Button label="Save" icon="pi pi-check" raised rounded class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
       </div>
       <div class="text-left flex-shrink">
-        <h4 class="mb-4">Question readiness:</h4>
+        <h4 class="mb-4">Question readiness</h4>
         <ul class="question-readiness">
           <li :class="{ 'question-ready': questionReadiness.topic, 'question-not-ready': !questionReadiness.topic }"><i></i>Topic selected</li>
           <li :class="{ 'question-ready': questionReadiness.question, 'question-not-ready': !questionReadiness.question }"><i></i>Question text entered</li>

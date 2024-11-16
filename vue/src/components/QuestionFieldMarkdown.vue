@@ -1,5 +1,5 @@
 <template>
-  <div class="text-start px-3 py-2 mb-4 bg-slate-100 rounded-md md-rendered">
+  <div class="text-start px-3 py-2 mb-4 bg-slate-100 dark:text-neutral-300 dark:bg-neutral-700 rounded-md md-rendered">
     <div v-if="text && text.trim()">
       <p v-if="props.correct" class="mb-4">Correct.</p>
       <p v-else-if="props.correct === false" class="mb-4">Incorrect.</p>
