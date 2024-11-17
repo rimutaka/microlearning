@@ -50,9 +50,7 @@
 
     </div>
   </div>
-  <div v-else>
-    <p>Loading...</p>
-  </div>
+  <LoadingMessage v-else />
   <Popover v-if="!previewWindow" ref="mdPreviewPopover" class="max-w-screen-md w-screen">
     <QuestionFieldMarkdown :text="mdTextForPreview" :correct="mdCorrectForPreview" />
   </Popover>
@@ -76,6 +74,7 @@ import RadioButton from 'primevue/radiobutton';
 import Textarea from 'primevue/textarea';
 import Popover from "primevue/popover";
 import QuestionFieldMarkdown from "./QuestionFieldMarkdown.vue";
+import LoadingMessage from "./LoadingMessage.vue";
 
 const props = defineProps<{
   topic: string | undefined,

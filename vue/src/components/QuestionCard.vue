@@ -49,7 +49,7 @@
         </div>
       </div>
     </div>
-    <h3 v-else-if="loadingStatus == constants.LoadingStatus.Loading" class="mt-8 mb-8 text-slate-500 dark:text-slate-100">Loading...</h3>
+    <LoadingMessage v-else-if="loadingStatus == constants.LoadingStatus.Loading" />
     <h3 v-else class="mt-8 mb-8 text-slate-500 dark:text-slate-100">Sorry, something went wrong. Try again.</h3>
   </TransitionSlot>
 </template>
@@ -66,6 +66,7 @@ import Button from 'primevue/button';
 import Tag from "primevue/tag";
 import TransitionSlot from "./TransitionSlot.vue";
 import LinkButton from "./LinkButton.vue";
+import LoadingMessage from "./LoadingMessage.vue";
 
 const props = defineProps<{
   topic: string,// must have a value or "any" for any topic
