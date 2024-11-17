@@ -28,7 +28,7 @@
           </div>
         </div>
 
-        <div class="flex">
+        <div v-if="!props.useStore" class="flex">
           <div class="flex-grow text-start">
             <Button v-if="hasToken" label="Edit" size="small" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
             <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click="copyLinkToClipboard" />
@@ -66,6 +66,7 @@ const props = defineProps<{
   topic: string,// must have a value or "any" for any topic
   qid?: string, // returns a random question if omitted
   next?: boolean, // true if the question can show the next button
+  useStore?: boolean, // true if the question should be taken from the store and not fetched
 }>()
 
 const store = useMainStore();
@@ -109,7 +110,7 @@ const howManyOptionsLeftToSelect = computed(() => {
     }
   }
 
-  // assume it is a multichoice question from now on
+  // assume it is a multi-choice question from now on
 
   // perform an exhaustive match by how many answers were selected
   const remainingNumber = question.value.correct - answersCheckbox.value.length;
@@ -136,6 +137,14 @@ const questionTopicOnlyUrl = computed(() => `${document.location.origin}/${PageI
 /// A URL to the page with the question on its own
 /// for sharing or opening separately
 const questionTopicAndPageUrl = computed(() => `${questionTopicOnlyUrl.value}&${constants.URL_PARAM_QID}=${question.value?.qid}`);
+
+// change the status as the question is rendered and loaded from the store in preview mode
+watch(question, (newQuestion) => {
+  // console.log("newQuestion: ", newQuestion);
+  if (props.useStore && newQuestion) {
+    loadingStatus.value = constants.LoadingStatus.Loaded;
+  }
+});
 
 /// Copies the direct link to the question to the clipboard
 /// and changes the button message flag to display link copied msg
@@ -258,6 +267,13 @@ function storeRecentQuestionsInLS(qid: string) {
 /// The topic always comes from props.topic
 /// The qid comes from props.qid if random is false.
 const loadQuestion = async (random?: boolean) => {
+  // preview questions are loaded from the store and should never be fetched from the server
+  if (props.useStore) {
+    console.log("Using store question");
+    loadingStatus.value = question.value ? constants.LoadingStatus.Loaded : constants.LoadingStatus.NoData;
+    return;
+  }
+
   console.log(`Fetching question for: ${props.topic} / ${props.qid} / random: ${random}`);
 
   // make sure nothing is showing if the component is reused

@@ -8,6 +8,7 @@ import QuestionView from '@/views/QuestionView.vue'
 import AboutView from '../views/AboutView.vue'
 import SubscriptionView from '../views/SubscriptionView.vue'
 import ContributeView from '@/views/ContributeView.vue';
+import QuestionPreview from '@/views/QuestionPreview .vue';
 
 /// A list of page names used elsewhere in the app
 export const PageIDs = {
@@ -17,6 +18,7 @@ export const PageIDs = {
   QUESTION: 'question',
   ABOUT: 'about',
   SUBSCRIPTION: 'subscription',
+  PREVIEW: 'preview',
 }
 
 const router = createRouter({
@@ -58,7 +60,13 @@ const router = createRouter({
       component: SubscriptionView,
       beforeEnter: authGuard,
       meta: { title: 'Subscription' }
-    }
+    },
+    {
+      path: '/' + PageIDs.PREVIEW,
+      name: PageIDs.PREVIEW,
+      component: QuestionPreview,
+      meta: { title: 'Preview' }
+    },
   ]
 })
 

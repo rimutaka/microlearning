@@ -26,15 +26,16 @@
             <label class="ms-2" :for="`c${idx}`">Incorrect</label>
           </div>
           <div class="flex-shrink">
-            <Button label="Add another answer" icon="pi pi-plus" severity="secondary" rounded class="ms-4 whitespace-nowrap" @click="addAnswer(idx)" />
-            <Button v-if="answers.length > 1" label="Delete this answer" icon="pi pi-trash" severity="secondary" rounded class="ms-4 whitespace-nowrap" @click="deleteAnswer(idx)" />
+            <Button label="Add another answer" icon="pi pi-plus" severity="secondary" class="ms-4 whitespace-nowrap" @click="addAnswer(idx)" />
+            <Button v-if="answers.length > 1" label="Delete this answer" icon="pi pi-trash" severity="secondary" class="ms-4 whitespace-nowrap" @click="deleteAnswer(idx)" />
           </div>
         </div>
       </div>
     </div>
     <div class="flex gap-12">
       <div class="flex-grow text-end">
-        <Button label="Save" icon="pi pi-check" raised rounded class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
+        <Button label="Preview" icon="pi pi-receipt" severity="secondary" class="me-4 whitespace-nowrap" @click="showPreviewWindow()" />
+        <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
       </div>
       <div class="text-left flex-shrink">
         <h4 class="mb-4">Question readiness</h4>
@@ -67,7 +68,7 @@ import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
 import debounce from "lodash.debounce"
 
-import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME } from "@/constants";
+import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, PREVIEW_QUESTION } from "@/constants";
 import type { Answer, Question } from "@/constants";
 
 import Button from 'primevue/button';
@@ -98,6 +99,9 @@ const answersDebounced = ref<Array<Answer>>([{ a: "", e: "", c: false, sel: fals
 const mdPreviewPopover = ref();
 const mdTextForPreview = ref(""); // debounced markdown text from the input in focus to be displayed in the popover
 const mdCorrectForPreview = ref<boolean | undefined>(undefined); // status of answer.c (correct/incorrect) from the answer in focus for the popover
+
+// a reference to the preview window that can be opened on demand
+const previewWindow = ref<Window | null>(null); 
 
 let inFocusInputId = ""; // the ID of the input field that is currently in focus to enable MD rendering
 
@@ -276,6 +280,17 @@ async function submitQuestion() {
   }
 }
 
+/// Stores the current question data in local storage and opens a new popup window for live preview
+const showPreviewWindow = () => {
+  localStorage.setItem(PREVIEW_QUESTION, JSON.stringify({
+    topic: selectedTopic.value,
+    question: questionText.value,
+    answers: answers.value,
+  }));
+
+  previewWindow.value = window.open(`${window.location.origin}/preview`, PREVIEW_QUESTION);
+}
+
 /// Slows down markdown conversion to HTML
 const debounceMarkdownForHtml = debounce(() => {
   let textToDebounce = "";
@@ -295,6 +310,9 @@ const debounceMarkdownForHtml = debounce(() => {
   }
 
   mdTextForPreview.value = textToDebounce;
+
+  console.log(`Sending msg: ${textToDebounce}`);
+  previewWindow.value?.postMessage(textToDebounce);
 }, 500);
 
 // update questionReadiness list and enable the submit button via questionReady
