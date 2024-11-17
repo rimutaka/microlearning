@@ -7,12 +7,15 @@
         </div>
 
         <div v-for="(answer, index) in question?.answers" :key="index">
+          <!-- Show the header in the first loop so that it appears once only  -->
           <h3 v-if="isAnswered && index === 0 && question?.correct == 1" class="mb-4">Your answer</h3>
           <h3 v-if="isAnswered && index === 0 && question?.correct > 1" class="mb-4">Your answers</h3>
           <h3 v-else-if="!isAnswered && index === 0" class="mb-4">Answers</h3>
+          <h3 v-else-if="props.isPreview && index === 0" class="mb-4">Answers</h3>
+          <!-- This one should appear once after user selection -->
           <h3 v-else-if="isAnswered && index === question?.correct" class="mb-4">Other options</h3>
 
-          <div class="mb-8 border-2 rounded-md" :class="{ 'border-4': isAnswered, 'border-green-100 dark:border-green-700': answer?.c, 'border-red-100 dark:border-red-700': !answer?.c && isAnswered, 'border-slate-100': !isAnswered, 'hide-explanation': isAnswered && !answer.c && !answer.sel }">
+          <div class="mb-8 border-2 rounded-md" :class="{ 'border-4': isAnswered, 'border-green-100 dark:border-green-700': answer?.c, 'border-red-100 dark:border-red-700': !answer?.c && isAnswered, 'border-slate-100': !isAnswered, 'hide-explanation': isAnswered && !answer.c && !answer.sel && !isPreview }">
             <div class="flex items-center" :class="{ 'border-b-2': isAnswered, 'border-green-100 dark:border-green-700': answer?.c, 'border-red-100 dark:border-red-700': !answer?.c && isAnswered }">
               <input type="radio" v-if="question?.correct == 1" :name="question?.qid" :value="index" :disabled="isAnswered" v-model="answerRadio" />
               <input type="checkbox" v-if="question?.correct && question.correct > 1" :name="question?.qid" :disabled="isAnswered" :value="index" v-model="answersCheckbox" />
@@ -20,6 +23,7 @@
             </div>
             <div v-if="answer?.c" class="px-2 my-2">Correct.</div>
             <div v-else-if="isAnswered" class="px-2 my-2">
+              <!-- Expand by default and hide the tags in Preview mode -->
               <Tag value="Incorrect" severity="secondary" class="me-2 incorrect-tag" />
               <Tag value="Explain" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click="showExplanation" />
               <span class="incorrect-label">Incorrect.</span>
@@ -28,7 +32,8 @@
           </div>
         </div>
 
-        <div v-if="!props.useStore" class="flex">
+        <div v-if="!props.isPreview" class="flex">
+          <!-- Hide this block in Preview mode -->
           <div class="flex-grow text-start">
             <Button v-if="hasToken" label="Edit" size="small" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
             <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click="copyLinkToClipboard" />
@@ -66,7 +71,7 @@ const props = defineProps<{
   topic: string,// must have a value or "any" for any topic
   qid?: string, // returns a random question if omitted
   next?: boolean, // true if the question can show the next button
-  useStore?: boolean, // true if the question should be taken from the store and not fetched
+  isPreview?: boolean, // true if the question should be taken from the store and not fetched
 }>()
 
 const store = useMainStore();
@@ -141,7 +146,7 @@ const questionTopicAndPageUrl = computed(() => `${questionTopicOnlyUrl.value}&${
 // change the status as the question is rendered and loaded from the store in preview mode
 watch(question, (newQuestion) => {
   // console.log("newQuestion: ", newQuestion);
-  if (props.useStore && newQuestion) {
+  if (props.isPreview && newQuestion) {
     loadingStatus.value = constants.LoadingStatus.Loaded;
   }
 });
@@ -268,7 +273,7 @@ function storeRecentQuestionsInLS(qid: string) {
 /// The qid comes from props.qid if random is false.
 const loadQuestion = async (random?: boolean) => {
   // preview questions are loaded from the store and should never be fetched from the server
-  if (props.useStore) {
+  if (props.isPreview) {
     console.log("Using store question");
     loadingStatus.value = question.value ? constants.LoadingStatus.Loaded : constants.LoadingStatus.NoData;
     return;

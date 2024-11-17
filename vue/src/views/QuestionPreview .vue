@@ -1,6 +1,6 @@
 <template>
   <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about: <em class="italic">{{ topicName }}</em></h1>
-  <QuestionCard :topic="topic" :qid="qid" :next="false" :use-store="true"/>
+  <QuestionCard :topic="topic" :qid="qid" :next="false" :is-preview="true" />
 </template>
 
 <script setup lang="ts">
@@ -30,10 +30,22 @@ const topic = computed(() => question.value ? question.value.topic : "...");
 
 /// updates the the vue store with the question data received in the message
 function questionUpdateListener(event: MessageEvent) {
-  console.log("event: ", event);
+  // console.log("event: ", event);
+  // discard any messages not coming from the main window
   if (event.origin !== window.origin) return;
 
-  // …
+  console.log("Msg received");
+
+  if (!event.data) {
+    console.log("No question payload in message");
+    question.value = undefined;
+    return;
+  }
+
+ renderQuestion(event.data).then((q) => {
+    // console.log("Setting question in store");
+    question.value = q;
+  });
 }
 
 window.removeEventListener("message", questionUpdateListener, false);
@@ -51,8 +63,12 @@ watchEffect(async () => {
   }
 
   // convert to a Question object
-  const qMarkdown: Question = JSON.parse(qLS);
+  question.value = await renderQuestion(qLS);
+});
 
+/// Renders a markdown question to HTML and returns it as a string
+async function renderQuestion(qMarkdown: string) {
+  const parsedQuestion: Question = JSON.parse(qMarkdown);
   // prepared the markdown to HTML renderer
   marked.use({
     async: true,
@@ -60,7 +76,7 @@ watchEffect(async () => {
   });
 
   // render answers one by one
-  const answersHtml: Answer[] = await Promise.all(qMarkdown.answers.map(async (a): Promise<Answer> => {
+  const answersHtml: Answer[] = await Promise.all(parsedQuestion.answers.map(async (a): Promise<Answer> => {
     return {
       a: a.a ? await marked.parse(a.a) : "",
       c: a.c,
@@ -69,22 +85,17 @@ watchEffect(async () => {
     }
   }));
 
-  const qHtml: Question = {
-    qid: qMarkdown.qid,
-    topic: qMarkdown.topic,
-    question: qMarkdown.question ? await marked.parse(qMarkdown.question) : "",
+  // collect the data into a Question object and return
+  return <Question> {
+    qid: parsedQuestion.qid,
+    topic: parsedQuestion.topic,
+    question: parsedQuestion.question ? await marked.parse(parsedQuestion.question) : "",
     answers: answersHtml,
-    author: qMarkdown.author,
-    updated: qMarkdown.updated,
-    correct: qMarkdown.correct,
-    stats: qMarkdown.stats,
-  }
-
-  // save the question in the store
-  question.value = qHtml;
-
-  // console.log("question.value: ", question.value);
-
-});
+    author: parsedQuestion.author,
+    updated: parsedQuestion.updated,
+    correct: parsedQuestion.correct,
+    stats: parsedQuestion.stats,
+  };
+}
 
 </script>

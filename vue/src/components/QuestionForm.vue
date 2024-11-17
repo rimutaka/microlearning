@@ -34,7 +34,7 @@
     </div>
     <div class="flex gap-12">
       <div class="flex-grow text-end">
-        <Button label="Preview" icon="pi pi-receipt" severity="secondary" class="me-4 whitespace-nowrap" @click="showPreviewWindow()" />
+        <Button :label="previewWindow ? 'Referesh preview' : 'Open preview'" icon="pi pi-receipt" severity="secondary" class="me-4 whitespace-nowrap" @click="showPreviewWindow()" />
         <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
       </div>
       <div class="text-left flex-shrink">
@@ -53,7 +53,7 @@
   <div v-else>
     <p>Loading...</p>
   </div>
-  <Popover ref="mdPreviewPopover" class="max-w-screen-md w-screen">
+  <Popover v-if="!previewWindow" ref="mdPreviewPopover" class="max-w-screen-md w-screen">
     <QuestionFieldMarkdown :text="mdTextForPreview" :correct="mdCorrectForPreview" />
   </Popover>
 </template>
@@ -101,7 +101,7 @@ const mdTextForPreview = ref(""); // debounced markdown text from the input in f
 const mdCorrectForPreview = ref<boolean | undefined>(undefined); // status of answer.c (correct/incorrect) from the answer in focus for the popover
 
 // a reference to the preview window that can be opened on demand
-const previewWindow = ref<Window | null>(null); 
+const previewWindow = ref<Window | null>(null);
 
 let inFocusInputId = ""; // the ID of the input field that is currently in focus to enable MD rendering
 
@@ -138,7 +138,9 @@ const showMdPreview = (event: FocusEvent) => {
   // there is a bug that I cannot work around
   // the popover remains attached to the previous input if you change focus
   // to another field without clicking somewhere else first
-  mdPreviewPopover.value.show(event);
+  //
+  // the popover is disabled if a live preview window is open
+  mdPreviewPopover.value?.show(event);
 }
 
 /// Adds an answer block to the form
@@ -281,11 +283,14 @@ async function submitQuestion() {
 }
 
 /// Stores the current question data in local storage and opens a new popup window for live preview
+/// LS is a reliable way of passing the initial data to the preview window
+/// subsequent updates are sent via postMessage
 const showPreviewWindow = () => {
-  localStorage.setItem(PREVIEW_QUESTION, JSON.stringify({
+  localStorage.setItem(PREVIEW_QUESTION, JSON.stringify(<Question>{
     topic: selectedTopic.value,
     question: questionText.value,
     answers: answers.value,
+    // this is a very truncated version of a question - bare essentials
   }));
 
   previewWindow.value = window.open(`${window.location.origin}/preview`, PREVIEW_QUESTION);
@@ -300,10 +305,10 @@ const debounceMarkdownForHtml = debounce(() => {
     textToDebounce = questionText.value;
   } else if (inFocusInputId.startsWith("answerInput")) {
     const index = parseInt(inFocusInputId.replace("answerInput", ""));
-    textToDebounce = answers.value[index].a;
+    textToDebounce = answers.value[index]?.a;
   } else if (inFocusInputId.startsWith("explanationInput")) {
     const index = parseInt(inFocusInputId.replace("explanationInput", ""));
-    textToDebounce = answers.value[index].e;
+    textToDebounce = answers.value[index]?.e;
   }
   else {
     console.error("Unknown debouncing target: ", inFocusInputId);
@@ -311,12 +316,11 @@ const debounceMarkdownForHtml = debounce(() => {
 
   mdTextForPreview.value = textToDebounce;
 
-  console.log(`Sending msg: ${textToDebounce}`);
-  previewWindow.value?.postMessage(textToDebounce);
+  postQuestionPreview();
 }, 500);
 
 // update questionReadiness list and enable the submit button via questionReady
-watch([selectedTopic, questionText, answers.value], () => {
+watch([selectedTopic, questionText, answers.value], ([, , answersNew], [, , answersOld]) => {
   // assess question readiness
   questionReadiness.value.topic = selectedTopic.value !== "";
   questionReadiness.value.question = questionText.value.length > 10;
@@ -329,6 +333,11 @@ watch([selectedTopic, questionText, answers.value], () => {
 
   if (inFocusInputId) {
     debounceMarkdownForHtml();
+    // for text changes postQuestionPreview is called in the debounced function 
+  }
+  else {
+    // other changes are sent to the preview immediately
+    postQuestionPreview();
   }
 });
 
@@ -426,5 +435,30 @@ watchEffect(async () => {
   hydrated.value = true; // enable the form
 
 });
+
+/// Packages the current question data and sends it to the preview window, if open
+function postQuestionPreview() {
+  // do nothing if the window is not open, but this will not help if the window was closed
+  // because the reference will still be there
+  if (!previewWindow.value) return;
+
+  // delete the window ref if the window was closed
+  if (previewWindow.value.closed) {
+    console.log("Preview window was closed");
+    previewWindow.value = null;
+    return;
+  };
+
+  const msg = <Question>{
+    qid: props.qid,
+    topic: selectedTopic.value,
+    question: questionText.value,
+    answers: answers.value,
+    correct: 0 // setting this to the correct value will enable checkboxes in the preview
+  };
+
+  console.log("Sending preview update msg");
+  previewWindow.value?.postMessage(JSON.stringify(msg));
+}
 
 </script>
