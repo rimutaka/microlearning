@@ -3,12 +3,12 @@
     <h3>Microlearning through questions</h3>
     <p>Questions are a great way to identify gaps in knowledge.</p>
     <p>Answers with detailed explanations are an easy way to fill those gaps.</p>
-    <p>It is not a substitute for properly learning and practicing a skill,
+    <p>Learning through questions is not a substitute for other types of learning or practicing a skill,
       but doing it consistently adds up.</p>
 
     <h3>No scoring or leaderboards</h3>
-    <p>Individual results and performance stats are only available to that individual.</p>
-    <p>The purpose of this app is to help us learn through questions.</p>
+    <p>Your results and performance stats are available to you only.</p>
+    <p>Learning is not a race and the only winner is you.</p>
 
     <h3>How subscriptions work</h3>
     <p>You get one email per day with a random question about one of your selected topics.</p>
