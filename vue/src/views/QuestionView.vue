@@ -39,7 +39,7 @@ const qid = ref<string | undefined>(initialQid);
 const ctaPitchVisible = computed(() => {
   // checking user subs does not work because this page does not load user details
   // if  (!user.value?.topics.length && question.value?.answers?.[0].e) { return true } else { return false };
-  if (!email && question.value?.answers?.[0].e) { return true } else { return false };
+  if (!email.value && question.value?.answers?.[0].e) { return true } else { return false };
 });
 
 // update the query string with the next question topic and id when the question changes in the store
