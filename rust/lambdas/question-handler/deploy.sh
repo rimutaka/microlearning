@@ -1,6 +1,6 @@
 # Run this script from the root of the project
 
-target=aarch64-unknown-linux-gnu
+target=aarch64-unknown-linux-musl
 region=us-east-1
 lambda=question-handler
 crate=question-handler

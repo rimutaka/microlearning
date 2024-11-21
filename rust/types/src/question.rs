@@ -55,6 +55,17 @@ pub struct Stats {
     pub skipped: u32,
 }
 
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ContributorProfile {
+    /// The name of the contributor as it was entered with the questions.
+    pub name: Option<String>,
+    /// A URL to the contributor's profile, website or project as it was entered with the question.
+    pub url: Option<String>,
+    /// A URL for the the contributor's logo or avatar as it was entered with the question.
+    pub img_url: Option<String>,
+}
+
 /// A question with multiple answers.
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -93,6 +104,9 @@ pub struct Question {
     /// It is removed during writes and is never deserialized.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub stats: Option<Stats>,
+    /// Details of the person or business who contributed the question
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub contributor: Option<ContributorProfile>,
 }
 
 impl Question {
@@ -360,6 +374,7 @@ mod test {
             author: Some("you@me.us".to_string()),
             updated: Some(Utc::now()),
             stats: None,
+            contributor: None,
         };
 
         assert!(q.is_correct(&[1]), "correct");
@@ -399,6 +414,7 @@ mod test {
             author: Some("you@me.us".to_string()),
             updated: Some(Utc::now()),
             stats: None,
+            contributor: None,
         };
 
         assert!(q.is_correct(&[0, 2]), "correct");
@@ -440,6 +456,11 @@ mod test {
             author: Some("you@me.us".to_string()),
             updated: Some(Utc::now()),
             stats: None,
+            contributor: Some(ContributorProfile {
+                name: Some("John Doe".to_string()),
+                url: Some("https://example.com".to_string()),
+                img_url: Some("https://example.com/img.jpg".to_string()),
+            }),
         };
 
         let s = q.to_string();
@@ -482,6 +503,11 @@ mod test {
                 correct: 1,
                 incorrect: 2,
                 skipped: 3,
+            }),
+            contributor: Some(ContributorProfile {
+                name: Some("John Doe".to_string()),
+                url: Some("https://example.com".to_string()),
+                img_url: Some("https://example.com/img.jpg".to_string()),
             }),
         };
 
