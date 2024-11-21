@@ -1,12 +1,12 @@
 <template>
-  <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about: <em class="italic">{{ topicName }}</em></h1>
+  <h1 class="mb-4 md:mb-8 text-2xl text-start">Question preview about <em class="italic">{{ topicName }}</em></h1>
   <QuestionCard :topic="topic" :qid="qid" :next="false" :is-preview="true" />
 </template>
 
 <script setup lang="ts">
 import { computed, watch, ref, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
-import { TOPICS, PREVIEW_QUESTION } from "@/constants";
+import { TOPICS, PREVIEW_QUESTION_LS_KEY } from "@/constants";
 import type { Question, Answer } from "@/constants";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
@@ -53,7 +53,7 @@ window.addEventListener("message", questionUpdateListener, false);
 
 watchEffect(async () => {
   console.log("Loading question from LS");
-  const qLS = localStorage.getItem(PREVIEW_QUESTION);
+  const qLS = localStorage.getItem(PREVIEW_QUESTION_LS_KEY);
   // console.log(qLS);
 
   if (!qLS) {

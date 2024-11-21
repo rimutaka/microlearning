@@ -1,20 +1,25 @@
 <template>
   <div v-if="hydrated" class="card mt-12">
-    <div class="flex flex-wrap gap-4 mb-4">
+    <div class="flex flex-wrap gap-4 mb-8">
       <h4>Topics: </h4>
       <div class="flex" v-for="topic in topics" :key="topic.id">
         <RadioButton v-model="selectedTopic" name="topics" :value="topic.id" />
         <label :for="topic.id" class="ms-2 me-4">{{ topic.t }}</label>
       </div>
     </div>
-    <div class="flex flex-wrap gap-4 mb-4">
-      <h4>Question: </h4>
+    <div class="mb-4">
+      <div class="flex flex-wrap gap-4 mb-4">
+        <h4 class="mt-auto">Question </h4>
+        <div class="flex-grow text-end">
+          <Button :label="previewWindow ? 'Referesh preview' : 'Open preview'" icon="pi pi-receipt" severity="secondary" class="whitespace-nowrap" iconPos="right" @click="showPreviewWindow()" />
+        </div>
+      </div>
       <div class="w-full">
         <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" @focusin="showMdPreview" />
       </div>
     </div>
     <div class="flex flex-wrap gap-4 mb-8">
-      <h4>Answers: </h4>
+      <h4>Answers</h4>
       <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
         <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full mb-2" placeholder="An answer options (always visible)" @keydown="formattingKeypress" @focusin="showMdPreview" />
         <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" @focusin="showMdPreview" />
@@ -32,12 +37,12 @@
         </div>
       </div>
     </div>
-    <div class="flex gap-12">
-      <div class="flex-grow text-end">
-        <Button :label="previewWindow ? 'Referesh preview' : 'Open preview'" icon="pi pi-receipt" severity="secondary" class="me-4 whitespace-nowrap" @click="showPreviewWindow()" />
-        <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
-      </div>
-      <div class="text-left flex-shrink">
+    <div>
+      <h4 class="text-start mb-4">Contributor</h4>
+      <QuestionContributorForm class="mb-12" />
+    </div>
+    <div class="flex gap-12 mt-8">
+      <div class="text-left flex-grow">
         <h4 class="mb-4">Question readiness</h4>
         <ul class="question-readiness">
           <li :class="{ 'question-ready': questionReadiness.topic, 'question-not-ready': !questionReadiness.topic }"><i></i>Topic selected</li>
@@ -45,15 +50,18 @@
           <li :class="{ 'question-ready': questionReadiness.answers, 'question-not-ready': !questionReadiness.answers }"><i></i>At least 2 answers</li>
           <li :class="{ 'question-ready': questionReadiness.correct, 'question-not-ready': !questionReadiness.correct }"><i></i>At least 1 correct answer</li>
           <li :class="{ 'question-ready': questionReadiness.explanations, 'question-not-ready': !questionReadiness.explanations }"><i></i>Detailed explanations for all answers</li>
+          <li class="question-ready"><i></i><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC-BY-SA 4.0</a> license</li>
         </ul>
       </div>
-
+      <div class="flex-shrink text-end">
+        <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
+      </div>
     </div>
   </div>
   <LoadingMessage v-else />
-  <Popover v-if="!previewWindow" ref="mdPreviewPopover" class="max-w-screen-md w-screen">
+  <!--Popover v-if="!previewWindow" ref="mdPreviewPopover" class="max-w-screen-md w-screen">
     <QuestionFieldMarkdown :text="mdTextForPreview" :correct="mdCorrectForPreview" />
-  </Popover>
+  </Popover -->
 </template>
 
 
@@ -66,15 +74,16 @@ import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
 import debounce from "lodash.debounce"
 
-import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, PREVIEW_QUESTION } from "@/constants";
+import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, PREVIEW_QUESTION_LS_KEY, CONTRIBUTOR_DETAILS_LS_KEY } from "@/constants";
 import type { Answer, Question } from "@/constants";
 
 import Button from 'primevue/button';
 import RadioButton from 'primevue/radiobutton';
 import Textarea from 'primevue/textarea';
-import Popover from "primevue/popover";
-import QuestionFieldMarkdown from "./QuestionFieldMarkdown.vue";
+// import Popover from "primevue/popover";
+// import QuestionFieldMarkdown from "./QuestionFieldMarkdown.vue";
 import LoadingMessage from "./LoadingMessage.vue";
+import QuestionContributorForm from "./QuestionContributorForm.vue";
 
 const props = defineProps<{
   topic: string | undefined,
@@ -83,7 +92,7 @@ const props = defineProps<{
 
 const router = useRouter();
 const store = useMainStore();
-const { token } = storeToRefs(store);
+const { token, question } = storeToRefs(store);
 
 const hydrated = ref(false); // toggles the form between loading and the full form
 const topics = ref(TOPICS);
@@ -240,7 +249,8 @@ async function submitQuestion() {
     topic: selectedTopic.value,
     question: questionText.value,
     answers: answers.value,
-    correct: 0
+    correct: 0,
+    contributor: question.value?.contributor, // this struct is set by a sub-component
   });
 
   // console.log(submissionQuestion);
@@ -285,14 +295,14 @@ async function submitQuestion() {
 /// LS is a reliable way of passing the initial data to the preview window
 /// subsequent updates are sent via postMessage
 const showPreviewWindow = () => {
-  localStorage.setItem(PREVIEW_QUESTION, JSON.stringify(<Question>{
+  localStorage.setItem(PREVIEW_QUESTION_LS_KEY, JSON.stringify(<Question>{
     topic: selectedTopic.value,
     question: questionText.value,
     answers: answers.value,
     // this is a very truncated version of a question - bare essentials
   }));
 
-  previewWindow.value = window.open(`${window.location.origin}/preview`, PREVIEW_QUESTION);
+  previewWindow.value = window.open(`${window.location.origin}/preview`, PREVIEW_QUESTION_LS_KEY);
 }
 
 /// Slows down markdown conversion to HTML
@@ -340,51 +350,58 @@ watch([selectedTopic, questionText, answers.value], ([, , answersNew], [, , answ
   }
 });
 
+/// Resets local and store values to start accepting data for a brand new question
+/// from a blank form
+function resetValuesForNewQuestion() {
+  selectedTopic.value = "";
+
+  questionText.value = "";
+  questionTextDebounced.value = "";
+
+  answers.value.length = 0;
+  answers.value.push({ a: "", e: "", c: false, sel: false });
+
+  answersDebounced.value.length = 0;
+  answersDebounced.value.push({ a: "", e: "", c: false, sel: false });
+
+  mdTextForPreview.value = "";
+  mdCorrectForPreview.value = undefined;
+  inFocusInputId = "";
+
+  // clear all fields from the question in store
+  // this is a hack and there should be a more elegant solution
+  store.resetQuestionToBlank();
+}
+
 /// Loads all local variables with the question data, if present.
-/// Otherwise resets the local values to their initial state to create a new question.
-function loadOrResetQuestion(question: Question | undefined) {
-
-  if (!question) {
-    selectedTopic.value = "";
-
-    questionText.value = "";
-    questionTextDebounced.value = "";
-
-    answers.value.length = 0;
-    answers.value.push({ a: "", e: "", c: false, sel: false });
-
-    answersDebounced.value.length = 0;
-    answersDebounced.value.push({ a: "", e: "", c: false, sel: false });
-
-    mdTextForPreview.value = "";
-    mdCorrectForPreview.value = undefined;
-    inFocusInputId = "";
-
-    return;
-  }
+function loadQuestion(fetchedQuestion: Question) {
 
   // set debounced values before the main values to avoid triggering out of index errors
   // in the template
-  answersDebounced.value = JSON.parse(JSON.stringify(question.answers));
-  questionTextDebounced.value = question.question;
+  answersDebounced.value = JSON.parse(JSON.stringify(fetchedQuestion.answers));
+  questionTextDebounced.value = fetchedQuestion.question;
 
   // copy DDB values to the form models
-  selectedTopic.value = question.topic;
-  questionText.value = question.question;
+  selectedTopic.value = fetchedQuestion.topic;
+  questionText.value = fetchedQuestion.question;
 
   // copy the array while maintaining a reference to the original object
   // https://stackoverflow.com/questions/71353509/why-would-a-vue3-watcher-of-a-prop-not-be-triggered-composition-api
   answers.value.length = 0;
-  question.answers.forEach((answer: Answer) => {
+  fetchedQuestion.answers.forEach((answer: Answer) => {
     answers.value.push(answer);
   });
+
+  // copy the loaded question to the store
+  // for sub-components to access the data
+  question.value = JSON.parse(JSON.stringify(fetchedQuestion));; // store the question in the store
 }
 
 watchEffect(async () => {
   // if no topic/qid is set, this is a new question
   if (!(props.topic && props.qid)) {
     console.log("Adding a new question");
-    loadOrResetQuestion(undefined);
+    resetValuesForNewQuestion();
     hydrated.value = true; // enable the form
     return;
   }
@@ -415,10 +432,10 @@ watchEffect(async () => {
     if (response.status === 200) {
       try {
         console.log(`Fetched. Status: ${response.status}`);
-        const question = <Question>await response.json();
+        const fetchedQuestion = <Question>await response.json();
         // console.log(question);
 
-        loadOrResetQuestion(question);
+        loadQuestion(fetchedQuestion);
 
       } catch (error) {
         console.error(error);

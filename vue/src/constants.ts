@@ -29,7 +29,11 @@ export const VUE_EVENT_HYDRATED = "hydrated";
 
 /// The name of the preview question in the localStorage and the name of the popup window
 /// with live preview rendering
-export const PREVIEW_QUESTION = "previewQuestion";
+export const PREVIEW_QUESTION_LS_KEY = "previewQuestion";
+
+/// A locally cached value of the last contributor details entered by this user
+/// for future reuse with new questions
+export const CONTRIBUTOR_DETAILS_LS_KEY = "contributorDetails";
 
 /// Keypair for the topic title and DDB topic ID, e.g. "AWS"/"aws".
 export interface TopicFields {
@@ -88,17 +92,18 @@ export interface Question {
   correct: number,
   /// A hash of the email address of the original author
   /// The value submitted by the user is ignored
-  readonly author: string | undefined,
+  readonly author?: string,
   /// When the question was last updated
-  updated: string | undefined,
+  updated?: string,
   /// Stats for how the question is used
-  stats: Stats | undefined,
+  stats?: Stats,
+  contributor?: ContributorProfile,
 }
 
 /// A mirror of the Rust's type
 export interface User {
   /// User's email address
-  email: String,
+  email: string,
   /// The list of subscribed topics
   topics: string[],
   /// A unique string to use an unsubscribe key
@@ -106,6 +111,16 @@ export interface User {
   unsubscribe: string,
   /// When the user sub was last updated
   updated: string,
+  details?: {
+    profile: ContributorProfile,
+  }
+}
+
+/// Questions contributor details to be displayed alongside the question
+export interface ContributorProfile {
+  name: string,
+  imgUrl?: string,
+  url?: string,
 }
 
 /// Indicates the status of loading / fetching data

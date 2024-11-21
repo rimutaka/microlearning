@@ -1,5 +1,5 @@
 <template>
-  <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about: <em class="italic">{{ topicName }}</em></h1>
+  <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about <em class="italic">{{ topicName }}</em></h1>
   <LoadingMessage v-if="isLoading" />
   <QuestionCard v-if="!isLoading" :topic="topic" :qid="qid" :next="true" :key="componentKey" />
   <PostAnswerCTA v-if="!isLoading && ctaPitchVisible" />

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { TOPICS } from './constants'
-import type { Question, User } from './constants'
+import { TOPICS, CONTRIBUTOR_DETAILS_LS_KEY } from './constants'
+import type { Question, User, ContributorProfile } from './constants'
 
 /// The main store for the application
 export const useMainStore = defineStore('main', () => {
@@ -53,6 +53,24 @@ export const useMainStore = defineStore('main', () => {
     user.value = undefined;
   }
 
+  /// Reset the question fields to a blank state.
+  /// This is a hack and there should be a more elegant solution.
+  const resetQuestionToBlank = () => {
+
+    // get the contributor details from the local storage
+    const contribLS = localStorage.getItem(CONTRIBUTOR_DETAILS_LS_KEY);
+    const contribParsed = contribLS ? JSON.parse(contribLS) : <ContributorProfile>{ name: "" };
+
+    question.value = {
+      qid: "",
+      topic: "",
+      question: "",
+      answers: [],
+      correct: 0,
+      contributor: contribParsed,
+    };
+  }
+
   return {
     question,
     selectedTopics,
@@ -63,6 +81,7 @@ export const useMainStore = defineStore('main', () => {
     token,
     user,
     reset,
-    showRandomQuestion
+    showRandomQuestion,
+    resetQuestionToBlank
   }
 })
