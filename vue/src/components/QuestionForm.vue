@@ -73,6 +73,7 @@ import { useRouter } from "vue-router";
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
 import debounce from "lodash.debounce"
+import _ from "lodash";
 
 import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, PREVIEW_QUESTION_LS_KEY, CONTRIBUTOR_DETAILS_LS_KEY } from "@/constants";
 import type { Answer, Question } from "@/constants";
@@ -299,6 +300,7 @@ const showPreviewWindow = () => {
     topic: selectedTopic.value,
     question: questionText.value,
     answers: answers.value,
+    contributor: question.value?.contributor,
     // this is a very truncated version of a question - bare essentials
   }));
 
@@ -328,8 +330,13 @@ const debounceMarkdownForHtml = debounce(() => {
   postQuestionPreview();
 }, 500);
 
+/// Slows down messaging the preview window for changes not covered by markdown conversion
+const debouncePostMsg = debounce(() => {
+  postQuestionPreview();
+}, 500);
+
 // update questionReadiness list and enable the submit button via questionReady
-watch([selectedTopic, questionText, answers.value], ([, , answersNew], [, , answersOld]) => {
+watch([selectedTopic, questionText, answers.value, question], ([, , answersNew], [, , answersOld]) => {
   // assess question readiness
   questionReadiness.value.topic = selectedTopic.value !== "";
   questionReadiness.value.question = questionText.value.length > 10;
@@ -346,9 +353,9 @@ watch([selectedTopic, questionText, answers.value], ([, , answersNew], [, , answ
   }
   else {
     // other changes are sent to the preview immediately
-    postQuestionPreview();
+    debouncePostMsg();
   }
-});
+}, { deep: true });
 
 /// Resets local and store values to start accepting data for a brand new question
 /// from a blank form
@@ -458,7 +465,7 @@ function postQuestionPreview() {
   // because the reference will still be there
   if (!previewWindow.value) return;
 
-  // delete the window ref if the window was closed
+  // delete the window ref if the window was closed and exit
   if (previewWindow.value.closed) {
     console.log("Preview window was closed");
     previewWindow.value = null;
@@ -470,7 +477,8 @@ function postQuestionPreview() {
     topic: selectedTopic.value,
     question: questionText.value,
     answers: answers.value,
-    correct: 0 // setting this to the correct value will enable checkboxes in the preview
+    correct: 0, // setting this to the correct value will enable checkboxes in the preview
+    contributor: question.value?.contributor,
   };
 
   console.log("Sending preview update msg");

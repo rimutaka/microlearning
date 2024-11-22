@@ -38,7 +38,7 @@
             <Button v-if="hasToken" label="Edit" size="small" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
             <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click="copyLinkToClipboard" />
             <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
-            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try one more question" class="mb-2" icon="pi pi-sparkles" :primary="token!=null" @click="getNextQuestion" />
+            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try one more question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click="getNextQuestion" />
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
@@ -47,6 +47,7 @@
             <p v-if="!isAnswered" class="text-xs text-slate-500 dark:text-slate-300">{{ howManyOptionsLeftToSelect }}</p>
           </div>
         </div>
+        <QuestionContributor v-if="question.contributor?.name" />
       </div>
     </div>
     <LoadingMessage v-else-if="loadingStatus == constants.LoadingStatus.Loading" />
@@ -67,6 +68,7 @@ import Tag from "primevue/tag";
 import TransitionSlot from "./TransitionSlot.vue";
 import LinkButton from "./LinkButton.vue";
 import LoadingMessage from "./LoadingMessage.vue";
+import QuestionContributor from "./QuestionContributor.vue";
 
 const props = defineProps<{
   topic: string,// must have a value or "any" for any topic

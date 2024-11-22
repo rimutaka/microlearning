@@ -6,10 +6,11 @@
       <InputText type="text" v-model="contributorImageUrl" placeholder="Link to your logo or avatar" size="small" class="flex-grow" />
     </div>
     <div class="text-end">
-      <TransitionSlot>
-        <p v-if="isDifferentFromLS" class="text-sm"><span class="link" @click.prevent="saveDefaultContributorDetails">Save</span> these contributor details as my default for other questions</p>
-        <p v-else-if="canApplyDefaultContributor" class="text-sm">Set <span class="link" @click.prevent="applyDefaultContributorDetails">{{ contributorInLS?.name }}</span> as the contributor for this question</p>
-      </TransitionSlot>
+      <p v-if="isDifferentFromLS && contributorInLS" class="text-sm">
+        Set to <span class="link" @click.prevent="applyDefaultContributorDetails">{{ contributorInLS?.name }}</span>
+        or <span class="link" @click.prevent="saveDefaultContributorDetails">save</span> these contributor details as my default for other questions
+      </p>
+      <p v-else-if="isDifferentFromLS" class="text-sm"><span class="link" @click.prevent="saveDefaultContributorDetails">Save</span> these contributor details as my default for other questions</p>
     </div>
   </div>
 </template>
@@ -38,8 +39,6 @@ const isDifferentFromLS = ref(false); // true if the current values are differen
 
 const contributorInLsOnMount = localStorage.getItem(CONTRIBUTOR_DETAILS_LS_KEY);
 const contributorInLS = ref(contributorInLsOnMount ? <ContributorProfile>JSON.parse(contributorInLsOnMount) : undefined);
-
-const canApplyDefaultContributor = computed(() => contributorInLS.value?.name && !question.value?.contributor);
 
 /// Saves the default contributor details to local storage
 const saveDefaultContributorDetails = () => {

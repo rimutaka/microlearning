@@ -95,6 +95,7 @@ async function renderQuestion(qMarkdown: string) {
     updated: parsedQuestion.updated,
     correct: parsedQuestion.correct,
     stats: parsedQuestion.stats,
+    contributor: parsedQuestion.contributor,
   };
 }
 

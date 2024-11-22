@@ -248,10 +248,11 @@ footer a {
   @apply text-base font-bold mt-4;
 }
 
-.q-card blockquote,
-.md-rendered blockquote {
-  @apply border-l-4 border-slate-300 ps-2 my-1;
+.q-card .contributor {
+  @apply bg-contain bg-no-repeat bg-center;
+  background-image: url(@/assets/images/contributor.svg);
 }
+
 /* Contribute card */
 
 .contribute-card {
