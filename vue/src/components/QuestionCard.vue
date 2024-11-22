@@ -47,7 +47,6 @@
             <p v-if="!isAnswered" class="text-xs text-slate-500 dark:text-slate-300">{{ howManyOptionsLeftToSelect }}</p>
           </div>
         </div>
-        <QuestionContributor v-if="question.contributor?.name" />
       </div>
     </div>
     <LoadingMessage v-else-if="loadingStatus == constants.LoadingStatus.Loading" />
@@ -68,7 +67,6 @@ import Tag from "primevue/tag";
 import TransitionSlot from "./TransitionSlot.vue";
 import LinkButton from "./LinkButton.vue";
 import LoadingMessage from "./LoadingMessage.vue";
-import QuestionContributor from "./QuestionContributor.vue";
 
 const props = defineProps<{
   topic: string,// must have a value or "any" for any topic

@@ -1,9 +1,9 @@
 <template>
-  <div class="my-12 mx-auto text-center" :class="{ 'subdued': isSubdued }">
+  <div v-if="question?.contributor?.name" class="contributor-block" :class="{ 'subdued': isSubdued }">
     <figure class="max-w-screen-md mx-auto">
-      <div class="w-full h-12 mb-4 contributor subdued-image"></div>
+      <div class="w-full h-12 mb-4 contributor-icon subdued-image"></div>
       <blockquote>
-        <p class="text-l font-medium  dark:text-slate-200 dark:opacity-70 max-w-md mx-auto subdued-text">This question was contributed by a generous community member</p>
+        <p class="text-l font-medium  dark:text-slate-200 dark:opacity-70 max-w-md mx-auto subdued-text md:whitespace-nowrap">This question was contributed by a generous community member</p>
       </blockquote>
       <figcaption class="flex items-center justify-center mt-6 space-x-3">
         <a :href="contributorUrl || ''" title="Go to contributor's website">

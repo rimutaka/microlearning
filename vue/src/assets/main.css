@@ -52,11 +52,13 @@ a.p-button {
 }
 
 /* Dark styles for topic checkboxes */
-input.p-checkbox-input, input.p-radiobutton-input {
+input.p-checkbox-input,
+input.p-radiobutton-input {
   @apply dark:opacity-15;
 }
 
-input:checked.p-checkbox-input, input:checked.p-radiobutton-input {
+input:checked.p-checkbox-input,
+input:checked.p-radiobutton-input {
   @apply dark:opacity-0;
 }
 
@@ -106,7 +108,7 @@ footer a {
 
 /* Call to action box shown to users without subs */
 .cta-box {
-  @apply p-4 pt-8 border-2 rounded-md border-slate-300 border-dashed shadow-md md:shadow-lg;
+  @apply md:mt-12 px-4 py-8 w-fit mx-auto border-2 rounded-md border-slate-300 border-dashed shadow-md md:shadow-lg;
 }
 
 /* QUESTION FORM */
@@ -252,9 +254,16 @@ footer a {
   @apply text-base font-bold mt-4;
 }
 
-.q-card .contributor {
+/* Question contributor block */
+
+.contributor-block {
+  @apply mb-12 mt-8 md:mt-16 mx-auto text-center w-fit;
+}
+
+.contributor-icon {
   @apply bg-contain bg-no-repeat bg-center;
   background-image: url(@/assets/images/contributor.svg);
+  filter: drop-shadow(3px 3px 2px #555);
 }
 
 .subdued .subdued-text {
@@ -266,7 +275,7 @@ footer a {
   opacity: 0.3;
 }
 
-/* Contribute card */
+/* Contribute cards */
 
 .contribute-card {
   @apply max-w-md mx-auto mb-8 pb-4 rounded-md border-slate-100 dark:border-slate-300 shadow;

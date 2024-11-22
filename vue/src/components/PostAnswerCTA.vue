@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-8 cta-box">
+  <div>
     <h3 class="mb-4 text-slate-700 dark:text-slate-300 w-full">Get more questions like this to find and fill gaps in your knowledge</h3>
 
     <div class="flex w-full">

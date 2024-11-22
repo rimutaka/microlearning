@@ -2,7 +2,10 @@
   <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about <em class="italic">{{ topicName }}</em></h1>
   <LoadingMessage v-if="isLoading" />
   <QuestionCard v-if="!isLoading" :topic="topic" :qid="qid" :next="true" :key="componentKey" />
-  <PostAnswerCTA v-if="!isLoading && ctaPitchVisible" />
+  <div v-if="!isLoading && ctaBlockVisible" class="mb-12 cta-box">
+    <PostAnswerCTA />
+  </div>
+  <QuestionContributor />
 </template>
 
 <script setup lang="ts">
@@ -16,6 +19,7 @@ import { useAuth0 } from '@auth0/auth0-vue';
 import QuestionCard from "../components/QuestionCard.vue";
 import PostAnswerCTA from '@/components/PostAnswerCTA.vue';
 import LoadingMessage from '@/components/LoadingMessage.vue';
+import QuestionContributor from "../components/QuestionContributor.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -36,7 +40,7 @@ const initialQid = route.query.qid ? <string>route.query.qid : undefined;
 const topic = ref<string>(initialTopic);
 const qid = ref<string | undefined>(initialQid);
 
-const ctaPitchVisible = computed(() => {
+const ctaBlockVisible = computed(() => {
   // checking user subs does not work because this page does not load user details
   // if  (!user.value?.topics.length && question.value?.answers?.[0].e) { return true } else { return false };
   if (!email.value && question.value?.answers?.[0].e) { return true } else { return false };

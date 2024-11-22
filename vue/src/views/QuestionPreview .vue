@@ -1,6 +1,7 @@
 <template>
   <h1 class="mb-4 md:mb-8 text-2xl text-start">Question preview about <em class="italic">{{ topicName }}</em></h1>
   <QuestionCard :topic="topic" :qid="qid" :next="false" :is-preview="true" />
+  <QuestionContributor />
 </template>
 
 <script setup lang="ts">
@@ -14,6 +15,7 @@ import { marked } from 'marked';
 
 
 import QuestionCard from "../components/QuestionCard.vue";
+import QuestionContributor from "../components/QuestionContributor.vue";
 
 const route = useRoute();
 const router = useRouter();
