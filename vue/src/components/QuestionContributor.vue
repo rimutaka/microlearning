@@ -1,23 +1,25 @@
 <template>
-  <div class="my-12 mx-auto text-center">
+  <div class="my-12 mx-auto text-center" :class="{ 'subdued': isSubdued }">
     <figure class="max-w-screen-md mx-auto">
-      <div class="w-full h-12 mb-4 contributor"></div>
+      <div class="w-full h-12 mb-4 contributor subdued-image"></div>
       <blockquote>
-        <p class="text-l font-medium  dark:text-slate-200 dark:opacity-70 max-w-md mx-auto">This question was contributed by a generous community member</p>
+        <p class="text-l font-medium  dark:text-slate-200 dark:opacity-70 max-w-md mx-auto subdued-text">This question was contributed by a generous community member</p>
       </blockquote>
       <figcaption class="flex items-center justify-center mt-6 space-x-3">
-        <div v-if="contributorImgUrl" class="w-8 min-w-8 h-8 bg-contain bg-no-repeat bg-center rounded-sm" :style="`background-image: url(${contributorImgUrl})`"></div>
-
-        <div class="flex items-center divide-x-2 divide-slate-500 text-slate-500 dark:divide-slate-300 dark:text-slate-300 dark:opacity-70">
-          <div class="pe-3 font-medium">{{ contributorName }}</div>
-          <div v-if="contributorAbout" class="px-3 text-sm font-light hidden md:block">{{ contributorAbout }}</div>
-          <div v-if="linkIcon" class="ps-3" style="height: 100%;">
-            <a :href="contributorUrl" class="text-slate-500 dark:text-slate-300 me-2 my-auto"><i class="pi ms-1" :class="linkIcon"></i></a>
+        <a :href="contributorUrl || ''" title="Go to contributor's website">
+          <div v-if="contributorImgUrl" class="w-8 min-w-8 h-8 bg-contain bg-no-repeat bg-center rounded-sm subdued-image" :style="`background-image: url(${contributorImgUrl})`"></div>
+        </a>
+      
+        <div class="flex items-center text-slate-500 dark:text-slate-300 dark:opacity-70">
+          <div class="pe-3 font-medium subdued-text border-r-2 border-slate-500 dark:border-slate-300"><a :href="contributorUrl || ''" class="no-decoration" title="Go to contributor's website">{{ contributorName }}</a></div>
+          <div v-if="contributorAbout" class="px-3 py-1 text-sm font-light hidden md:block subdued-text border-r-2 border-slate-500 dark:border-slate-300">{{ contributorAbout }}</div>
+          <div v-if="linkIcon" class="ps-3">
+            <a :href="contributorUrl" class="text-slate-500 dark:text-slate-300 me-2 my-auto subdued-text"><i class="pi ms-1" :class="linkIcon"></i></a>
           </div>
         </div>
 
       </figcaption>
-      <div v-if="contributorAbout" class="px-3 mt-2 text-xs font-light md:hidden w-full">{{ contributorAbout }}</div>
+      <div v-if="contributorAbout" class="px-3 mt-2 text-xs font-light md:hidden w-full subdued-text">{{ contributorAbout }}</div>
     </figure>
   </div>
 </template>
@@ -27,8 +29,6 @@
 import { ref, watch, watchEffect, computed } from "vue";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import type { ContributorProfile } from '@/constants'
-import { CONTRIBUTOR_DETAILS_LS_KEY } from "@/constants";
 
 const store = useMainStore();
 const { question } = storeToRefs(store);
@@ -53,6 +53,14 @@ const linkIcon = computed(() => {
   return "pi-external-link"
 
 });
+
+/// Dims down the contributor section if the question hasn't been answered yet
+const isSubdued = computed(() => question.value?.answers?.[0]?.e ? false : true);
+
+/// onClick handler for the contributor image
+const navigateToContributorProfile = () => {
+  if (contributorUrl.value) window.location.href = contributorUrl.value;
+};
 
 // the changes come via a message to the parent component, then to the store, then here
 // taking the data directly from the store did not work

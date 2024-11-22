@@ -42,6 +42,10 @@ a,
   @apply text-blue-500 dark:text-blue-300 underline cursor-pointer;
 }
 
+a.no-decoration {
+  @apply no-underline text-inherit;
+}
+
 a.p-button {
   /* For links masquarading as buttons */
   @apply no-underline;
@@ -251,6 +255,15 @@ footer a {
 .q-card .contributor {
   @apply bg-contain bg-no-repeat bg-center;
   background-image: url(@/assets/images/contributor.svg);
+}
+
+.subdued .subdued-text {
+  @apply text-opacity-50;
+  opacity: 0.5;
+}
+
+.subdued .subdued-image {
+  opacity: 0.3;
 }
 
 /* Contribute card */

@@ -218,7 +218,7 @@ async function submitQuestion() {
       try {
         // update the question with the full details
         question.value = <Question>await response.json();
-        console.log("Full question received", question.value);
+        console.log("Full question received"); //, question.value);
 
         // reset the user selection because the answers got rearranged with the correct ones at the top
         answersCheckbox.value = [];
@@ -229,7 +229,7 @@ async function submitQuestion() {
               console.log("answerRadio", answerRadio.value);
             } else {
               answersCheckbox.value.push(index.toString());
-              console.log("answersCheckbox", answersCheckbox.value);
+              // console.log("answersCheckbox", answersCheckbox.value);
             }
           }
         });
