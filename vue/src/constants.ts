@@ -121,6 +121,7 @@ export interface ContributorProfile {
   name: string,
   imgUrl?: string,
   url?: string,
+  about?: string,
 }
 
 /// Indicates the status of loading / fetching data

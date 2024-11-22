@@ -64,6 +64,8 @@ pub struct ContributorProfile {
     pub url: Option<String>,
     /// A URL for the the contributor's logo or avatar as it was entered with the question.
     pub img_url: Option<String>,
+    /// A free text description, blurb or a quote about the contributor
+    pub about: Option<String>,
 }
 
 /// A question with multiple answers.
@@ -460,6 +462,7 @@ mod test {
                 name: Some("John Doe".to_string()),
                 url: Some("https://example.com".to_string()),
                 img_url: Some("https://example.com/img.jpg".to_string()),
+                about: Some("A great developer".to_string()),
             }),
         };
 
@@ -508,6 +511,7 @@ mod test {
                 name: Some("John Doe".to_string()),
                 url: Some("https://example.com".to_string()),
                 img_url: Some("https://example.com/img.jpg".to_string()),
+                about: Some("A great developer".to_string()),
             }),
         };
 

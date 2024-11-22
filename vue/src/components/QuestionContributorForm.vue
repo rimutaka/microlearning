@@ -5,12 +5,13 @@
       <InputText type="text" v-model="contributorProfileUrl" placeholder="Link to your profile or a project" size="small" class="flex-grow" />
       <InputText type="text" v-model="contributorImageUrl" placeholder="Link to your logo or avatar" size="small" class="flex-grow" />
     </div>
+    <InputText type="text" v-model="contributorAbout" placeholder="Something about you" size="small" class="w-full mb-2" />
     <div class="text-end">
-      <p v-if="isDifferentFromLS && contributorInLS" class="text-sm">
+      <p v-if="isDifferentFromLS && contributorInLS" class="text-xs">
         Set to <span class="link" @click.prevent="applyDefaultContributorDetails">{{ contributorInLS?.name }}</span>
         or <span class="link" @click.prevent="saveDefaultContributorDetails">save</span> these contributor details as my default for other questions
       </p>
-      <p v-else-if="isDifferentFromLS" class="text-sm"><span class="link" @click.prevent="saveDefaultContributorDetails">Save</span> these contributor details as my default for other questions</p>
+      <p v-else-if="isDifferentFromLS" class="text-xs"><span class="link" @click.prevent="saveDefaultContributorDetails">Save</span> these contributor details as my default for other questions</p>
     </div>
   </div>
 </template>
@@ -35,17 +36,21 @@ const { question } = storeToRefs(store);
 const contributorName = ref(question.value?.contributor?.name || "");
 const contributorProfileUrl = ref(question.value?.contributor?.url);
 const contributorImageUrl = ref(question.value?.contributor?.imgUrl);
-const isDifferentFromLS = ref(false); // true if the current values are different from the what is in the local storage
+const contributorAbout = ref(question.value?.contributor?.about);
 
 const contributorInLsOnMount = localStorage.getItem(CONTRIBUTOR_DETAILS_LS_KEY);
 const contributorInLS = ref(contributorInLsOnMount ? <ContributorProfile>JSON.parse(contributorInLsOnMount) : undefined);
+
+// true if the current values are different from the what is in the local storage
+const isDifferentFromLS = ref(!_.isEqual(question.value?.contributor, contributorInLS.value));
 
 /// Saves the default contributor details to local storage
 const saveDefaultContributorDetails = () => {
   const contributorDetails = <ContributorProfile>{
     name: contributorName.value,
     url: contributorProfileUrl.value,
-    imgUrl: contributorImageUrl.value
+    imgUrl: contributorImageUrl.value,
+    about: contributorAbout.value,
   };
 
   localStorage.setItem(CONTRIBUTOR_DETAILS_LS_KEY, JSON.stringify(contributorDetails));
@@ -61,6 +66,7 @@ const applyDefaultContributorDetails = () => {
     contributorName.value = contributorInLS.value?.name;
     contributorProfileUrl.value = contributorInLS.value?.url;
     contributorImageUrl.value = contributorInLS.value?.imgUrl;
+    contributorAbout.value = contributorInLS.value?.about;
 
     isDifferentFromLS.value = false;
   }
@@ -69,7 +75,7 @@ const applyDefaultContributorDetails = () => {
   }
 }
 
-watch([contributorName, contributorProfileUrl, contributorImageUrl], ([name, profileUrl, imgUrl]) => {
+watch([contributorName, contributorProfileUrl, contributorImageUrl, contributorAbout], ([name, profileUrl, imgUrl, about]) => {
   console.log('Contributor details changed');
   if (!question.value) {
     console.log('No question in storage');
@@ -77,13 +83,14 @@ watch([contributorName, contributorProfileUrl, contributorImageUrl], ([name, pro
   }
   if (!question.value?.contributor) {
     // this should not happen, but in case the structure is not there we create it from scratch
-    question.value.contributor = <ContributorProfile>{ name, url: profileUrl, imgUrl: imgUrl };
+    question.value.contributor = <ContributorProfile>{ name, url: profileUrl, imgUrl: imgUrl, about };
   }
   else {
     // update the values since the structure may have other fields we should not overwrite
     question.value.contributor.name = name;
     question.value.contributor.url = profileUrl;
     question.value.contributor.imgUrl = imgUrl;
+    question.value.contributor.about = about;
   }
 
   // enable / disable Save as default button based on whether the current values are different from the saved values
