@@ -23,6 +23,9 @@ export const PageIDs = {
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior() {
+    return { top: 0 };  // always scroll to top
+  },
   routes: [
     {
       path: '/',
