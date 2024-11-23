@@ -17,9 +17,9 @@
 
           <div class="mb-8 border-2 rounded-md" :class="{ 'border-4': isAnswered, 'border-green-100 dark:border-green-700': answer?.c, 'border-red-100 dark:border-red-700': !answer?.c && isAnswered, 'border-slate-100': !isAnswered, 'hide-explanation': isAnswered && !answer.c && !answer.sel && !isPreview }">
             <div class="flex items-center" :class="{ 'border-b-2': isAnswered, 'border-green-100 dark:border-green-700': answer?.c, 'border-red-100 dark:border-red-700': !answer?.c && isAnswered }">
-              <input type="radio" v-if="question?.correct == 1" :name="question?.qid" :value="index" :disabled="isAnswered" v-model="answerRadio" />
+              <input type="radio" v-if="question?.correct == 1" :name="question?.qid" :value="index" :disabled="isAnswered" v-model="answerRadio" @click="handleRadioClick(index)" />
               <input type="checkbox" v-if="question?.correct && question.correct > 1" :name="question?.qid" :disabled="isAnswered" :value="index" v-model="answersCheckbox" />
-              <div class="q-answer" v-html="answer.a"></div>
+              <div class="q-answer" v-html="answer.a" @click.prevent="handleQuestionAreaClick(index)"></div>
             </div>
             <div v-if="answer?.c" class="px-2 my-2">Correct.</div>
             <div v-else-if="isAnswered" class="px-2 my-2">
@@ -151,6 +151,38 @@ watch(question, (newQuestion) => {
     loadingStatus.value = constants.LoadingStatus.Loaded;
   }
 });
+
+/// Toggles selections when the user clicks on the answer area
+const handleQuestionAreaClick = (index: number) => {
+  // do nothing if the question was answered
+  // the inputs will be disabled anyway
+  if (isAnswered.value) return;
+
+  if (question.value?.correct == 1) {
+    // deselect the radio button if it was already selected
+    if (answerRadio.value == index.toString()) {
+      answerRadio.value = undefined;
+    } else {
+      answerRadio.value = index.toString();
+    }
+  } else {
+    const answerIndex = answersCheckbox.value.indexOf(index.toString());
+    if (answerIndex > -1) {
+      // deselect
+      answersCheckbox.value.splice(answerIndex, 1);
+    } else {
+      // select
+      answersCheckbox.value.push(index.toString());
+    }
+  }
+}
+
+/// Deselects the radio button if it was already selected
+const handleRadioClick = (index: number) => {
+  if (answerRadio.value == index.toString()) {
+    answerRadio.value = undefined;
+  }
+}
 
 /// Copies the direct link to the question to the clipboard
 /// and changes the button message flag to display link copied msg
