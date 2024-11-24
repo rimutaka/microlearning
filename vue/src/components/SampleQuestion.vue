@@ -2,6 +2,7 @@
   <div class=" border-t-2 border-slate-300">
     <h3 v-if="currentTopic" class="mt-8 mb-8 text-center">Showing a random question about <em class="italic">{{ findTopicById(currentTopic) }}</em></h3>
     <QuestionCard :topic="topic" :key="props.nonce" />
+    <QuestionContributor />
   </div>
 </template>
 
@@ -9,9 +10,11 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import QuestionCard from "./QuestionCard.vue";
 import { findTopicById, URL_PARAM_LIST_SEPARATOR, ANY_TOPIC } from "@/constants";
 import { computed } from 'vue';
+
+import QuestionCard from "./QuestionCard.vue";
+import QuestionContributor from "./QuestionContributor.vue";
 
 const props = defineProps<{
   nonce?: string,
