@@ -7,7 +7,7 @@
       <div class="flex-shrink text-start mx-auto">
         <Button :label="question ? 'Browse more questions or subscribe' : 'Browse questions or subscribe'" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 md:me-4 mb-2 whitespace-nowrap" @click="navigateToSubscription" />
         <p class="text-xs text-center md:mb-auto text-slate-500 dark:text-slate-200">You will be asked to
-          <a :href="`/${PageIDs.SUBSCRIPTION}`" @click.prevent="router.push(PageIDs.SUBSCRIPTION)">sign in</a>
+          <router-link :to="{ name: PageIDs.SUBSCRIPTION }">sign in</router-link>
           with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i>
         </p>
       </div>
