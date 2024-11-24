@@ -3,7 +3,7 @@
     <figure class="max-w-screen-md mx-auto">
       <div class="w-full h-12 mb-4 contributor-icon subdued-image"></div>
       <blockquote>
-        <p class="text-l font-medium  dark:text-slate-200 dark:opacity-70 max-w-md mx-auto subdued-text md:whitespace-nowrap">This question was contributed by a generous community member</p>
+        <p class="text-l font-medium text-slate-700 dark:text-slate-300 dark:opacity-70 max-w-md mx-auto subdued-text md:whitespace-nowrap">This question was contributed by a generous community member</p>
       </blockquote>
       <figcaption class="flex items-center justify-center mt-6 space-x-3">
         <a :href="contributorUrl || ''" title="Go to contributor's website">
@@ -11,7 +11,9 @@
         </a>
       
         <div class="flex items-center text-slate-500 dark:text-slate-300 dark:opacity-70">
-          <div class="pe-3 font-medium subdued-text border-r-2 border-slate-500 dark:border-slate-300"><a :href="contributorUrl || ''" class="no-decoration" title="Go to contributor's website">{{ contributorName }}</a></div>
+          <div class="pe-3 font-medium subdued-text border-r-2 border-slate-500 dark:border-slate-300">
+            <a :href="contributorUrl || ''" class="no-decoration" title="Go to contributor's website">{{ contributorName }}</a>
+          </div>
           <div v-if="contributorAbout" class="px-3 py-1 text-sm font-light hidden md:block subdued-text border-r-2 border-slate-500 dark:border-slate-300">{{ contributorAbout }}</div>
           <div v-if="linkIcon" class="ps-3">
             <a :href="contributorUrl" class="text-slate-500 dark:text-slate-300 me-2 my-auto subdued-text"><i class="pi ms-1" :class="linkIcon"></i></a>

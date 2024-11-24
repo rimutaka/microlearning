@@ -10,8 +10,7 @@
           <!-- Show the header in the first loop so that it appears once only  -->
           <h3 v-if="isAnswered && index === 0 && question?.correct == 1" class="mb-4">Your answer</h3>
           <h3 v-if="isAnswered && index === 0 && question?.correct > 1" class="mb-4">Your answers</h3>
-          <h3 v-else-if="!isAnswered && index === 0" class="mb-4">Answers</h3>
-          <h3 v-else-if="props.isPreview && index === 0" class="mb-4">Answers</h3>
+          <h3 v-else-if="(props.isPreview || !isAnswered) && index === 0" class="mb-4">Answers</h3>
           <!-- This one should appear once after user selection -->
           <h3 v-else-if="isAnswered && index === question?.correct" class="mb-4">Other options</h3>
 
@@ -43,8 +42,8 @@
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
           <div class="flex-shrink text-end">
-            <Button v-if="!isAnswered" label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :disabled="!isQuestionReady" @click="submitQuestion()" />
-            <p v-if="!isAnswered" class="text-xs text-slate-500 dark:text-slate-300">{{ howManyOptionsLeftToSelect }}</p>
+            <Button v-if="!isAnswered" label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :class="{'opacity-50': !isQuestionReady}" @click.prevent="submitQuestion()" />
+            <p v-if="!isAnswered" class="" :class="emphasizedSubmitReminder ? 'text-red-500 text-base' : 'text-slate-500 dark:text-slate-300 text-xs'">{{ howManyOptionsLeftToSelect }}</p>
           </div>
         </div>
       </div>
@@ -83,6 +82,7 @@ const answersCheckbox = ref<string[]>([]);
 const answerRadio = ref<string | undefined>();
 const loadingStatus = ref<LoadingStatus>(constants.LoadingStatus.Loading);
 const linkCopiedFlag = ref(false); // controls share button: f: Copy link, t: Link copied
+const emphasizedSubmitReminder = ref(false); // Toggles the class of Submit button block to reminder to select the right number of answers
 
 // a temporary solution to enable editing links
 const hasToken = computed(() => {
@@ -94,6 +94,7 @@ const isAnswered = computed(() => {
 });
 
 const isQuestionReady = computed(() => {
+  emphasizedSubmitReminder.value = false;
   // console.log("isQuestionReady", answerRadio.value, answersCheckbox.value, question.value?.correct);
   // must be either a single radio answer or multiple checkbox answers matching the number of correct answers
   return answerRadio.value !== undefined && question.value?.correct == 1 || answersCheckbox.value.length == question.value?.correct;
@@ -110,7 +111,7 @@ const howManyOptionsLeftToSelect = computed(() => {
     // if a radio button is selected it can be submitted
     // the user can change the answer, but not deselect it
     if (answerRadio.value == undefined) {
-      return "Select one of the options";
+      return "Select one of the answers";
     } else {
       return "Check your selection and submit";
     }
@@ -126,12 +127,12 @@ const howManyOptionsLeftToSelect = computed(() => {
   }
   else if (remainingNumber < 0) {
     // too many answers selected
-    return `Only ${question.value.correct} options should be selected`;
+    return `Only ${question.value.correct} answers should be selected`;
   }
   else {
     // more answers should be selected
     const wordMore = answersCheckbox.value.length ? "more" : "";
-    const wordAnswers = remainingNumber > 1 ? "options" : "option";
+    const wordAnswers = remainingNumber > 1 ? "answers" : "answer";
     return `Select ${remainingNumber} ${wordMore} ${wordAnswers}`;
   }
 });
@@ -218,7 +219,8 @@ function showExplanation(evt: Event | undefined) {
 async function submitQuestion() {
   // double-check there are answers to submit
   if (!isQuestionReady.value) {
-    console.error("Must select answers:", question.value?.correct);
+    // console.log("Must select answers:", question.value?.correct);
+    emphasizedSubmitReminder.value = true;
     return;
   }
 

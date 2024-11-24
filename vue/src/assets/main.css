@@ -224,8 +224,7 @@ footer a {
 
 .q-card pre,
 .md-rendered pre {
-  max-width: 90vw; /* prevents viewport overflow on small screens */
-  @apply my-4 md:max-w-none;
+  @apply my-4 md:max-w-none grid;
 }
 
 .q-card pre code,
@@ -267,12 +266,11 @@ footer a {
 }
 
 .subdued .subdued-text {
-  @apply text-opacity-50;
-  opacity: 0.5;
+  @apply opacity-70 dark:opacity-80;
 }
 
 .subdued .subdued-image {
-  opacity: 0.3;
+  @apply opacity-30 dark:opacity-40;
 }
 
 /* Contribute cards */
