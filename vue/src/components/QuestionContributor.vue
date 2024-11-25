@@ -3,7 +3,7 @@
     <figure class="max-w-screen-md mx-auto">
       <div class="w-full h-12 mb-4 contributor-icon subdued-image"></div>
       <blockquote>
-        <p class="text-l font-medium text-slate-700 dark:text-slate-300 dark:opacity-70 max-w-md mx-auto subdued-text md:whitespace-nowrap">This question was contributed by a generous community member</p>
+        <p class="text-l font-medium text-slate-700 dark:text-slate-300 dark:opacity-70 mx-auto subdued-text md:whitespace-nowrap">This question was contributed by a generous community member</p>
       </blockquote>
       <figcaption class="flex items-center justify-center mt-6 space-x-3">
         <a :href="contributorUrl || ''" title="Go to contributor's website">
@@ -58,11 +58,6 @@ const linkIcon = computed(() => {
 
 /// Dims down the contributor section if the question hasn't been answered yet
 const isSubdued = computed(() => question.value?.answers?.[0]?.e ? false : true);
-
-/// onClick handler for the contributor image
-const navigateToContributorProfile = () => {
-  if (contributorUrl.value) window.location.href = contributorUrl.value;
-};
 
 // the changes come via a message to the parent component, then to the store, then here
 // taking the data directly from the store did not work

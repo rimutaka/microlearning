@@ -40,7 +40,6 @@ export const useMainStore = defineStore('main', () => {
   /// Show a random question from the selected topics or all topics
   /// componentKey controls the question component :key to force an update
   function showRandomQuestion() {
-    question.value = undefined;
     componentKey.value = Date.now().toString(36); // e.g. 0.cbm9x4v2kyi
   }
 

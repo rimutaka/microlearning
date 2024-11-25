@@ -22,11 +22,9 @@ import { ref, watch, computed } from "vue";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import type { ContributorProfile } from '@/constants'
-import { CONTRIBUTOR_DETAILS_LS_KEY } from "@/constants";
-import _ from 'lodash';
+import { CONTRIBUTOR_DETAILS_LS_KEY, CompareContributors } from "@/constants";
 
 import InputText from 'primevue/inputtext';
-import TransitionSlot from "./TransitionSlot.vue";
 
 const store = useMainStore();
 const { question } = storeToRefs(store);
@@ -42,7 +40,7 @@ const contributorInLsOnMount = localStorage.getItem(CONTRIBUTOR_DETAILS_LS_KEY);
 const contributorInLS = ref(contributorInLsOnMount ? <ContributorProfile>JSON.parse(contributorInLsOnMount) : undefined);
 
 // true if the current values are different from the what is in the local storage
-const isDifferentFromLS = ref(!_.isEqual(question.value?.contributor, contributorInLS.value));
+const isDifferentFromLS = ref(!CompareContributors(question.value?.contributor, contributorInLS.value));
 
 /// Saves the default contributor details to local storage
 const saveDefaultContributorDetails = () => {
@@ -94,7 +92,7 @@ watch([contributorName, contributorProfileUrl, contributorImageUrl, contributorA
   }
 
   // enable / disable Save as default button based on whether the current values are different from the saved values
-  isDifferentFromLS.value = !_.isEqual(question.value.contributor, contributorInLS.value);
+  isDifferentFromLS.value = !CompareContributors(question.value.contributor, contributorInLS.value);
 });
 
 </script>

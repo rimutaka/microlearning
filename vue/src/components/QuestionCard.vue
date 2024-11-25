@@ -333,7 +333,7 @@ const loadQuestion = async (random?: boolean) => {
 
   // make sure nothing is showing if the component is reused
   loadingStatus.value = constants.LoadingStatus.Loading;
-  // question.value = undefined;
+  question.value = undefined;  // clear the value so that other components know it's being reloaded
   currentTopic.value = undefined;
 
   // add a token with the email, if there is one (logged in users)

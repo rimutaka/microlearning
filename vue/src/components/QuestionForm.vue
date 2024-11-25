@@ -236,6 +236,7 @@ function formattingKeypress(event: KeyboardEvent) {
   }
 }
 
+/** Save question in the cloud */
 async function submitQuestion() {
 
   if (!token.value) {
@@ -272,18 +273,15 @@ async function submitQuestion() {
   });
 
   // a successful response should contain the saved question
-  // an error may contain JSON or plain text, depending on where the errror occurred
+  // an error may contain JSON or plain text, depending on where the error occurred
+  console.log("Response status: ", response.status);
   if (response.status === 200) {
     try {
       const savedQuestion = <Question>await response.json();
-      console.log(savedQuestion);
-      console.log(savedQuestion.topic);
-      console.log(savedQuestion.qid);
-
+      // console.log("Saved OK: ", savedQuestion);
       // redirect to the saved question
       // TODO: make use of the returned question details to avoid an extra fetch
       router.push(`/question?${URL_PARAM_TOPIC}=${savedQuestion.topic}&${URL_PARAM_QID}=${savedQuestion.qid}`);
-
     } catch (error) {
       console.error(error);
     }

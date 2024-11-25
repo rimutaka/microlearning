@@ -124,6 +124,16 @@ export interface ContributorProfile {
   about?: string,
 }
 
+/** Compares all properties so that blank, empty and absent values are treated as equal.
+ * Returns true if both are undefined or null.
+ * Returns false if only one is undefined or null.
+ */
+export function CompareContributors(one?: ContributorProfile, other?: ContributorProfile) {
+  if (!one && !other) return true;
+  if (!one || !other) return false;
+  return one.name === other.name && one.imgUrl == other.imgUrl && one.url == other.url && one.about == other.about;
+}
+
 /// Indicates the status of loading / fetching data
 export enum LoadingStatus {
   Loading, // awaiting response
