@@ -54,6 +54,7 @@
         </ul>
       </div>
       <div class="flex-shrink text-end">
+        <Button label="Cancel" icon="pi pi-times" raised severity="secondary" class="me-4 whitespace-nowrap" @click="router.back()" />
         <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
       </div>
     </div>
