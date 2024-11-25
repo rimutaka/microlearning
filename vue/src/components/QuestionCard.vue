@@ -1,4 +1,5 @@
 <template>
+  <div id="answerTopElement"></div>
   <TransitionSlot>
     <div v-if="question && loadingStatus == constants.LoadingStatus.Loaded" class="flex">
       <div class="q-card">
@@ -42,7 +43,7 @@
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
           <div class="flex-shrink text-end">
-            <Button v-if="!isAnswered" label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :class="{'opacity-50': !isQuestionReady}" @click.prevent="submitQuestion()" />
+            <Button v-if="!isAnswered" label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :class="{ 'opacity-50': !isQuestionReady }" @click.prevent="submitQuestion()" />
             <p v-if="!isAnswered" class="" :class="emphasizedSubmitReminder ? 'text-red-500 text-base' : 'text-slate-500 dark:text-slate-300 text-xs'">{{ howManyOptionsLeftToSelect }}</p>
           </div>
         </div>
@@ -265,6 +266,20 @@ async function submitQuestion() {
             }
           }
         });
+
+        // scroll to the top of the answers section if the answers are not visible
+        if (question.value.answers[0].e) {
+          const answerTopElement = document.getElementById("answerTopElement")?.parentElement;
+          if (answerTopElement) {
+            const rect = answerTopElement.getBoundingClientRect();
+            console.log(rect.top, rect.right, rect.bottom, rect.left);
+            if (rect.top < 0) {
+              // this will only fire up if the view is below the top of the answers section
+              // no scrolling if the user scrolled up past the answers
+              answerTopElement.scrollIntoView({ behavior: "smooth" });
+            }
+          }
+        }
 
       } catch (error) {
         console.error(error);
