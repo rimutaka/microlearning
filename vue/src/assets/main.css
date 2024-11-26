@@ -202,7 +202,7 @@ footer a {
 
 .q-card ul,
 .md-rendered ul {
-  @apply list-disc list-inside mb-4;
+  @apply list-disc list-inside mb-4 mt-2;
 }
 
 .md-rendered ul.markdown-prompt {
