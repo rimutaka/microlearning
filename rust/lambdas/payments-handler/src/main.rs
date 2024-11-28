@@ -83,7 +83,7 @@ pub(crate) async fn my_handler(
     };
 
     // attempt to get the checkout URL from the payment provider and return it as text
-    match checkout::get_checkout_url(order_details, secrets, None).await {
+    match checkout::get_checkout_url(order_details, secrets).await {
         Some(v) => lambda::text_response(Some(v), 200),
         None => {
             info!("Failed to get the checkout URL");
@@ -149,7 +149,6 @@ mod tests {
     #[test(tokio::test)]
     async fn test_get_checkout_url() {
         let secrets = get_secrets().await.unwrap();
-        let product_id = Some("prod_RIfY1uK1lyPlDH".to_string());
 
         let full_order_details = QuestionDonation {
             contributor: Some(ContributorProfile {
@@ -161,13 +160,13 @@ mod tests {
             contact_email: "test@example.com".to_string(),
             qty: 1,
             cancel_url: "https://example.com/retry".to_string(),
-            success_url: "https://example.com/thank_you".to_string(),
+            success_url: "https://example.com/thankyou".to_string(),
             topics: Some("AWS Rust".to_string()),
         };
 
         let order_details = full_order_details.clone();
 
-        let url = checkout::get_checkout_url(order_details, secrets.clone(), product_id.clone()).await;
+        let url = checkout::get_checkout_url(order_details, secrets.clone()).await;
         assert!(url.is_some(), "Full input URL");
         println!("Full input URL: {}", url.unwrap());
 
@@ -176,7 +175,7 @@ mod tests {
             ..full_order_details.clone()
         };
 
-        let url = checkout::get_checkout_url(order_details, secrets.clone(), product_id.clone()).await;
+        let url = checkout::get_checkout_url(order_details, secrets.clone()).await;
         assert!(url.is_some(), "No contrib URL");
         println!("No contrib URL: {}", url.unwrap());
 
@@ -186,7 +185,7 @@ mod tests {
             ..full_order_details.clone()
         };
 
-        let url = checkout::get_checkout_url(order_details, secrets.clone(), product_id.clone()).await;
+        let url = checkout::get_checkout_url(order_details, secrets.clone()).await;
         assert!(url.is_some(), "No contrib, no topics URL");
         println!("No contrib, no topics URL: {}", url.unwrap());
 
@@ -198,7 +197,6 @@ mod tests {
                     ..full_order_details.clone()
                 },
                 secrets.clone(),
-                product_id.clone()
             )
             .await
             .is_none(),
@@ -212,7 +210,6 @@ mod tests {
                     ..full_order_details.clone()
                 },
                 secrets.clone(),
-                product_id.clone()
             )
             .await
             .is_none(),

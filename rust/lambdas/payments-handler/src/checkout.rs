@@ -11,9 +11,8 @@ use stripe::{
 pub(crate) async fn get_checkout_url(
     order_details: QuestionDonation,
     secrets: PaymentProcessorSecrets,
-    test_product_id: Option<String>,
 ) -> Option<String> {
-    // CUSTOMER DETAILS
+    // EXTRACT AND VALIDATE REQUIRED DETAILS
 
     // this builds an attribution message from whatever elements were supplied in the structure
     let attribution = match order_details.contributor {
@@ -29,8 +28,6 @@ pub(crate) async fn get_checkout_url(
     } else {
         Some(email.as_str())
     };
-
-    // PURCHASE DETAILS
 
     // values between 1 and 10
     let qty = order_details.qty;
@@ -50,7 +47,7 @@ pub(crate) async fn get_checkout_url(
         }
     };
 
-    // cancel URL is required
+    // success URL is required
     let success_url = {
         let success_url = order_details.success_url.trim().to_string();
         if success_url.is_empty() {
@@ -63,7 +60,7 @@ pub(crate) async fn get_checkout_url(
 
     let client = Client::new(secrets.secret);
 
-    // PRODUCT
+    // Build the product description specifically for this order
     let description = {
         // submitter details for attribution are optional
         let attribution = if attribution.is_empty() {
@@ -88,38 +85,39 @@ pub(crate) async fn get_checkout_url(
     };
 
     // create a new product for this order
-    let product_id = match test_product_id {
-        Some(v) => v,
-        None => {
-            //
-            let params = CreateProduct::new(&description);
-            match Product::create(&client, params).await {
-                Ok(v) => v.id.to_string(),
-                Err(e) => {
-                    error!("Failed to create product: {}", e);
-                    return None;
-                }
+    let product_id = {
+        //
+        let params = CreateProduct::new(&description);
+        match Product::create(&client, params).await {
+            Ok(v) => {
+                info!("Product created: {:?}", v);
+                v.id.to_string()
+            }
+            Err(e) => {
+                error!("Failed to create product: {}", e);
+                return None;
             }
         }
     };
 
     // add a price for it in USD
-    let price = {
+    let price_id = {
         let mut params = CreatePrice::new(Currency::USD);
         params.product = Some(IdOrCreate::Id(&product_id));
         params.unit_amount = Some(5000);
         params.currency = Currency::USD;
         params.expand = &["product"];
         match Price::create(&client, params).await {
-            Ok(v) => v,
+            Ok(v) => {
+                info!("Price created: {:?}", v);
+                v.id.to_string()
+            }
             Err(e) => {
                 error!("Failed to create price: {}", e);
                 return None;
             }
         }
     };
-
-    info!("Product created: {}, price {:?}", product_id, price,);
 
     // create a checkout session for this product / price
     let checkout_session = {
@@ -133,7 +131,7 @@ pub(crate) async fn get_checkout_url(
         params.mode = Some(CheckoutSessionMode::Payment);
         params.line_items = Some(vec![CreateCheckoutSessionLineItems {
             quantity: Some(qty as u64),
-            price: Some(price.id.to_string()),
+            price: Some(price_id),
             adjustable_quantity: Some({
                 stripe::CreateCheckoutSessionLineItemsAdjustableQuantity {
                     enabled: true,
