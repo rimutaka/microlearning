@@ -1,6 +1,7 @@
 pub mod ddb;
 pub mod jwt;
 pub mod lambda;
+pub mod payments;
 pub mod question;
 pub mod topic;
 pub mod user;

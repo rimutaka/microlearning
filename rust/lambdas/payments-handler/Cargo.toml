@@ -1,0 +1,28 @@
+[package]
+name = "payments-handler"
+version = "0.2.0"
+authors = ["rimutaka <max@onebro.me>"]
+edition = "2021"
+description = "A proxy to the payments gateway"
+license = "AGPL-3.0"
+
+[dependencies]
+bitie_types = { path = "../../types" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+test-log = { workspace = true }
+lambda_runtime = { workspace = true }
+aws_lambda_events = { workspace = true }
+aws-sdk-dynamodb = { workspace = true }
+aws-sdk-s3 = { workspace = true }
+aws-config = { workspace = true }
+regex = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+rand = { workspace = true }
+
+async-stripe = { version = "0.39", features = ["runtime-tokio-hyper-rustls-webpki"] }
+aws-sdk-secretsmanager = "1.53"

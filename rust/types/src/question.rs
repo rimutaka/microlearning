@@ -55,7 +55,7 @@ pub struct Stats {
     pub skipped: u32,
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ContributorProfile {
     /// The name of the contributor as it was entered with the questions.
@@ -337,6 +337,28 @@ impl Display for Question {
                 return write!(f, "Cannot serialize question");
             }
         };
+
+        write!(f, "{}", contents)
+    }
+}
+
+/// Formats the contributor profile as `name / url / img_url / about` skipping empty values,
+/// after trimming white space.
+impl Display for ContributorProfile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let name = self.name.as_ref().map(|v| v.trim());
+        let url = self.url.as_ref().map(|v| v.trim());
+        let img_url = self.img_url.as_ref().map(|v| v.trim());
+        let about = self.about.as_ref().map(|v| v.trim());
+
+        let contents = [name, url, img_url, about]
+            .iter()
+            .filter_map(|v| v.to_owned())
+            .collect::<Vec<&str>>()
+            .into_iter()
+            .map(|v| v.trim())
+            .collect::<Vec<&str>>()
+            .join(" / ");
 
         write!(f, "{}", contents)
     }
