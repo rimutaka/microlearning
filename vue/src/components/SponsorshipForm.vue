@@ -38,7 +38,7 @@ import { PageIDs } from "@/router";
 const store = useMainStore();
 const { question } = storeToRefs(store);
 
-const qty = ref(1);
+const qty = ref<number>(1);
 const topics = ref("any topic");
 const loadingStatus = ref<LoadingStatusType>(LoadingStatus.Loaded);
 
@@ -65,25 +65,33 @@ async function get_checkout_url() {
   saveDefaultSponsorDetails();
 
   // the lambda gets all it needs from the serialized JSON object
-  const questionDonation = JSON.stringify(<QuestionDonation>{
-    qty: qty.value,
+  const questionDonation = <QuestionDonation>{
+    qty: +qty.value,
     topics: topics.value,
     contributor: question.value?.contributor, // this struct is set by a sub-component
     cancelUrl: window.location.href,
     successUrl: `${window.location.origin}/${PageIDs.THANKYOU}`,
-  });
+  };
 
-  console.log(questionDonation);
+  if (questionDonation.qty < 1 || questionDonation.qty > 10) {
+    console.error("Invalid quantity: ", questionDonation.qty);
+    loadingStatus.value = LoadingStatus.Error;
+    return;
+  }
+
+  // the lambda gets all it needs from the serialized JSON object
+  const questionDonationStr = JSON.stringify(questionDonation);
+  console.log(questionDonationStr);
 
   // calculate the hash of the request body for x-amz-content-sha256 header
   // as required by CloudFront
   const hash = new Sha256();
-  hash.update(questionDonation);
+  hash.update(questionDonationStr);
   const bodyHash = toHex(await hash.digest());
 
   const response = await fetch(`${PAYMENTS_HANDLER_URL}`, {
     method: "POST",
-    body: questionDonation,
+    body: questionDonationStr,
     headers: {
       "x-amz-content-sha256": bodyHash,
     },
