@@ -20,15 +20,6 @@ pub(crate) async fn get_checkout_url(
         None => "".to_string(),
     };
 
-    // email is required
-    let email = order_details.contact_email.trim().to_lowercase();
-    let email = if email.is_empty() {
-        warn!("Missing email in the order details");
-        return None;
-    } else {
-        Some(email.as_str())
-    };
-
     // values between 1 and 10
     let qty = order_details.qty;
     if !(1..11).contains(&qty) {
@@ -125,7 +116,6 @@ pub(crate) async fn get_checkout_url(
         params.cancel_url = Some(&cancel_url);
         params.success_url = Some(&success_url);
         params.customer_creation = Some(CheckoutSessionCustomerCreation::IfRequired);
-        params.customer_email = email;
 
         // params.customer = Some(customer.id);
         params.mode = Some(CheckoutSessionMode::Payment);

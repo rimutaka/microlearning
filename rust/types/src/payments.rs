@@ -6,15 +6,12 @@ pub const STRIPE_SECRETS_ENV_VAR: &str = "stripe_secret_arn";
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct QuestionDonation {
-    /// Email of the person who made the transaction
-    pub contact_email: String,
-
     /// The number of questions to be paid for
     pub qty: u32,
 
     /// A fully-qualified cancel URL for the payment processor,
     pub cancel_url: String,
-    
+
     /// A fully-qualified success URL for the payment processor,
     pub success_url: String,
 

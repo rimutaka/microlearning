@@ -157,7 +157,6 @@ mod tests {
                 img_url: Some("https://example.com/consul-sol.png".to_string()),
                 about: Some("We provide consulting solutions".to_string()),
             }),
-            contact_email: "test@example.com".to_string(),
             qty: 1,
             cancel_url: "https://example.com/retry".to_string(),
             success_url: "https://example.com/thankyou".to_string(),
@@ -190,19 +189,6 @@ mod tests {
         println!("No contrib, no topics URL: {}", url.unwrap());
 
         // invalid input tests
-        assert!(
-            checkout::get_checkout_url(
-                QuestionDonation {
-                    contact_email: "".to_string(),
-                    ..full_order_details.clone()
-                },
-                secrets.clone(),
-            )
-            .await
-            .is_none(),
-            "No email"
-        );
-
         assert!(
             checkout::get_checkout_url(
                 QuestionDonation {
