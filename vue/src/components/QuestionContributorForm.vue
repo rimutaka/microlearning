@@ -21,8 +21,9 @@
 import { ref, watch, computed } from "vue";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import type { ContributorProfile } from '@/constants'
-import { CONTRIBUTOR_DETAILS_LS_KEY, CompareContributors } from "@/constants";
+import type { ContributorProfile } from '@/interfaces'
+import { CONTRIBUTOR_DETAILS_LS_KEY, } from "@/constants";
+import { CompareContributors } from '@/interfaces'
 
 import InputText from 'primevue/inputtext';
 

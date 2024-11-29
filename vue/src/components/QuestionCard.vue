@@ -1,7 +1,7 @@
 <template>
   <div id="answerTopElement"></div>
   <TransitionSlot>
-    <div v-if="question && loadingStatus == constants.LoadingStatus.Loaded" class="flex">
+    <div v-if="question && loadingStatus == LoadingStatus.Loaded" class="flex">
       <div class="q-card">
         <div class="q-text">
           <div class="" v-html="question?.question"></div>
@@ -49,7 +49,7 @@
         </div>
       </div>
     </div>
-    <LoadingMessage v-else-if="loadingStatus == constants.LoadingStatus.Loading" />
+    <LoadingMessage v-else-if="loadingStatus == LoadingStatus.Loading" />
     <h3 v-else class="mt-8 mb-8 text-slate-500 dark:text-slate-100">Sorry, something went wrong. Try again.</h3>
   </TransitionSlot>
 </template>
@@ -57,8 +57,11 @@
 <script setup lang="ts">
 import { ref, watchEffect, computed, watch } from "vue";
 import router, { PageIDs } from "@/router";
-import type { Question, LoadingStatus } from "@/constants";
+
+import type { Question, LoadingStatus as LoadingStatusType } from "@/interfaces";
 import * as constants from "@/constants";
+import { LoadingStatus } from "@/interfaces";
+
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 
@@ -81,7 +84,7 @@ const { token, currentTopic, question } = storeToRefs(store);
 // as fetched from the server
 const answersCheckbox = ref<string[]>([]);
 const answerRadio = ref<string | undefined>();
-const loadingStatus = ref<LoadingStatus>(constants.LoadingStatus.Loading);
+const loadingStatus = ref<LoadingStatusType>(LoadingStatus.Loading);
 const linkCopiedFlag = ref(false); // controls share button: f: Copy link, t: Link copied
 const emphasizedSubmitReminder = ref(false); // Toggles the class of Submit button block to reminder to select the right number of answers
 
@@ -150,7 +153,7 @@ const questionTopicAndPageUrl = computed(() => `${questionTopicOnlyUrl.value}&${
 watch(question, (newQuestion) => {
   // console.log("newQuestion: ", newQuestion);
   if (props.isPreview && newQuestion) {
-    loadingStatus.value = constants.LoadingStatus.Loaded;
+    loadingStatus.value = LoadingStatus.Loaded;
   }
 });
 
@@ -202,7 +205,7 @@ const copyLinkToClipboard = (e: MouseEvent) => {
 const getNextQuestion = (e: MouseEvent) => {
   e.preventDefault();
   console.log("getNextQuestion");
-  loadingStatus.value = constants.LoadingStatus.Loading;
+  loadingStatus.value = LoadingStatus.Loading;
   question.value = undefined;
 }
 
@@ -325,14 +328,14 @@ const loadQuestion = async (random?: boolean) => {
   // preview questions are loaded from the store and should never be fetched from the server
   if (props.isPreview) {
     console.log("Using store question");
-    loadingStatus.value = question.value ? constants.LoadingStatus.Loaded : constants.LoadingStatus.NoData;
+    loadingStatus.value = question.value ? LoadingStatus.Loaded : LoadingStatus.NoData;
     return;
   }
 
   console.log(`Fetching question for: ${props.topic} / ${props.qid} / random: ${random}`);
 
   // make sure nothing is showing if the component is reused
-  loadingStatus.value = constants.LoadingStatus.Loading;
+  loadingStatus.value = LoadingStatus.Loading;
   question.value = undefined;  // clear the value so that other components know it's being reloaded
   currentTopic.value = undefined;
 
@@ -368,7 +371,7 @@ const loadQuestion = async (random?: boolean) => {
         console.log(`Loaded ${question.value.topic} / ${question.value.qid}`);
 
         currentTopic.value = question.value.topic;
-        loadingStatus.value = constants.LoadingStatus.Loaded;
+        loadingStatus.value = LoadingStatus.Loaded;
         storeRecentQuestionsInLS(question.value.qid); // add qid to the list of recent questions
 
       } catch (error) {
@@ -376,14 +379,14 @@ const loadQuestion = async (random?: boolean) => {
       }
     }
     else if (response.status === 404) {
-      loadingStatus.value = constants.LoadingStatus.NoData;
+      loadingStatus.value = LoadingStatus.NoData;
     }
     else {
-      loadingStatus.value = constants.LoadingStatus.Error;
+      loadingStatus.value = LoadingStatus.Error;
       console.error("Failed to get question. Status: ", response.status);
     }
   } catch (error) {
-    loadingStatus.value = constants.LoadingStatus.Error;
+    loadingStatus.value = LoadingStatus.Error;
     console.error("Failed to get question.");
     console.error(error);
   }

@@ -59,7 +59,7 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { USER_HANDLER_URL, TOKEN_HEADER_NAME, URL_PARAM_TOPICS, URL_PARAM_LIST_SEPARATOR, findTopicById, VUE_EVENT_HYDRATED } from "@/constants";
-import { type User, LoadingStatus } from "@/constants";
+import { type User, LoadingStatus } from "@/interfaces";
 
 import Button from 'primevue/button';
 import TopicsList from './TopicsList.vue';

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { TOPICS, CONTRIBUTOR_DETAILS_LS_KEY } from './constants'
-import type { Question, User, ContributorProfile } from './constants'
+import type { Question, User, ContributorProfile } from './interfaces'
 
 /// The main store for the application
 export const useMainStore = defineStore('main', () => {

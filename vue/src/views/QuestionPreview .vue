@@ -8,7 +8,7 @@
 import { computed, watch, ref, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
 import { TOPICS, PREVIEW_QUESTION_LS_KEY } from "@/constants";
-import type { Question, Answer } from "@/constants";
+import type { Question, Answer } from "@/interfaces";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { marked } from 'marked';

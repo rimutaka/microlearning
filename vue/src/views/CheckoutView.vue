@@ -17,7 +17,7 @@ import SubscriptionCompleted from '@/components/SubscriptionCompleted.vue';
 import SponsorshipForm from '@/components/SponsorshipForm.vue';
 import QuestionCard from '@/components/QuestionCard.vue';
 
-import type { Question } from '@/constants';
+import type { Question } from '@/interfaces';
 
 
 const store = useMainStore();

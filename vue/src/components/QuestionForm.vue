@@ -77,7 +77,7 @@ import debounce from "lodash.debounce"
 import _ from "lodash";
 
 import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, PREVIEW_QUESTION_LS_KEY, CONTRIBUTOR_DETAILS_LS_KEY } from "@/constants";
-import type { Answer, Question } from "@/constants";
+import type { Answer, Question } from "@/interfaces";
 
 import Button from 'primevue/button';
 import RadioButton from 'primevue/radiobutton';

@@ -11,8 +11,8 @@
     <div class="flex-shrink text-end">
       <Button label="Make the payment" icon="pi pi-check" raised class="my-auto whitespace-nowrap" @click="get_checkout_url()" />
     </div>
-    <LoadingMessage v-if="loadingStatus==LoadStatus.Loading" />
-    <h3 v-if="loadingStatus == LoadStatus.Error" class="mt-8 mb-8 text-center text-slate-500 dark:text-slate-200">Sorry, something went wrong. Try again.</h3>
+    <LoadingMessage v-if="loadingStatus == LoadingStatus.Loading" />
+    <h3 v-if="loadingStatus == LoadingStatus.Error" class="mt-8 mb-8 text-center text-slate-500 dark:text-slate-200">Sorry, something went wrong. Try again.</h3>
   </div>
 </template>
 
@@ -21,8 +21,9 @@
 import { ref, watch, computed } from "vue";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import type { LoadingStatus, QuestionDonation } from '@/constants'
-import { PAYMENTS_HANDLER_URL, SPONSOR_DETAILS_LS_KEY, LoadingStatus as LoadStatus } from "@/constants";
+import type { LoadingStatus as LoadingStatusType, QuestionDonation } from '@/interfaces'
+import { PAYMENTS_HANDLER_URL, SPONSOR_DETAILS_LS_KEY } from "@/constants";
+import { LoadingStatus } from "@/interfaces";
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
 
@@ -39,7 +40,7 @@ const { question } = storeToRefs(store);
 
 const qty = ref(1);
 const topics = ref("any topic");
-const loadingStatus = ref<LoadingStatus>(LoadStatus.Loaded);
+const loadingStatus = ref<LoadingStatusType>(LoadingStatus.Loaded);
 
 const sponsorDetailsInLS = localStorage.getItem(SPONSOR_DETAILS_LS_KEY);
 
@@ -59,7 +60,7 @@ const saveDefaultSponsorDetails = () => {
 /** Calls a lambda to create a checkout page for this transaction and redirects the user to it */
 async function get_checkout_url() {
 
-  loadingStatus.value = LoadStatus.Loading;
+  loadingStatus.value = LoadingStatus.Loading;
 
   saveDefaultSponsorDetails();
 
@@ -101,15 +102,15 @@ async function get_checkout_url() {
 
       // it is probably a lambda bug if the status = 200 and the URL is not valid
       console.log("Invalid checkout URL: ", checkoutUrl);
-      loadingStatus.value = LoadStatus.Error;
+      loadingStatus.value = LoadingStatus.Error;
 
     } catch (error) {
       console.error(error);
-      loadingStatus.value = LoadStatus.Error;
+      loadingStatus.value = LoadingStatus.Error;
     }
   } else {
     console.error("Failed to get checkout URL: ", response.status);
-    loadingStatus.value = LoadStatus.Error;
+    loadingStatus.value = LoadingStatus.Error;
   }
 }
 
