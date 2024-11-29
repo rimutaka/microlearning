@@ -2,6 +2,8 @@
 export const QUESTION_HANDLER_URL = "https://bitesized.info/q?";
 /// The endpoint for user-related requests.
 export const USER_HANDLER_URL = "https://bitesized.info/u?";
+/// The endpoint for payment-related requests.
+export const PAYMENTS_HANDLER_URL = "https://bitesized.info/checkout?";
 
 /// E.g. .../q?topic=foo&qid=bar
 export const URL_PARAM_TOPIC = "topic"
@@ -34,6 +36,10 @@ export const PREVIEW_QUESTION_LS_KEY = "previewQuestion";
 /// A locally cached value of the last contributor details entered by this user
 /// for future reuse with new questions
 export const CONTRIBUTOR_DETAILS_LS_KEY = "contributorDetails";
+
+/// A locally cached value of the last sponsor details entered by this user
+/// for future reuse with new payments
+export const SPONSOR_DETAILS_LS_KEY = "sponsorDetails";
 
 /// Keypair for the topic title and DDB topic ID, e.g. "AWS"/"aws".
 export interface TopicFields {
@@ -140,4 +146,14 @@ export enum LoadingStatus {
   Loaded, // data found and is loaded into the app
   NoData, // checked the DB, but no data found
   Error // something went wrong
+}
+
+/** A list of fields used for question sponsorship payments
+ * A mirror of the Rust's type  */
+export interface QuestionDonation {
+  qty: number,
+  cancelUrl: string,
+  successUrl: string,
+  topics?: string,
+  contributor?: ContributorProfile,
 }

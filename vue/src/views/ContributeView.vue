@@ -10,7 +10,19 @@
       exploring possible answers and making sure the explanations will withstand the scrutiny of your peers.</p>
     <p>Give it a try. Our moderators will help you along the way.</p>
     <p class="cta text-sm">
-      <i class="pi pi-pen-to-square me-1"></i><router-link to="/add" class="">Write a draft question</router-link>
+      <i class="pi pi-pen-to-square me-1"></i><router-link :to="PageIDs.ADD" class="">Write a draft question</router-link>
+    </p>
+  </div>
+
+  <div class="contribute-card">
+    <div class="abstract">
+      <i class="pi pi-lock-open"></i>
+    </div>
+    <h3>Gift a question</h3>
+    <p>Your $50 donation will go towards writing quality questions to help the community become a tiny bit more knowledgeable.</p>
+    <p>Your name or the name of your business will appear as the question contributor.</p>
+    <p class="cta text-sm">
+      <i class="pi pi-pen-to-square me-1"></i><router-link :to="PageIDs.GIFT" class="">Give a question</router-link>
     </p>
   </div>
 
@@ -49,6 +61,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { PageIDs } from '@/router';
 
 import Card from 'primevue/card';
 import Button from 'primevue/button';
