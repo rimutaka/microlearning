@@ -6,12 +6,12 @@
       <InputText type="text" v-model="contributorImageUrl" placeholder="Link to your logo or avatar" size="small" class="flex-grow" />
     </div>
     <InputText type="text" v-model="contributorAbout" placeholder="Something about you" size="small" class="w-full mb-2" />
-    <div class="text-end">
+    <div v-if="!autosave" class="text-end">
       <p v-if="isDifferentFromLS && contributorInLS" class="text-xs">
         Set to <span class="link" @click.prevent="applyDefaultContributorDetails">{{ contributorInLS?.name }}</span>
-        or <span class="link" @click.prevent="saveDefaultContributorDetails">save</span> these contributor details as my default for other questions
+        or <span class="link" @click.prevent="saveDefaultContributorDetails">save</span> these contributor details as my default
       </p>
-      <p v-else-if="isDifferentFromLS" class="text-xs"><span class="link" @click.prevent="saveDefaultContributorDetails">Save</span> these contributor details as my default for other questions</p>
+      <p v-else-if="isDifferentFromLS" class="text-xs"><span class="link" @click.prevent="saveDefaultContributorDetails">Save</span> these contributor details as my default</p>
     </div>
   </div>
 </template>
@@ -26,6 +26,11 @@ import { CONTRIBUTOR_DETAILS_LS_KEY, } from "@/constants";
 import { CompareContributors } from '@/interfaces'
 
 import InputText from 'primevue/inputtext';
+
+const props = defineProps<{
+  /** Hides save/apply message and does both automatically */
+  autosave?: boolean,
+}>();
 
 const store = useMainStore();
 const { question } = storeToRefs(store);

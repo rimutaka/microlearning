@@ -326,3 +326,20 @@ footer a {
 .about p {
   @apply text-justify mb-2;
 }
+
+/* Checkout */
+
+#secure-payments {
+  background-image: url(@/assets/images/secure-payments.png);
+  background-size: 60%;
+  background-position: bottom right;
+  background-repeat: no-repeat;
+}
+
+#stripe-logo {
+  padding-inline-end: 4rem;
+  background-image: url(@/assets/images/stripe-logo.png);
+  background-size: 3.5rem;
+  background-position: bottom right;
+  background-repeat: no-repeat;
+}

@@ -1,15 +1,21 @@
 <template>
   <div>
     <div>
-      <div class="flex flex-wrap gap-4 mb-4">
-        <InputText type="text" v-model="qty" placeholder="How many questions" size="small" class="flex-shrink" />
+      <div class="flex flex-wrap gap-4 mb-4 items-center">
+        <label for="qty-input">Number of questions:</label>
+        <InputText type="text" v-model="qty" size="small" class="w-12" id="qty-input" />
+        =<span><span class="text-xs">US</span>${{ price * qty }}</span>
       </div>
-      <InputText type="text" v-model="topics" placeholder="Topics" size="small" class="w-full mb-2" />
+      <div class="flex flex-wrap gap-4 mb-4 items-center">
+        <label for="qty-input">Preferred topics:</label>
+        <InputText type="text" v-model="topics" placeholder="Topics" size="small" class=" flex-grow" />
+      </div>
     </div>
-    <QuestionContributorForm />
-    <QuestionContributor />
-    <div class="flex-shrink text-end">
-      <Button label="Make the payment" icon="pi pi-check" raised class="my-auto whitespace-nowrap" @click="get_checkout_url()" />
+    <div class="flex-shrink text-end w-fit ms-auto mt-8">
+      <Button label="Secure payment with Stripe" icon="pi pi-credit-card" raised class="my-auto whitespace-nowrap" @click="get_checkout_url()">
+        <span class="p-button-label" id="stripe-logo" data-pc-section="label">Secure payment with </span>
+      </Button>
+      <div class="w-full h-6" id="secure-payments" aria-label="Supports google pay, apple pay and major cards"></div>
     </div>
     <LoadingMessage v-if="loadingStatus == LoadingStatus.Loading" />
     <h3 v-if="loadingStatus == LoadingStatus.Error" class="mt-8 mb-8 text-center text-slate-500 dark:text-slate-200">Sorry, something went wrong. Try again.</h3>
@@ -29,8 +35,6 @@ import { toHex } from "uint8array-tools";
 
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-import QuestionContributor from '@/components/QuestionContributor.vue';
-import QuestionContributorForm from '@/components/QuestionContributorForm.vue';
 import LoadingMessage from "./LoadingMessage.vue";
 import { PageIDs } from "@/router";
 
@@ -38,6 +42,7 @@ import { PageIDs } from "@/router";
 const store = useMainStore();
 const { question } = storeToRefs(store);
 
+const price = 50;
 const qty = ref<number>(1);
 const topics = ref("any topic");
 const loadingStatus = ref<LoadingStatusType>(LoadingStatus.Loaded);
