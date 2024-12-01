@@ -7,7 +7,7 @@ pub const STRIPE_SECRETS_ENV_VAR: &str = "stripe_secret_arn";
 #[serde(rename_all = "camelCase")]
 pub struct QuestionDonation {
     /// The number of questions to be paid for
-    pub qty: u32,
+    pub qty: u64,
 
     /// A fully-qualified cancel URL for the payment processor,
     pub cancel_url: String,

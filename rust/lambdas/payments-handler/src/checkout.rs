@@ -6,6 +6,9 @@ use stripe::{
     CreateCheckoutSessionLineItems, CreatePrice, CreateProduct, Currency, IdOrCreate, Price, Product,
 };
 
+/// This value must be sync'd with the frontend
+const MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT: u64 = 20;
+
 /// Returns the URL of a Stripe checkout session for the given order details.
 /// Logs errors and returns None if the URL cannot be obtained from Stripe.
 pub(crate) async fn get_checkout_url(
@@ -20,9 +23,9 @@ pub(crate) async fn get_checkout_url(
         None => "".to_string(),
     };
 
-    // values between 1 and 10
+    // values between 1 and MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT
     let qty = order_details.qty;
-    if !(1..11).contains(&qty) {
+    if !(1..MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT + 1).contains(&qty) {
         warn!("Invalid quantity: {}", qty);
         return None;
     }
@@ -81,7 +84,7 @@ pub(crate) async fn get_checkout_url(
         let params = CreateProduct::new(&description);
         match Product::create(&client, params).await {
             Ok(v) => {
-                info!("Product created: {:?}", v);
+                info!("Product created");
                 v.id.to_string()
             }
             Err(e) => {
@@ -100,7 +103,7 @@ pub(crate) async fn get_checkout_url(
         params.expand = &["product"];
         match Price::create(&client, params).await {
             Ok(v) => {
-                info!("Price created: {:?}", v);
+                info!("Price created");
                 v.id.to_string()
             }
             Err(e) => {
@@ -120,12 +123,12 @@ pub(crate) async fn get_checkout_url(
         // params.customer = Some(customer.id);
         params.mode = Some(CheckoutSessionMode::Payment);
         params.line_items = Some(vec![CreateCheckoutSessionLineItems {
-            quantity: Some(qty as u64),
+            quantity: Some(qty),
             price: Some(price_id),
             adjustable_quantity: Some({
                 stripe::CreateCheckoutSessionLineItemsAdjustableQuantity {
                     enabled: true,
-                    maximum: Some(10),
+                    maximum: Some(MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT as i64),
                     minimum: Some(1),
                 }
             }),
@@ -141,11 +144,6 @@ pub(crate) async fn get_checkout_url(
             }
         }
     };
-
-    info!(
-        "Checkout session created {:?}, url: {:?}",
-        checkout_session, checkout_session.url,
-    );
 
     info!("Checkout session URL {:?}", checkout_session.url,);
 
