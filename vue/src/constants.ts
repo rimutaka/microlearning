@@ -41,6 +41,8 @@ export const CONTRIBUTOR_DETAILS_LS_KEY = "contributor";
 /// for future reuse with new payments
 export const SPONSOR_DETAILS_LS_KEY = "sponsorship";
 
+export const MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT = 20;
+
 /// Keypair for the topic title and DDB topic ID, e.g. "AWS"/"aws".
 export interface TopicFields {
   t: string,

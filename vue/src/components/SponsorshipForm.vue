@@ -3,7 +3,7 @@
     <div>
       <div class="flex flex-wrap gap-4 mb-4 items-center">
         <label for="qty-input">Number of questions:</label>
-        <InputText type="text" v-model="qty" size="small" class="w-12" id="qty-input" />
+        <InputText type="text" v-model="qty" size="small" :invalid="qty < 1 || qty > MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT" class="w-12" id="qty-input" />
         =<span><span class="text-xs">US</span>${{ price * qty }}</span>
       </div>
       <div class="flex flex-wrap gap-4 mb-4 items-center">
@@ -16,6 +16,8 @@
         <span class="p-button-label" id="stripe-logo" data-pc-section="label">Secure payment with </span>
       </Button>
       <div class="w-full h-6" id="secure-payments" aria-label="Supports google pay, apple pay and major cards"></div>
+      <p v-if="qty < 1 || qty > MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT" class="text-red-500 text-base mt-2">Maximum {{ MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT }} questions per transaction</p>
+
     </div>
     <LoadingMessage v-if="loadingStatus == LoadingStatus.Loading" />
     <h3 v-if="loadingStatus == LoadingStatus.Error" class="mt-8 mb-8 text-center text-slate-500 dark:text-slate-200">Sorry, something went wrong. Try again.</h3>
@@ -29,7 +31,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 
 import type { ContributorProfile, LoadingStatus as LoadingStatusType, QuestionSponsorship } from '@/interfaces'
-import { PAYMENTS_HANDLER_URL, SPONSOR_DETAILS_LS_KEY, CONTRIBUTOR_DETAILS_LS_KEY } from "@/constants";
+import { PAYMENTS_HANDLER_URL, SPONSOR_DETAILS_LS_KEY, CONTRIBUTOR_DETAILS_LS_KEY, MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT } from "@/constants";
 import { LoadingStatus } from "@/interfaces";
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
@@ -66,6 +68,13 @@ const saveDefaultSponsorDetails = () => {
 /** Calls a lambda to create a checkout page for this transaction and redirects the user to it */
 async function get_checkout_url() {
 
+  // quantity is the only required field and must be less than ...
+  // it's a pointless check because it can be changed at the checkout
+  if (qty.value < 1 || qty.value > MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT) {
+    console.log("Invalid quantity: ", qty.value);
+    return;
+  }
+
   loadingStatus.value = LoadingStatus.Loading;
 
   saveDefaultSponsorDetails();
@@ -74,7 +83,7 @@ async function get_checkout_url() {
   // but it's unlikely to be an issue for now
   if (anonymousContributor.value) {
     console.error("Anonymous - deleting contributor details from LS");
-    localStorage.setItem(CONTRIBUTOR_DETAILS_LS_KEY,JSON.stringify({}));
+    localStorage.setItem(CONTRIBUTOR_DETAILS_LS_KEY, JSON.stringify({}));
   }
 
   // the lambda gets all it needs from the serialized JSON object
