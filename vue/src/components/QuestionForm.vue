@@ -39,7 +39,7 @@
     </div>
     <div>
       <h4 class="text-start mb-4">Contributor</h4>
-      <QuestionContributorForm class="mb-12" />
+      <ContributorForm class="mb-12" />
     </div>
     <div class="flex gap-12 mt-8">
       <div class="text-left flex-grow">
@@ -85,7 +85,7 @@ import Textarea from 'primevue/textarea';
 // import Popover from "primevue/popover";
 // import QuestionFieldMarkdown from "./QuestionFieldMarkdown.vue";
 import LoadingMessage from "./LoadingMessage.vue";
-import QuestionContributorForm from "./QuestionContributorForm.vue";
+import ContributorForm from "./ContributorForm.vue";
 
 const props = defineProps<{
   topic: string | undefined,

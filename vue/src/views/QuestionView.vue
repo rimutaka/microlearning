@@ -5,7 +5,7 @@
   <div v-if="!isLoading && ctaBlockVisible" class="mb-12 md:mt-12 cta-box">
     <PostAnswerCTA />
   </div>
-  <QuestionContributor />
+  <ContributorCard />
 </template>
 
 <script setup lang="ts">
@@ -19,7 +19,7 @@ import { useAuth0 } from '@auth0/auth0-vue';
 import QuestionCard from "../components/QuestionCard.vue";
 import PostAnswerCTA from '@/components/PostAnswerCTA.vue';
 import LoadingMessage from '@/components/LoadingMessage.vue';
-import QuestionContributor from "../components/QuestionContributor.vue";
+import ContributorCard from "../components/ContributorCard.vue";
 
 const route = useRoute();
 const router = useRouter();

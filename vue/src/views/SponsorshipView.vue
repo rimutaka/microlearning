@@ -6,13 +6,13 @@
 
       <div class="card flex-grow md:flex-shrink cta-box">
         <SponsorshipCTA />
-        <QuestionContributor />
+        <ContributorCard />
         <div class="text-xs"> Add your details:
           <input type="radio" class="ms-2 me-1" id="addContributorTrue" name="addContributor" :value="false" v-model="anonymousContributor" />
           <label class="me-4" for="addContributorTrue">now</label>
           <input type="radio" class="ms-2 me-1" id="addContributorFalse" name="addContributor" :value="true" v-model="anonymousContributor" />
           <label for="addContributorFalse" class="">later</label>
-          <QuestionContributorForm v-if="!anonymousContributor" class="mt-4" :autosave="true" />
+          <ContributorForm v-if="!anonymousContributor" class="mt-4" :autosave="true" />
           <p v-else class="text-slate-500 dark:text-slate-300 mt-2">We will contact you to confirm your details</p>
         </div>
       </div>
@@ -37,8 +37,8 @@ import SponsorshipCTA from '@/components/SponsorshipCTA.vue';
 import SubscriptionCompleted from '@/components/SubscriptionCompleted.vue';
 import SponsorshipForm from '@/components/SponsorshipForm.vue';
 import QuestionCard from '@/components/QuestionCard.vue';
-import QuestionContributor from '@/components/QuestionContributor.vue';
-import QuestionContributorForm from '@/components/QuestionContributorForm.vue';
+import ContributorCard from '@/components/ContributorCard.vue';
+import ContributorForm from '@/components/ContributorForm.vue';
 
 
 
