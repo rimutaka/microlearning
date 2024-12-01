@@ -55,7 +55,7 @@ export interface User {
 
 /// Questions contributor details to be displayed alongside the question
 export interface ContributorProfile {
-  name: string,
+  name?: string,
   imgUrl?: string,
   url?: string,
   about?: string,
@@ -71,6 +71,15 @@ export function CompareContributors(one?: ContributorProfile, other?: Contributo
   return one.name === other.name && one.imgUrl == other.imgUrl && one.url == other.url && one.about == other.about;
 }
 
+/** A set of values to show what the contribution message may look like */
+export const CONTRIBUTOR_PLACEHOLDER: ContributorProfile =
+{
+  name: "Your name",
+  url: "https://your-website.com",
+  imgUrl: "/your-logo.png",
+  about: "Something about you",
+};
+
 /// Indicates the status of loading / fetching data
 export enum LoadingStatus {
   Loading, // awaiting response
@@ -81,7 +90,7 @@ export enum LoadingStatus {
 
 /** A list of fields used for question sponsorship payments
  * A mirror of the Rust's type  */
-export interface QuestionDonation {
+export interface QuestionSponsorship {
   qty: number,
   cancelUrl: string,
   successUrl: string,

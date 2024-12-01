@@ -24,6 +24,7 @@ import { useMainStore } from '@/store';
 import type { ContributorProfile } from '@/interfaces'
 import { CONTRIBUTOR_DETAILS_LS_KEY, } from "@/constants";
 import { CompareContributors } from '@/interfaces'
+import debounce from "lodash.debounce"
 
 import InputText from 'primevue/inputtext';
 
@@ -79,6 +80,11 @@ const applyDefaultContributorDetails = () => {
   }
 }
 
+/// Slows down auto-saves of the defaults
+const debounceContributorDetails = debounce(() => {
+  saveDefaultContributorDetails();
+}, 2000);
+
 watch([contributorName, contributorProfileUrl, contributorImageUrl, contributorAbout], ([name, profileUrl, imgUrl, about]) => {
   console.log('Contributor details changed');
   if (!question.value) {
@@ -99,6 +105,11 @@ watch([contributorName, contributorProfileUrl, contributorImageUrl, contributorA
 
   // enable / disable Save as default button based on whether the current values are different from the saved values
   isDifferentFromLS.value = !CompareContributors(question.value.contributor, contributorInLS.value);
+
+  if (isDifferentFromLS.value && props.autosave) {
+    console.log('Autosaving contributor details');
+    debounceContributorDetails();
+  }
 });
 
 </script>

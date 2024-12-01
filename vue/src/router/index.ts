@@ -9,7 +9,7 @@ import AboutView from '../views/AboutView.vue'
 import SubscriptionView from '../views/SubscriptionView.vue'
 import ContributeView from '@/views/ContributeView.vue';
 import QuestionPreview from '@/views/QuestionPreview .vue';
-import CheckoutView from '@/views/CheckoutView.vue';
+import SponsorshipView from '@/views/SponsorshipView.vue';
 import ThankYouView from '@/views/ThankYouView.vue';
 
 /// A list of page names used elsewhere in the app
@@ -21,7 +21,7 @@ export const PageIDs = {
   ABOUT: 'about',
   SUBSCRIPTION: 'subscription',
   PREVIEW: 'preview',
-  GIFT: 'gift',
+  SPONSORSHIP: 'gift',
   THANKYOU: 'thankyou',
 }
 
@@ -75,10 +75,10 @@ const router = createRouter({
       meta: { title: 'Preview' }
     },
     {
-      path: '/' + PageIDs.GIFT,
-      name: PageIDs.GIFT,
-      component: CheckoutView,
-      meta: { title: 'Gift knowledge' }
+      path: '/' + PageIDs.SPONSORSHIP,
+      name: PageIDs.SPONSORSHIP,
+      component: SponsorshipView,
+      meta: { title: 'Gift a question' }
     },
     {
       path: '/' + PageIDs.THANKYOU,

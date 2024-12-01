@@ -22,7 +22,7 @@
     <p>Your $50 donation will go towards writing quality questions to help the community become a tiny bit more knowledgeable.</p>
     <p>Your name or the name of your business will appear as the question contributor.</p>
     <p class="cta text-sm">
-      <i class="pi pi-pen-to-square me-1"></i><router-link :to="PageIDs.GIFT" class="">Give a question</router-link>
+      <i class="pi pi-pen-to-square me-1"></i><router-link :to="PageIDs.SPONSORSHIP" class="">Give a question</router-link>
     </p>
   </div>
 

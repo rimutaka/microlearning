@@ -28,6 +28,9 @@ export const useMainStore = defineStore('main', () => {
   /// DDB profile data for the logged in user
   const user = ref<User | undefined>()
 
+  /// Any data in the contributor profile should be ignored if this value is true
+  const anonymousContributor = ref<boolean | undefined>()
+
   /// Returns the last selected topic or a random one if none are selected
   const lastSelectedTopic = computed(() => {
     if (selectedTopics.value.length) {
@@ -51,6 +54,7 @@ export const useMainStore = defineStore('main', () => {
     email.value = undefined;
     token.value = undefined;
     user.value = undefined;
+    anonymousContributor.value = undefined
   }
 
   /// Reset the question fields to a blank state.
@@ -80,6 +84,7 @@ export const useMainStore = defineStore('main', () => {
     email,
     token,
     user,
+    anonymousContributor,
     reset,
     showRandomQuestion,
     resetQuestionToBlank

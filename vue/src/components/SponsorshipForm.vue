@@ -24,14 +24,16 @@
 
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, watchEffect } from "vue";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import type { LoadingStatus as LoadingStatusType, QuestionDonation } from '@/interfaces'
-import { PAYMENTS_HANDLER_URL, SPONSOR_DETAILS_LS_KEY } from "@/constants";
+
+import type { ContributorProfile, LoadingStatus as LoadingStatusType, QuestionSponsorship } from '@/interfaces'
+import { PAYMENTS_HANDLER_URL, SPONSOR_DETAILS_LS_KEY, CONTRIBUTOR_DETAILS_LS_KEY } from "@/constants";
 import { LoadingStatus } from "@/interfaces";
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
+import debounce from "lodash.debounce"
 
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
@@ -40,7 +42,7 @@ import { PageIDs } from "@/router";
 
 
 const store = useMainStore();
-const { question } = storeToRefs(store);
+const { question, anonymousContributor } = storeToRefs(store);
 
 const price = 50;
 const qty = ref<number>(1);
@@ -51,14 +53,13 @@ const sponsorDetailsInLS = localStorage.getItem(SPONSOR_DETAILS_LS_KEY);
 
 /// Saves the default contributor details to local storage
 const saveDefaultSponsorDetails = () => {
-  const sponsorDetails = <QuestionDonation>{
-    qty: qty.value,
-    topics: topics.value,
-    contributor: question.value?.contributor,
-    cancelUrl: "", // cancel and success urls are set during the checkout process
-    successUrl: "",
-  };
+  console.log("Saving default sponsor details");
 
+  // only what is needed to restore the defaults for the next session
+  const sponsorDetails = <QuestionSponsorship>{
+    qty: +qty.value,
+
+  };
   localStorage.setItem(SPONSOR_DETAILS_LS_KEY, JSON.stringify(sponsorDetails));
 }
 
@@ -69,11 +70,18 @@ async function get_checkout_url() {
 
   saveDefaultSponsorDetails();
 
+  // this may potentially create problems for someone who write questions and sponsors,
+  // but it's unlikely to be an issue for now
+  if (anonymousContributor.value) {
+    console.error("Anonymous - deleting contributor details from LS");
+    localStorage.setItem(CONTRIBUTOR_DETAILS_LS_KEY,JSON.stringify({}));
+  }
+
   // the lambda gets all it needs from the serialized JSON object
-  const questionDonation = <QuestionDonation>{
+  const questionDonation = <QuestionSponsorship>{
     qty: +qty.value,
     topics: topics.value,
-    contributor: question.value?.contributor, // this struct is set by a sub-component
+    contributor: anonymousContributor.value ? undefined : question.value?.contributor, // this struct is set by a sub-component
     cancelUrl: window.location.href,
     successUrl: `${window.location.origin}/${PageIDs.THANKYOU}`,
   };
@@ -112,11 +120,11 @@ async function get_checkout_url() {
         console.log("Redirecting to checkout page: ", checkoutUrl);
         window.location.href = checkoutUrl;
       }
-
-      // it is probably a lambda bug if the status = 200 and the URL is not valid
-      console.log("Invalid checkout URL: ", checkoutUrl);
-      loadingStatus.value = LoadingStatus.Error;
-
+      else {
+        // it is probably a lambda bug if the status = 200 and the URL is not valid
+        console.log("Invalid checkout URL: ", checkoutUrl);
+        loadingStatus.value = LoadingStatus.Error;
+      }
     } catch (error) {
       console.error(error);
       loadingStatus.value = LoadingStatus.Error;
@@ -126,5 +134,21 @@ async function get_checkout_url() {
     loadingStatus.value = LoadingStatus.Error;
   }
 }
+
+/// Slows down auto-saved of the defaults
+const debounceSponsorshipDetails = debounce(() => {
+  saveDefaultSponsorDetails();
+}, 2000);
+
+watch([qty, topics], () => {
+  debounceSponsorshipDetails();
+});
+
+watchEffect(() => {
+  // get the list of topics from the default contributor details saved in local storage from the previous time
+  const sponsorDetails = sponsorDetailsInLS ? <QuestionSponsorship>JSON.parse(sponsorDetailsInLS) : undefined;
+  if (sponsorDetails?.topics) topics.value = sponsorDetails.topics;
+  if (sponsorDetails?.qty) qty.value = sponsorDetails.qty;
+});
 
 </script>

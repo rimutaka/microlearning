@@ -1,15 +1,15 @@
 <template>
-  <div v-if="question?.contributor?.name" class="contributor-block" :class="{ 'subdued': isSubdued }">
+  <div class="contributor-block" :class="{ 'subdued': isSubdued }">
     <figure class="max-w-screen-md mx-auto">
       <div class="w-full h-12 mb-4 contributor-icon subdued-image"></div>
       <blockquote>
         <p class="text-l font-medium text-slate-700 dark:text-slate-300 dark:opacity-70 mx-auto subdued-text md:whitespace-nowrap">This question was contributed by a generous community member</p>
       </blockquote>
-      <figcaption class="flex items-center justify-center mt-6 space-x-3">
+      <figcaption v-if="question?.contributor?.name" class="flex items-center justify-center mt-6 space-x-3">
         <a :href="contributorUrl || ''" title="Go to contributor's website">
           <div v-if="contributorImgUrl" class="w-8 min-w-8 h-8 bg-contain bg-no-repeat bg-center rounded-sm subdued-image" :style="`background-image: url(${contributorImgUrl})`"></div>
         </a>
-      
+
         <div class="flex items-center text-slate-500 dark:text-slate-300 dark:opacity-70">
           <div class="pe-3 font-medium subdued-text border-r-2 border-slate-500 dark:border-slate-300">
             <a :href="contributorUrl || ''" class="no-decoration" title="Go to contributor's website">{{ contributorName }}</a>

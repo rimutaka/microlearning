@@ -35,11 +35,11 @@ export const PREVIEW_QUESTION_LS_KEY = "previewQuestion";
 
 /// A locally cached value of the last contributor details entered by this user
 /// for future reuse with new questions
-export const CONTRIBUTOR_DETAILS_LS_KEY = "contributorDetails";
+export const CONTRIBUTOR_DETAILS_LS_KEY = "contributor";
 
 /// A locally cached value of the last sponsor details entered by this user
 /// for future reuse with new payments
-export const SPONSOR_DETAILS_LS_KEY = "sponsorDetails";
+export const SPONSOR_DETAILS_LS_KEY = "sponsorship";
 
 /// Keypair for the topic title and DDB topic ID, e.g. "AWS"/"aws".
 export interface TopicFields {

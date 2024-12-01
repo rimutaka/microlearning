@@ -1,0 +1,101 @@
+<template>
+  <div class="mb-12 md:mb-20">
+    <div class="flex mb-12 md:mb-20">
+      <div class="flex-shrink md:flex-grow">
+      </div>
+
+      <div class="card flex-grow md:flex-shrink cta-box">
+        <SponsorshipCTA />
+        <QuestionContributor />
+        <div>
+          <input type="radio" class="m-2" id="addContributorTrue" name="addContributor" :value="false" v-model="anonymousContributor" />
+          <label class="me-4 text-xs" for="addContributorTrue">Add your details</label>
+          <input type="radio" class="m-2 checked:bg-red-600" id="addContributorFalse" name="addContributor" :value="true" v-model="anonymousContributor" />
+          <label for="addContributorFalse" class="text-xs">Remain anonymous</label>
+          <QuestionContributorForm v-if="!anonymousContributor" class="mt-4" :autosave="true" />
+        </div>
+      </div>
+      <div class="flex-shrink md:flex-grow">
+      </div>
+    </div>
+
+    <SponsorshipForm />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, watchEffect, watch } from 'vue';
+import { storeToRefs } from 'pinia'
+import { useMainStore } from '@/store';
+import { CONTRIBUTOR_DETAILS_LS_KEY } from "@/constants";
+import type { Question, ContributorProfile, QuestionSponsorship } from '@/interfaces';
+import { CONTRIBUTOR_PLACEHOLDER } from '@/interfaces';
+
+import TransitionSlot from "@/components/TransitionSlot.vue";
+import SponsorshipCTA from '@/components/SponsorshipCTA.vue';
+import SubscriptionCompleted from '@/components/SubscriptionCompleted.vue';
+import SponsorshipForm from '@/components/SponsorshipForm.vue';
+import QuestionCard from '@/components/QuestionCard.vue';
+import QuestionContributor from '@/components/QuestionContributor.vue';
+import QuestionContributorForm from '@/components/QuestionContributorForm.vue';
+
+
+
+const store = useMainStore();
+const { user, componentKey, question, anonymousContributor } = storeToRefs(store);
+const isHydrated = ref(false);
+
+// load them once at the start
+const contributorDetailsInLS = localStorage.getItem(CONTRIBUTOR_DETAILS_LS_KEY);
+
+
+watch(anonymousContributor, (anonymousContributorNew, anonymousContributorOld) => {
+  console.log("anonymousContributor change: ", anonymousContributorOld, anonymousContributorNew);
+  if (!question.value) {
+    console.log("Can't add contributor details - missing `question` in `store`");
+    return
+  };
+  if (anonymousContributorOld === undefined && anonymousContributorNew === true && !contributorDetailsInLS) {
+    console.log("Fist load - display contributor placeholder");
+    question.value.contributor = CONTRIBUTOR_PLACEHOLDER;
+  }
+  else if (anonymousContributorNew) {
+    console.log("Hide contributor details");
+    question.value.contributor = undefined;
+  } else {
+    // contributor details will be on auto-save, so we can retrieve them from the local storage
+    console.log("Restore contributor details");
+    const fromLS = localStorage.getItem(CONTRIBUTOR_DETAILS_LS_KEY);
+    question.value.contributor = fromLS ? <ContributorProfile>JSON.parse(fromLS) : CONTRIBUTOR_PLACEHOLDER;
+  }
+});
+
+watchEffect(() => {
+
+  // answers are needed to show the contributor section in full contrast
+  // otherwise it will show in a subdued state
+  const answers = [{ e: "lorem" }];
+
+  // show placeholder values if there is no contributor details in the local storage
+  // it happens for the first time sponsors
+  // the LS get wither contrib details or {} if they chose to be anonymous
+  let contributor = CONTRIBUTOR_PLACEHOLDER;
+  // by default, hide the contributor form to minimize the screen clutter for first time contributors
+  anonymousContributor.value = true;
+
+  if (contributorDetailsInLS) {
+    // set the contributor state to what is in the LS
+    const contributorParsed = <ContributorProfile>JSON.parse(contributorDetailsInLS);
+    contributor = contributorParsed;
+
+    // show the contributor form with the details from the local storage
+    if (contributorParsed.name) anonymousContributor.value = false;
+  }
+
+  question.value = <Question>{
+    answers,
+    contributor,
+  }
+});
+
+</script>
