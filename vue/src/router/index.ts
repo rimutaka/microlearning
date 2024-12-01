@@ -21,7 +21,7 @@ export const PageIDs = {
   ABOUT: 'about',
   SUBSCRIPTION: 'subscription',
   PREVIEW: 'preview',
-  SPONSORSHIP: 'gift',
+  SPONSORSHIP: 'gift-a-question',
   THANKYOU: 'thankyou',
 }
 
