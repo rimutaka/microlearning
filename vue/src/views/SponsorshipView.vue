@@ -7,12 +7,13 @@
       <div class="card flex-grow md:flex-shrink cta-box">
         <SponsorshipCTA />
         <QuestionContributor />
-        <div>
-          <input type="radio" class="m-2" id="addContributorTrue" name="addContributor" :value="false" v-model="anonymousContributor" />
-          <label class="me-4 text-xs" for="addContributorTrue">Add your details</label>
-          <input type="radio" class="m-2 checked:bg-red-600" id="addContributorFalse" name="addContributor" :value="true" v-model="anonymousContributor" />
-          <label for="addContributorFalse" class="text-xs">Remain anonymous</label>
+        <div class="text-xs"> Add your details:
+          <input type="radio" class="ms-2 me-1" id="addContributorTrue" name="addContributor" :value="false" v-model="anonymousContributor" />
+          <label class="me-4" for="addContributorTrue">now</label>
+          <input type="radio" class="ms-2 me-1" id="addContributorFalse" name="addContributor" :value="true" v-model="anonymousContributor" />
+          <label for="addContributorFalse" class="">later</label>
           <QuestionContributorForm v-if="!anonymousContributor" class="mt-4" :autosave="true" />
+          <p v-else class="text-slate-500 dark:text-slate-300 mt-2">We will contact you to confirm your details</p>
         </div>
       </div>
       <div class="flex-shrink md:flex-grow">

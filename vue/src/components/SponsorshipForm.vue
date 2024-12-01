@@ -4,7 +4,7 @@
       <div class="flex flex-wrap gap-4 mb-4 items-center">
         <label for="qty-input">Number of questions:</label>
         <InputText type="text" v-model="qty" size="small" :invalid="qty < 1 || qty > MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT" class="w-12" id="qty-input" />
-        =<span><span class="text-xs">US</span>${{ price * qty }}</span>
+        =<span><span class="text-xs align-text-top">US</span>${{ price * qty }}</span>
       </div>
       <div class="flex flex-wrap gap-4 mb-4 items-center">
         <label for="qty-input">Preferred topics:</label>
@@ -30,7 +30,7 @@ import { ref, watch, computed, watchEffect } from "vue";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 
-import type { ContributorProfile, LoadingStatus as LoadingStatusType, QuestionSponsorship } from '@/interfaces'
+import type { LoadingStatus as LoadingStatusType, QuestionSponsorship } from '@/interfaces'
 import { PAYMENTS_HANDLER_URL, SPONSOR_DETAILS_LS_KEY, CONTRIBUTOR_DETAILS_LS_KEY, MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT } from "@/constants";
 import { LoadingStatus } from "@/interfaces";
 import { Sha256 } from '@aws-crypto/sha256-js';
@@ -82,7 +82,7 @@ async function get_checkout_url() {
   // this may potentially create problems for someone who write questions and sponsors,
   // but it's unlikely to be an issue for now
   if (anonymousContributor.value) {
-    console.error("Anonymous - deleting contributor details from LS");
+    console.log("Anonymous - deleting contributor details from LS");
     localStorage.setItem(CONTRIBUTOR_DETAILS_LS_KEY, JSON.stringify({}));
   }
 
@@ -94,12 +94,6 @@ async function get_checkout_url() {
     cancelUrl: window.location.href,
     successUrl: `${window.location.origin}/${PageIDs.THANKYOU}`,
   };
-
-  if (questionDonation.qty < 1 || questionDonation.qty > 10) {
-    console.error("Invalid quantity: ", questionDonation.qty);
-    loadingStatus.value = LoadingStatus.Error;
-    return;
-  }
 
   // the lambda gets all it needs from the serialized JSON object
   const questionDonationStr = JSON.stringify(questionDonation);
