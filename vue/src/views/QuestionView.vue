@@ -2,7 +2,7 @@
   <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about <em class="italic">{{ topicName }}</em></h1>
   <LoadingMessage v-if="isLoading" />
   <QuestionCard v-if="!isLoading" :topic="topic" :qid="qid" :next="true" :key="componentKey" />
-  <div v-if="!isLoading && ctaBlockVisible" class="mb-12 cta-box">
+  <div v-if="!isLoading && ctaBlockVisible" class="mb-12 md:mt-12 cta-box">
     <PostAnswerCTA />
   </div>
   <QuestionContributor />
