@@ -1,8 +1,8 @@
 <template>
-    <h1 class="mb-4 md:mb-12 text-slate-700 dark:text-neutral-200 w-full">Let's make this free learning tool bigger and better</h1>
+  <h1 class="mb-4 md:mb-12 text-slate-700 dark:text-neutral-200 w-full">Let's make this free learning tool bigger and better</h1>
 
   <div class="contribute-card">
-    <div class="abstract">
+    <div class="abstract text-neutral-300 dark:text-neutral-200 ">
       <i class="pi pi-pen-to-square"></i>
     </div>
     <h3>Write a question</h3>
@@ -15,19 +15,19 @@
   </div>
 
   <div class="contribute-card">
-    <div class="abstract">
-      <i class="pi pi-lock-open"></i>
+    <div class="abstract text-amber-600 dark:text-amber-200 ">
+      <i class="pi pi-lock-open" id="abstract-sponsor"></i>
     </div>
-    <h3>Gift a question</h3>
-    <p>Your $50 donation will go towards writing quality questions to help the community become a tiny bit more knowledgeable.</p>
+    <h3>Sponsor a question</h3>
+    <p>Your donation will go towards writing quality questions to help the community become a tiny bit more knowledgeable.</p>
     <p>Your name or the name of your business will appear as the question contributor.</p>
     <p class="cta text-sm">
-      <i class="pi pi-pen-to-square me-1"></i><router-link :to="PageIDs.SPONSORSHIP" class="">Give a question</router-link>
+      <i class="pi pi-lock-open me-1"></i><router-link :to="PageIDs.SPONSORSHIP" class="">Sponsor now</router-link>
     </p>
   </div>
 
   <div class="contribute-card">
-    <div class="abstract abstract-2">
+    <div class="abstract text-green-200 dark:text-green-200">
       <i class="pi pi-comments"></i>
     </div>
     <h3>Give feedback</h3>
@@ -37,7 +37,7 @@
   </div>
 
   <div class="contribute-card">
-    <div class="abstract abstract-3">
+    <div class="abstract text-indigo-200 dark:text-indigo-200">
       <i class="pi pi-megaphone" style="transform: rotate(-12deg);"></i>
     </div>
     <h3>Spread the word</h3>

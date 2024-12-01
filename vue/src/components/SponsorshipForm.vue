@@ -60,7 +60,7 @@ const saveDefaultSponsorDetails = () => {
   // only what is needed to restore the defaults for the next session
   const sponsorDetails = <QuestionSponsorship>{
     qty: +qty.value,
-
+    topics: topics.value,
   };
   localStorage.setItem(SPONSOR_DETAILS_LS_KEY, JSON.stringify(sponsorDetails));
 }

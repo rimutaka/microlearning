@@ -276,7 +276,7 @@ footer a {
 /* Contribute cards */
 
 .contribute-card {
-  @apply max-w-md mx-auto mb-8 pb-4 rounded-md border-slate-100 dark:border-slate-300 shadow;
+  @apply max-w-md mx-auto mb-8 pb-4 rounded-md border-slate-100 dark:border-slate-300 shadow dark:shadow-neutral-600;
 }
 
 .contribute-card .abstract {
@@ -284,7 +284,11 @@ footer a {
 }
 
 .contribute-card .abstract i {
-  @apply text-6xl my-4 text-neutral-300 dark:text-neutral-200 opacity-30 dark:opacity-70;
+  @apply text-6xl my-4 opacity-30;
+}
+
+#abstract-sponsor {
+  @apply opacity-70;
 }
 
 .contribute-card h3 {

@@ -1,15 +1,9 @@
 <template>
   <div class="about">
     <h3>Thank you for your generous support</h3>
-    <p>Questions are a great way to identify gaps in knowledge.</p>
-    <p>Answers with detailed explanations are an easy way to fill those gaps.</p>
-    <p>Learning through questions is not a substitute for other types of learning or practicing a skill,
-      but doing it consistently adds up.</p>
+    <p>Someone will be in touch in the next few days to update you on the progress.</p>
+    <p>We will confirm the attribution details with you before the questions are published.</p>
+    <p>Feel free to contact the maintainer on <a href="mailto:max@bitesized.info">max@bitesized.info</a> if you have any question or feedback.</p>
+    <p>Thank you again for supporting this project and all the people who will learn through the questions you sponsored.</p>
   </div>
 </template>
-
-<script setup lang="ts">
-
-import { PageIDs } from '@/router';
-
-</script>
