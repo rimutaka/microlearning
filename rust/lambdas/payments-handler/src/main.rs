@@ -82,6 +82,8 @@ pub(crate) async fn my_handler(
         }
     };
 
+    info!("Order details: {:?}", order_details);
+
     // attempt to get the checkout URL from the payment provider and return it as text
     match checkout::get_checkout_url(order_details, secrets).await {
         Some(v) => lambda::text_response(Some(v), 200),
@@ -199,7 +201,7 @@ mod tests {
             )
             .await
             .is_none(),
-            "Qty == 11"
+            "Qty == 21"
         );
     }
 }
