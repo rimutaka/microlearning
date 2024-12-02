@@ -11,6 +11,7 @@ import ContributeView from '@/views/ContributeView.vue';
 import QuestionPreview from '@/views/QuestionPreview .vue';
 import SponsorshipView from '@/views/SponsorshipView.vue';
 import ThankYouView from '@/views/ThankYouView.vue';
+import LoginView from '@/views/LoginView.vue';
 
 /// A list of page names used elsewhere in the app
 export const PageIDs = {
@@ -23,6 +24,7 @@ export const PageIDs = {
   PREVIEW: 'preview',
   SPONSORSHIP: 'gift-a-question',
   THANKYOU: 'thankyou',
+  LOGIN: 'login',
 }
 
 const router = createRouter({
@@ -85,6 +87,12 @@ const router = createRouter({
       name: PageIDs.THANKYOU,
       component: ThankYouView,
       meta: { title: 'Thank you!' }
+    },
+    {
+      path: '/' + PageIDs.LOGIN,
+      name: PageIDs.LOGIN,
+      component: LoginView,
+      meta: { title: 'Login' }
     },
 
   ]

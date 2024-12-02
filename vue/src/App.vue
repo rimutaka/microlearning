@@ -20,15 +20,18 @@ import { useMainStore } from '@/store';
 import TopHeader from './components/TopHeader.vue';
 import FooterStatic from './components/FooterStatic.vue';
 
-const { isAuthenticated, isLoading, idTokenClaims } = useAuth0();
+const { isAuthenticated, isLoading, idTokenClaims, getAccessTokenSilently } = useAuth0();
 const store = useMainStore();
 const { email, token } = storeToRefs(store);
 
 console.log(`App load/auth: ${isLoading.value}/${isAuthenticated.value}`);
 
 // get token details as soon as the user is authenticated
-watch(isAuthenticated, (newVal) => {
-  if (newVal) {
+watch([isAuthenticated, idTokenClaims], ([newIsAuth, newIdClaims]) => {
+  console.log(`isAuthenticated updated: ${newIsAuth}`);
+  console.log(`idTokenClaims present: ${newIdClaims ? true : false}`);
+
+  if (newIsAuth && newIdClaims) {
     addTokenClaimsToStore();
   }
 });
@@ -40,15 +43,18 @@ function addTokenClaimsToStore() {
     return;
   }
 
-  // console.log("Auth status updated in LS");
-  console.log("idTokenClaims", idTokenClaims.value);
-  // console.log(`Email: ${email.value}`);
   email.value = idTokenClaims.value?.email;
   token.value = idTokenClaims.value?.__raw;
 }
 
-watchEffect(() => {
-  addTokenClaimsToStore();
-});
+// attempt to get a new token silently
+(async () => {
+  console.log("Attempting to get a new token silently");
+  try {
+    const newToken = await getAccessTokenSilently({ detailedResponse: true });
+  } catch (e) {
+    console.log("Failed to get token silently");
+  }
+})();
 
 </script>

@@ -10,7 +10,6 @@ import { ref, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import router from '@/router';
-import { useAuth0 } from '@auth0/auth0-vue';
 import { PageIDs } from '@/router';
 
 
@@ -19,16 +18,15 @@ import HomeForm from '@/components/HomeForm.vue';
 import HomeCTA from '@/components/HomeCTA.vue';
 
 const store = useMainStore();
-const { currentTopic } = storeToRefs(store);
-const { isAuthenticated, isLoading } = useAuth0();
+const { token } = storeToRefs(store);
 
 /// redirect to subscription page if the user is authenticated
 watchEffect(() => {
-  console.log(`HomeView: Auth status: ${isLoading.value}/${isAuthenticated.value}`);
-  
-  if (isAuthenticated.value) {
-    console.log("User is authenticated - redirecting to subscription page");
-    router.push({ name: PageIDs.SUBSCRIPTION });
+  // this redirect has to be here to redirect from homepage only
+  // any other page should not redirect to sub automatically
+  if (token.value) {
+    console.log("Token obtained - redirecting to subscription page");
+    router.replace({ name: PageIDs.SUBSCRIPTION }); // cleaner history with replace
   }
 });
 

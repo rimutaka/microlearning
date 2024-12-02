@@ -275,7 +275,7 @@ async function submitQuestion() {
           const answerTopElement = document.getElementById("answerTopElement")?.parentElement;
           if (answerTopElement) {
             const rect = answerTopElement.getBoundingClientRect();
-            console.log(rect.top, rect.right, rect.bottom, rect.left);
+            // console.log(rect.top, rect.right, rect.bottom, rect.left);
             if (rect.top < 0) {
               // this will only fire up if the view is below the top of the answers section
               // no scrolling if the user scrolled up past the answers
