@@ -108,7 +108,7 @@ footer a {
 
 /* Call to action box shown to users without subs */
 .cta-box {
-  @apply px-4 py-8 w-fit mx-auto border-2 rounded-md border-slate-300 border-dashed shadow-md md:shadow-lg;
+  @apply px-4 py-8 w-fit mx-auto border rounded-md border-gray-300 shadow-lg dark:shadow-neutral-600;
 }
 
 /* QUESTION FORM */
