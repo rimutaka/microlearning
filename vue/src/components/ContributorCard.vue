@@ -14,7 +14,11 @@
           <div class="pe-3 font-medium subdued-text border-r-2 border-slate-500 dark:border-slate-300">
             <a :href="contributorUrl || ''" class="no-decoration" title="Go to contributor's website">{{ contributorName }}</a>
           </div>
-          <div v-if="contributorAbout" class="px-3 py-1 text-sm font-light hidden md:block subdued-text border-r-2 border-slate-500 dark:border-slate-300">{{ contributorAbout }}</div>
+          <div v-if="contributorAbout" class="px-3 py-1 text-sm font-light hidden md:block subdued-text border-r-2 border-slate-500 dark:border-slate-300">
+            <a :href="contributorUrl || ''" class="no-decoration" title="Go to contributor's website">
+              {{ contributorAbout }}
+            </a>
+          </div>
           <div v-if="linkIcon" class="ps-3">
             <a :href="contributorUrl" class="text-slate-500 dark:text-slate-300 me-2 my-auto subdued-text"><i class="pi ms-1" :class="linkIcon"></i></a>
           </div>

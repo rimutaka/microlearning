@@ -15,8 +15,11 @@
           <label class="me-4" for="addContributorTrue">now</label>
           <input type="radio" class="ms-2 me-1" id="addContributorFalse" name="addContributor" :value="true" v-model="anonymousContributor" />
           <label for="addContributorFalse" class="">later</label>
-          <ContributorForm v-if="!anonymousContributor" class="mt-4" :autosave="true" />
-          <p v-else class="text-slate-500 dark:text-slate-300 mt-2">We will contact you to confirm your details</p>
+          <div v-if="!anonymousContributor">
+            <ContributorForm class="mt-4" :autosave="true" />
+            <p class="text-slate-500 dark:text-slate-300 mt-2">See live questions for <router-link :to="PageIDs.QUESTION">attribution examples</router-link></p>
+          </div>
+          <p v-else class="text-slate-500 dark:text-slate-300 mt-2">We will contact you to confirm your details (<router-link :to="PageIDs.QUESTION">examples</router-link>)</p>
         </div>
       </div>
       <div class="flex-shrink md:flex-grow">
@@ -34,6 +37,7 @@ import { useMainStore } from '@/store';
 import { CONTRIBUTOR_DETAILS_LS_KEY } from "@/constants";
 import type { Question, ContributorProfile } from '@/interfaces';
 import { CONTRIBUTOR_PLACEHOLDER } from '@/interfaces';
+import { PageIDs } from '@/router';
 
 import SponsorshipCTA from '@/components/SponsorshipCTA.vue';
 import SponsorshipForm from '@/components/SponsorshipForm.vue';
@@ -50,7 +54,7 @@ const contributorDetailsInLS = localStorage.getItem(CONTRIBUTOR_DETAILS_LS_KEY);
 
 
 watch(anonymousContributor, (anonymousContributorNew, anonymousContributorOld) => {
-  console.log("anonymousContributor change: ", anonymousContributorOld, anonymousContributorNew);
+  console.log("anonymousContributor changed (old/new): ", anonymousContributorOld, anonymousContributorNew);
   if (!question.value) {
     console.log("Can't add contributor details - missing `question` in `store`");
     return
