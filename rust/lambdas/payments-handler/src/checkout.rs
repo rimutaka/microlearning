@@ -68,10 +68,10 @@ pub(crate) async fn get_checkout_url(
             None => "".to_string(),
         };
         if topics.is_empty() {
-            format!("Gift of bite-sized pieces of knowledge{}", attribution)
+            format!("Question sponsorship{}", attribution)
         } else {
             format!(
-                "Gift of bite-sized pieces of knowledge about {}{}",
+                "Question sponsorship about {}{}",
                 topics.as_str(),
                 attribution
             )
