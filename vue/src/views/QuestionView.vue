@@ -1,7 +1,7 @@
 <template>
   <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about <em class="italic">{{ topicName }}</em></h1>
   <LoadingMessage v-if="isLoading" />
-  <QuestionCard v-if="!isLoading" :topic="topic" :qid="qid" :next="true" :key="componentKey" />
+  <QuestionCard v-if="!isLoading" :next="true" :key="componentKey" @next-question="loadNextQuestion" />
   <div v-if="!isLoading && ctaBlockVisible" class="mb-12 md:mt-12 cta-box">
     <PostAnswerCTA />
   </div>
@@ -46,6 +46,14 @@ const ctaBlockVisible = computed(() => {
   if (!email.value && question.value?.answers?.[0].e) { return true } else { return false };
 });
 
+// reset the question ID and reload to show a new question on the same topic
+const loadNextQuestion = () => {
+  console.log("Load next question");
+  qid.value = undefined;
+  // if the initial topic is ANY then we should fetch the next question for ANY
+  store.loadQuestion(initialTopic, undefined);
+};
+
 // update the query string with the next question topic and id when the question changes in the store
 watch(question, (newQuestion) => {
   // console.log("newQuestion: ", newQuestion);
@@ -55,28 +63,16 @@ watch(question, (newQuestion) => {
     console.log("question topic/qid: ", topic.value, qid.value);
 
     if (route.query.topic != topic.value || route.query.qid != qid.value) {
-      console.log("navigating");
+      console.log("navigating to ", topic.value, qid.value);
       router.push({ query: { topic: topic.value, qid: qid.value } });
     }
   }
   else {
     console.log("question removed from store ");
-    topic.value = initialTopic;
-    qid.value = undefined;
-    store.showRandomQuestion();
   }
 });
 
-// watch route changes
-watch(() => [route.query.topic, route.query.qid], ([newTopic, newQid]) => {
-  console.log("route changed: ", newTopic, newQid);
-  if (newTopic != topic.value || newQid != qid.value) {
-    console.log("updating store");
-    topic.value = newTopic ? <string>newTopic : ANY_TOPIC;
-    qid.value = newQid ? <string>newQid : undefined;
-    store.showRandomQuestion();
-  }
-});
-
+// load the question when the component is mounted
+(async () => await store.loadQuestion(initialTopic, initialQid))();
 
 </script>

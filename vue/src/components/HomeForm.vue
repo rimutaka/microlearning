@@ -38,7 +38,7 @@ import SampleQuestion from "./SampleQuestion.vue";
 import RandomQuestionButton from './RandomQuestionButton.vue';
 
 const store = useMainStore();
-const { selectedTopics, currentTopic, componentKey, question } = storeToRefs(store);
+const { selectedTopics, componentKey, question } = storeToRefs(store);
 
 async function navigateToSubscription() {
   console.log("Subscribing to topics: ", selectedTopics.value);

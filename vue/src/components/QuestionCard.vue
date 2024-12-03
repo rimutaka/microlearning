@@ -1,7 +1,7 @@
 <template>
   <div id="answerTopElement"></div>
   <TransitionSlot>
-    <div v-if="question && loadingStatus == LoadingStatus.Loaded" class="flex">
+    <div v-if="question && questionStatus == LoadingStatus.Loaded" class="flex">
       <div class="q-card">
         <div class="q-text">
           <div class="" v-html="question?.question"></div>
@@ -37,19 +37,19 @@
           <div class="flex-grow text-start">
             <Button v-if="hasToken" label="Edit" size="small" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
             <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click="copyLinkToClipboard" />
-            <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click="getNextQuestion" />
-            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try one more question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click="getNextQuestion" />
+            <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
+            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try one more question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
           <div class="flex-shrink text-end">
-            <Button v-if="!isAnswered" label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :class="{ 'opacity-50': !isQuestionReady }" @click.prevent="submitQuestion()" />
+            <Button v-if="!isAnswered" label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :class="{ 'opacity-50': !isQuestionReady }" @click.prevent="getAnswers()" />
             <p v-if="!isAnswered" class="" :class="emphasizedSubmitReminder ? 'text-red-500 text-base' : 'text-slate-500 dark:text-slate-300 text-xs'">{{ howManyOptionsLeftToSelect }}</p>
           </div>
         </div>
       </div>
     </div>
-    <LoadingMessage v-else-if="loadingStatus == LoadingStatus.Loading" />
+    <LoadingMessage v-else-if="questionStatus == LoadingStatus.Loading" />
     <h3 v-else class="mt-8 mb-8 text-slate-500 dark:text-slate-100">Sorry, something went wrong. Try again.</h3>
   </TransitionSlot>
 </template>
@@ -58,7 +58,7 @@
 import { ref, watchEffect, computed, watch } from "vue";
 import router, { PageIDs } from "@/router";
 
-import type { Question, LoadingStatus as LoadingStatusType } from "@/interfaces";
+import type { Question } from "@/interfaces";
 import * as constants from "@/constants";
 import { LoadingStatus } from "@/interfaces";
 
@@ -72,19 +72,22 @@ import LinkButton from "./LinkButton.vue";
 import LoadingMessage from "./LoadingMessage.vue";
 
 const props = defineProps<{
-  topic: string,// must have a value or "any" for any topic
-  qid?: string, // returns a random question if omitted
+  // topic: string,// must have a value or "any" for any topic
+  // qid?: string, // returns a random question if omitted
   next?: boolean, // true if the question can show the next button
   isPreview?: boolean, // true if the question should be taken from the store and not fetched
 }>()
 
+// tell the parent component the user wants to skip this question
+const NEXT_QUESTION_EMIT = 'nextQuestion';
+const emit = defineEmits([NEXT_QUESTION_EMIT]);
+
 const store = useMainStore();
-const { token, currentTopic, question } = storeToRefs(store);
+const { token, currentTopic, question, questionStatus } = storeToRefs(store);
 
 // as fetched from the server
 const answersCheckbox = ref<string[]>([]);
 const answerRadio = ref<string | undefined>();
-const loadingStatus = ref<LoadingStatusType>(LoadingStatus.Loading);
 const linkCopiedFlag = ref(false); // controls share button: f: Copy link, t: Link copied
 const emphasizedSubmitReminder = ref(false); // Toggles the class of Submit button block to reminder to select the right number of answers
 
@@ -149,14 +152,6 @@ const questionTopicOnlyUrl = computed(() => `${document.location.origin}/${PageI
 /// for sharing or opening separately
 const questionTopicAndPageUrl = computed(() => `${questionTopicOnlyUrl.value}&${constants.URL_PARAM_QID}=${question.value?.qid}`);
 
-// change the status as the question is rendered and loaded from the store in preview mode
-watch(question, (newQuestion) => {
-  // console.log("newQuestion: ", newQuestion);
-  if (props.isPreview && newQuestion) {
-    loadingStatus.value = LoadingStatus.Loaded;
-  }
-});
-
 /// Toggles selections when the user clicks on the answer area
 const handleQuestionAreaClick = (index: number) => {
   // do nothing if the question was answered
@@ -200,16 +195,6 @@ const copyLinkToClipboard = (e: MouseEvent) => {
   }, 3000);
 }
 
-/// Copies the direct link to the question to the clipboard
-/// and changes the button message flag to display link copied msg
-const getNextQuestion = (e: MouseEvent) => {
-  e.preventDefault();
-  console.log("getNextQuestion");
-  loadingStatus.value = LoadingStatus.Loading;
-  question.value = undefined;
-}
-
-
 /// Changes the parent class of the answer to toggle the explanation
 /// Explanations for incorrect answers NOT selected by the user are hidden by default
 function showExplanation(evt: Event | undefined) {
@@ -220,7 +205,8 @@ function showExplanation(evt: Event | undefined) {
   }
 }
 
-async function submitQuestion() {
+/** Submits the user answers to the server and gets back the answers with explanations */
+async function getAnswers() {
   // double-check there are answers to submit
   if (!isQuestionReady.value) {
     // console.log("Must select answers:", question.value?.correct);
@@ -300,99 +286,5 @@ async function submitQuestion() {
 function navigateToEditPage() {
   router.push(`/add?${constants.URL_PARAM_TOPIC}=${question.value?.topic}&${constants.URL_PARAM_QID}=${question.value?.qid}`);
 }
-
-// Store the qid in a comma-separated list in the local storage.
-// Remove old entries if the list gets longer than 10 items.
-function storeRecentQuestionsInLS(qid: string) {
-  const recent = localStorage.getItem(constants.RECENT_HEADER_NAME);
-  if (recent) {
-    const recentList = recent.split(",");
-    if (recentList.includes(qid)) {
-      // remove the old entry
-      recentList.splice(recentList.indexOf(qid), 1);
-    }
-    recentList.unshift(qid);
-    if (recentList.length > 10) {
-      console.log("Removing old entries from recent questions list");
-      recentList.pop();
-    }
-    localStorage.setItem(constants.RECENT_HEADER_NAME, recentList.join(","));
-  } else {
-    localStorage.setItem(constants.RECENT_HEADER_NAME, qid);
-  }
-}
-
-/// The topic always comes from props.topic
-/// The qid comes from props.qid if random is false.
-const loadQuestion = async (random?: boolean) => {
-  // preview questions are loaded from the store and should never be fetched from the server
-  if (props.isPreview) {
-    console.log("Using store question");
-    loadingStatus.value = question.value ? LoadingStatus.Loaded : LoadingStatus.NoData;
-    return;
-  }
-
-  console.log(`Fetching question for: ${props.topic} / ${props.qid} / random: ${random}`);
-
-  // make sure nothing is showing if the component is reused
-  loadingStatus.value = LoadingStatus.Loading;
-  question.value = undefined;  // clear the value so that other components know it's being reloaded
-  currentTopic.value = undefined;
-
-  // add a token with the email, if there is one (logged in users)
-  const headers = new Headers();
-  if (token.value) headers.append(constants.TOKEN_HEADER_NAME, token.value);
-
-  // add list of recently viewed questions to the request
-  const recent = localStorage.getItem(constants.RECENT_HEADER_NAME);
-  if (recent) headers.append(constants.RECENT_HEADER_NAME, recent);
-
-  try {
-    // fetching by topic returns a random question
-    // fetching with qid returns a specific question
-    // ignore qid if random is true
-    const fetchParams = `${constants.URL_PARAM_TOPIC}=${props.topic}`.concat(props.qid && !random ? `&${constants.URL_PARAM_QID}=${props.qid}` : "");
-    console.log("fetchParams", fetchParams);
-
-    const response = await fetch(`${constants.QUESTION_HANDLER_URL}${fetchParams}`,
-      {
-        headers: headers,
-        signal: AbortSignal.timeout(5000),
-      });
-    console.log(`Fetched. Status: ${response.status}`);
-
-    // a successful response should contain the saved question
-    // an error may contain JSON or plain text, depending on where the errror occurred
-    if (response.status === 200) {
-      try {
-        question.value = <Question>await response.json();
-        // console.log(question);
-        // console.log(question.topic);
-        console.log(`Loaded ${question.value.topic} / ${question.value.qid}`);
-
-        currentTopic.value = question.value.topic;
-        loadingStatus.value = LoadingStatus.Loaded;
-        storeRecentQuestionsInLS(question.value.qid); // add qid to the list of recent questions
-
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    else if (response.status === 404) {
-      loadingStatus.value = LoadingStatus.NoData;
-    }
-    else {
-      loadingStatus.value = LoadingStatus.Error;
-      console.error("Failed to get question. Status: ", response.status);
-    }
-  } catch (error) {
-    loadingStatus.value = LoadingStatus.Error;
-    console.error("Failed to get question.");
-    console.error(error);
-  }
-};
-
-console.log("About to load question");
-loadQuestion();
 
 </script>

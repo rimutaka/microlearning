@@ -1,6 +1,6 @@
 <template>
   <h1 class="mb-4 md:mb-8 text-2xl text-start">Question preview about <em class="italic">{{ topicName }}</em></h1>
-  <QuestionCard :topic="topic" :qid="qid" :next="false" :is-preview="true" />
+  <QuestionCard :next="false" :is-preview="true" />
   <ContributorCard />
 </template>
 
@@ -9,6 +9,7 @@ import { computed, watch, ref, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
 import { TOPICS, PREVIEW_QUESTION_LS_KEY } from "@/constants";
 import type { Question, Answer } from "@/interfaces";
+import { LoadingStatus } from '@/interfaces';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { marked } from 'marked';
@@ -21,7 +22,7 @@ const route = useRoute();
 const router = useRouter();
 
 const store = useMainStore();
-const { question, componentKey, email } = storeToRefs(store);
+const { question, questionStatus } = storeToRefs(store);
 
 const topicName = computed(() => {
   return (TOPICS.find((t) => t.id == topic.value))?.t;
@@ -44,7 +45,7 @@ function questionUpdateListener(event: MessageEvent) {
     return;
   }
 
- renderQuestion(event.data).then((q) => {
+  renderQuestion(event.data).then((q) => {
     // console.log("Setting question in store");
     question.value = q;
   });
@@ -52,21 +53,6 @@ function questionUpdateListener(event: MessageEvent) {
 
 window.removeEventListener("message", questionUpdateListener, false);
 window.addEventListener("message", questionUpdateListener, false);
-
-watchEffect(async () => {
-  console.log("Loading question from LS");
-  const qLS = localStorage.getItem(PREVIEW_QUESTION_LS_KEY);
-  // console.log(qLS);
-
-  if (!qLS) {
-    console.log("No question in LS");
-    question.value = undefined;
-    return;
-  }
-
-  // convert to a Question object
-  question.value = await renderQuestion(qLS);
-});
 
 /// Renders a markdown question to HTML and returns it as a string
 async function renderQuestion(qMarkdown: string) {
@@ -88,7 +74,7 @@ async function renderQuestion(qMarkdown: string) {
   }));
 
   // collect the data into a Question object and return
-  return <Question> {
+  return <Question>{
     qid: parsedQuestion.qid,
     topic: parsedQuestion.topic,
     question: parsedQuestion.question ? await marked.parse(parsedQuestion.question) : "",
@@ -100,5 +86,22 @@ async function renderQuestion(qMarkdown: string) {
     contributor: parsedQuestion.contributor,
   };
 }
+
+// Load the question from local storage on mount, then listen for updates
+(async () => {
+  console.log("Loading question from LS");
+  const qLS = localStorage.getItem(PREVIEW_QUESTION_LS_KEY);
+  // console.log(qLS);
+
+  if (!qLS) {
+    console.log("No question in LS");
+    question.value = undefined;
+    return;
+  }
+
+  // convert to a Question object
+  question.value = await renderQuestion(qLS);
+  questionStatus.value = LoadingStatus.Loaded;
+})();
 
 </script>
