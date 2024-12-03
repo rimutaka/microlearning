@@ -32,8 +32,12 @@ const topicName = computed(() => {
   return (TOPICS.find((t) => t.id == route.query.topic))?.t;
 });
 
+// save the initial values to maintain state later because the topic and qid will change
 const initialTopic = route.query.topic ? <string>route.query.topic : ANY_TOPIC;
 const initialQid = route.query.qid ? <string>route.query.qid : undefined;
+// this flag tells to not store pages that have no question ID in history because they redirect to a new 
+// random question catching the user in a loop
+let replaceRouter = initialQid ? false : true;
 
 // route.query.topic and .qid can potentially be an array, but it should not happen in this app,
 // so it is safe to cast them into a string
@@ -63,8 +67,14 @@ watch(question, (newQuestion) => {
     console.log("question topic/qid: ", topic.value, qid.value);
 
     if (route.query.topic != topic.value || route.query.qid != qid.value) {
-      console.log("navigating to ", topic.value, qid.value);
-      router.push({ query: { topic: topic.value, qid: qid.value } });
+      if (replaceRouter) {
+        console.log("replace-navigating to ", topic.value, qid.value);
+        replaceRouter = false; // only replace the first time, subsequent calls should have qid
+        router.replace({ query: { topic: topic.value, qid: qid.value } });
+      } else {
+        console.log("push-navigating to ", topic.value, qid.value);
+        router.push({ query: { topic: topic.value, qid: qid.value } });
+      }
     }
   }
   else {
