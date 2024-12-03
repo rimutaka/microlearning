@@ -5,7 +5,7 @@
   <div v-if="!isLoading && ctaBlockVisible" class="mb-12 md:mt-12 cta-box">
     <PostAnswerCTA />
   </div>
-  <ContributorCard />
+  <ContributorCard class="mb-12 mt-8 md:mt-16" />
 </template>
 
 <script setup lang="ts">

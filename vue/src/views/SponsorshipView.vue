@@ -6,7 +6,10 @@
 
       <div class="card flex-grow md:flex-shrink cta-box">
         <SponsorshipCTA />
-        <ContributorCard />
+        <fieldset class=" border rounded-md border-dotted border-slate-500 mb-12 mt-8 py-4">
+          <legend class="mx-auto text-sm font-bold text-slate-500 dark:text-slate-300">Your <em>thank you</em> message</legend>
+          <ContributorCard class="my-4" />
+        </fieldset>
         <div class="text-xs"> Add your details:
           <input type="radio" class="ms-2 me-1" id="addContributorTrue" name="addContributor" :value="false" v-model="anonymousContributor" />
           <label class="me-4" for="addContributorTrue">now</label>

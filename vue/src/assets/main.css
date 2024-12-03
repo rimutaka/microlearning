@@ -256,7 +256,7 @@ footer a {
 /* Question contributor block */
 
 .contributor-block {
-  @apply mb-12 mt-8 md:mt-16 mx-auto text-center w-fit;
+  @apply mx-auto text-center w-fit;
 }
 
 .contributor-icon {

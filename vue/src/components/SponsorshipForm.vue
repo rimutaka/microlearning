@@ -4,7 +4,7 @@
       <div class="flex flex-wrap gap-4 mb-4 items-center">
         <label for="qty-input">Number of questions:</label>
         <InputText type="text" v-model="qty" size="small" :invalid="qty < 1 || qty > MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT" class="w-12" id="qty-input" />
-        =<span><span class="text-xs align-text-top">US</span>${{ price * qty }}</span>
+        =<span><span class="text-xs align-text-top">US$</span>{{ price * qty }}</span>
       </div>
       <div class="flex flex-wrap gap-4 mb-4 items-center">
         <label for="qty-input">Preferred topics:</label>
