@@ -1,12 +1,12 @@
 <template>
   <TransitionSlot>
-    <HomeCTA />
+    <HomeCTA v-if="displayCTA"/>
   </TransitionSlot>
   <HomeForm />
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue';
+import { ref, watchEffect, watch } from 'vue';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import router from '@/router';
@@ -18,7 +18,15 @@ import HomeForm from '@/components/HomeForm.vue';
 import HomeCTA from '@/components/HomeCTA.vue';
 
 const store = useMainStore();
-const { token } = storeToRefs(store);
+const { token, question } = storeToRefs(store);
+
+// hide the CTA block when the user requests a sample question
+const displayCTA = ref(true);
+watch(question, (newVal) => {
+  if (newVal) {
+    displayCTA.value = false;
+  }
+});
 
 /// redirect to subscription page if the user is authenticated
 watchEffect(() => {

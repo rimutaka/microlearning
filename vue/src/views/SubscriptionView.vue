@@ -1,6 +1,6 @@
 <template>
   <TransitionSlot>
-    <SubscriptionCTA v-if="formHydrated && (!user || !user?.topics.length)" />
+    <SubscriptionCTA v-if="formHydrated && displayCTA && (!user || !user?.topics.length)" />
     <SubscriptionCompleted v-if="formHydrated && firstTimeSub" />
   </TransitionSlot>
   <SubscriptionForm @hydrated="formHydrated = true" />
@@ -21,9 +21,16 @@ import SubscriptionForm from '@/components/SubscriptionForm.vue';
 import SampleQuestion from "@/components/SampleQuestion.vue";
 
 const store = useMainStore();
-const { user, showingSampleQuestion } = storeToRefs(store);
+const { user, showingSampleQuestion, question } = storeToRefs(store);
 const formHydrated = ref(false);
 const firstTimeSub = ref(false); // true when the user changes from no sub to sub with topics
+
+const displayCTA = ref(true);
+watch(question, (newVal) => {
+  if (newVal) {
+    displayCTA.value = false;
+  }
+});
 
 // display first time subscription message when the user changes from having no topics
 // to having some, so it is only displayed once
