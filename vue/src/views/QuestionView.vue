@@ -1,7 +1,7 @@
 <template>
   <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about <em class="italic">{{ topicName }}</em></h1>
   <LoadingMessage v-if="isLoading" />
-  <QuestionCard v-if="!isLoading" :next="true" :key="componentKey" @next-question="loadNextQuestion" />
+  <QuestionCard v-if="!isLoading" :next="true" @next-question="loadNextQuestion" />
   <div v-if="!isLoading && ctaBlockVisible" class="mb-12 md:mt-12 cta-box">
     <PostAnswerCTA />
   </div>
@@ -25,7 +25,7 @@ const route = useRoute();
 const router = useRouter();
 
 const store = useMainStore();
-const { question, componentKey, email } = storeToRefs(store);
+const { question, email } = storeToRefs(store);
 const { isLoading } = useAuth0();
 
 const topicName = computed(() => {

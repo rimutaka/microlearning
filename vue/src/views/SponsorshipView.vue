@@ -29,22 +29,18 @@ import { ref, watchEffect, watch } from 'vue';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { CONTRIBUTOR_DETAILS_LS_KEY } from "@/constants";
-import type { Question, ContributorProfile, QuestionSponsorship } from '@/interfaces';
+import type { Question, ContributorProfile } from '@/interfaces';
 import { CONTRIBUTOR_PLACEHOLDER } from '@/interfaces';
 
-import TransitionSlot from "@/components/TransitionSlot.vue";
 import SponsorshipCTA from '@/components/SponsorshipCTA.vue';
-import SubscriptionCompleted from '@/components/SubscriptionCompleted.vue';
 import SponsorshipForm from '@/components/SponsorshipForm.vue';
-import QuestionCard from '@/components/QuestionCard.vue';
 import ContributorCard from '@/components/ContributorCard.vue';
 import ContributorForm from '@/components/ContributorForm.vue';
 
 
 
 const store = useMainStore();
-const { user, componentKey, question, anonymousContributor } = storeToRefs(store);
-const isHydrated = ref(false);
+const { question, anonymousContributor } = storeToRefs(store);
 
 // load them once at the start
 const contributorDetailsInLS = localStorage.getItem(CONTRIBUTOR_DETAILS_LS_KEY);

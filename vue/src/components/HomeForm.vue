@@ -17,7 +17,7 @@
       </div>
     </div>
     <TransitionSlot>
-      <SampleQuestion v-if="componentKey" :nonce="componentKey" />
+      <SampleQuestion v-if="showingSampleQuestion" />
     </TransitionSlot>
   </div>
 </template>
@@ -38,7 +38,7 @@ import SampleQuestion from "./SampleQuestion.vue";
 import RandomQuestionButton from './RandomQuestionButton.vue';
 
 const store = useMainStore();
-const { selectedTopics, componentKey, question } = storeToRefs(store);
+const { selectedTopics, question, showingSampleQuestion } = storeToRefs(store);
 
 async function navigateToSubscription() {
   console.log("Subscribing to topics: ", selectedTopics.value);
@@ -49,5 +49,9 @@ async function navigateToSubscription() {
     router.push({ name: 'subscription' });
   }
 }
+
+// do not show the sample question when the page is first displayed
+// it will be shown when the user clicks on the button requesting it
+showingSampleQuestion.value= false;
 
 </script>

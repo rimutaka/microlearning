@@ -83,7 +83,7 @@ const NEXT_QUESTION_EMIT = 'nextQuestion';
 const emit = defineEmits([NEXT_QUESTION_EMIT]);
 
 const store = useMainStore();
-const { token, currentTopic, question, questionStatus } = storeToRefs(store);
+const { token, question, questionStatus } = storeToRefs(store);
 
 // as fetched from the server
 const answersCheckbox = ref<string[]>([]);

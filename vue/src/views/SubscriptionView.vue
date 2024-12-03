@@ -5,7 +5,7 @@
   </TransitionSlot>
   <SubscriptionForm @hydrated="formHydrated = true" />
   <TransitionSlot>
-    <SampleQuestion v-if="formHydrated && componentKey" :nonce="componentKey" />
+    <SampleQuestion v-if="formHydrated && showingSampleQuestion" />
   </TransitionSlot>
 </template>
 
@@ -15,14 +15,13 @@ import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 
 import TransitionSlot from "@/components/TransitionSlot.vue";
-
 import SubscriptionCTA from '@/components/SubscriptionCTA.vue';
 import SubscriptionCompleted from '@/components/SubscriptionCompleted.vue';
 import SubscriptionForm from '@/components/SubscriptionForm.vue';
 import SampleQuestion from "@/components/SampleQuestion.vue";
 
 const store = useMainStore();
-const { user, componentKey } = storeToRefs(store);
+const { user, showingSampleQuestion } = storeToRefs(store);
 const formHydrated = ref(false);
 const firstTimeSub = ref(false); // true when the user changes from no sub to sub with topics
 
@@ -37,10 +36,8 @@ watch(user, (userNew, userOld) => {
   }
 });
 
-watchEffect(() => {
-  // reset the sample question key to make sure it is not showing
-  // when the user transitions from another page
-  componentKey.value = undefined;
-});
+// do not show the sample question when the page is first displayed
+// it will be shown when the user clicks on the button requesting it
+showingSampleQuestion.value= false;
 
 </script>
