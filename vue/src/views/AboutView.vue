@@ -1,5 +1,10 @@
 <template>
   <div class="about">
+    <p>This website is an open education project by <a href="https://github.com/rimutaka">Max @rimutaka</a>,
+      a software engineer from Auckland, New Zealand.</p>
+    <p>It was inspired by the success of Stack Overflow, FreeCodeCamp and other online learning communities.</p>
+    <p>This project started in September 2024. It is a work-in-progress and <router-link :to="PageIDs.CONTRIBUTE">you can help make it better</router-link>.</p>
+
     <h3>Microlearning through questions</h3>
     <p>Questions are a great way to identify gaps in knowledge.</p>
     <p>Answers with detailed explanations are an easy way to fill those gaps.</p>
@@ -18,9 +23,11 @@
 
     <h3>Privacy</h3>
     <p>No data from this app is shared with any third party.</p>
-    <p>There is no client-side tracking or third-party scripts loaded into the browser.</p>
-    <p>The authentication is done through <a href="https://auth0.com">Auth0</a>.</p>
-    <p>Source code: <a href="https://github.com/rimutaka/bitesized">https://github.com/rimutaka/bitesized</a>.</p>
+    <ul class=" text-start">
+      <li>Authentication: <a href="https://auth0.com">Auth0</a></li>
+      <li>Infrastructure: AWS</li>
+      <li>Source code: <a href="https://github.com/rimutaka/bitesized">https://github.com/rimutaka/bitesized</a></li>
+    </ul>
 
     <h3>Feedback</h3>
     <p>Feedback is welcome. The best way to get in touch is to <a href="mailto:max@bitesized.info">email the developer</a>.</p>
