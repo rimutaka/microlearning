@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-screen-sm">
-    <h1 class="text-balance mb-4 text-slate-700 dark:text-slate-200">Thank you for your support!</h1>
+    <h1 class="text-balance mb-4 text-slate-700 dark:text-slate-200">Gift a question</h1>
     <p class=" text-start text-slate-700 dark:text-slate-200">As a token of appreciation from the software engineering community for sponsoring a free educational resource,
       we will add</p>
     <ul class="" id="signup-pitch">
