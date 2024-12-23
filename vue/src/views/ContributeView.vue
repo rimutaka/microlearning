@@ -10,7 +10,7 @@
       exploring possible answers and making sure the explanations will withstand the scrutiny of your peers.</p>
     <p>Give it a try. Our moderators will help you along the way.</p>
     <p class="cta text-sm">
-      <i class="pi pi-pen-to-square me-1"></i><router-link :to="PageIDs.ADD" class="">Write a draft question</router-link>
+      <LinkButton :href="PageIDs.ADD" :via-router="true" label="Write a draft question" icon="pi pi-pen-to-square" />
     </p>
   </div>
 
@@ -22,7 +22,7 @@
     <p>Your donation will go towards writing quality questions to help the community become a tiny bit more knowledgeable.</p>
     <p>Your name or the name of your business will appear as the question contributor.</p>
     <p class="cta text-sm">
-      <i class="pi pi-lock-open me-1"></i><router-link :to="PageIDs.SPONSORSHIP" class="">Sponsor now</router-link>
+      <LinkButton :href="PageIDs.SPONSORSHIP" :via-router="true" label="Sponsor now" icon="pi pi-lock-open" />
     </p>
   </div>
 
@@ -56,6 +56,10 @@
     </p>
   </div>
 
+  <!-- Needed to enable button styles for LinkButton -->
+  <Button label="" severity="primary" style="display: none" />
+
+
 </template>
 
 <script setup lang="ts">
@@ -63,10 +67,8 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { PageIDs } from '@/router';
 
-import Card from 'primevue/card';
+import LinkButton from "@/components/LinkButton.vue";
 import Button from 'primevue/button';
-
-const route = useRoute();
 
 
 </script>
