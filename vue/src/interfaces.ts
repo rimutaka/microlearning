@@ -35,6 +35,8 @@ export interface Question {
   /// Stats for how the question is used
   stats?: Stats,
   contributor?: ContributorProfile,
+  /// An optional (for now) one line summary of the question
+  title?: string,
 }
 
 /// A mirror of the Rust's type

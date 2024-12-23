@@ -109,6 +109,10 @@ pub struct Question {
     /// Details of the person or business who contributed the question
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub contributor: Option<ContributorProfile>,
+    /// A one line summary of the question to display in the list of questions.
+    /// This was an afterthought and is not present in the existing questions.
+    /// Ideally, it needs to be generated from the question and answers.
+    pub title: Option<String>,
 }
 
 impl Question {
@@ -399,6 +403,7 @@ mod test {
             updated: Some(Utc::now()),
             stats: None,
             contributor: None,
+            title: None,
         };
 
         assert!(q.is_correct(&[1]), "correct");
@@ -439,6 +444,7 @@ mod test {
             updated: Some(Utc::now()),
             stats: None,
             contributor: None,
+            title: None,
         };
 
         assert!(q.is_correct(&[0, 2]), "correct");
@@ -486,6 +492,7 @@ mod test {
                 img_url: Some("https://example.com/img.jpg".to_string()),
                 about: Some("A great developer".to_string()),
             }),
+            title: Some("Simple Rust question".to_string()),
         };
 
         let s = q.to_string();
@@ -535,6 +542,7 @@ mod test {
                 img_url: Some("https://example.com/img.jpg".to_string()),
                 about: Some("A great developer".to_string()),
             }),
+            title: Some("Simple Rust question".to_string()),
         };
 
         let s = q.to_string();

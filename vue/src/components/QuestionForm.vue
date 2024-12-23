@@ -7,6 +7,7 @@
         <label :for="topic.id" class="ms-2 me-4">{{ topic.t }}</label>
       </div>
     </div>
+
     <div class="mb-4">
       <div class="flex flex-wrap gap-4 mb-4">
         <h4 class="mt-auto">Question </h4>
@@ -18,6 +19,7 @@
         <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" />
       </div>
     </div>
+
     <div class="flex flex-wrap gap-4 mb-8">
       <h4>Answers</h4>
       <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
@@ -37,6 +39,14 @@
         </div>
       </div>
     </div>
+
+    <div class="flex flex-wrap gap-4 mb-8">
+      <h4>One line summary</h4>
+      <div class="w-full mb-6">
+        <InputText v-model="title" class="w-full mb-2" placeholder="A short title for the list of questions" />
+      </div>
+    </div>
+
     <div>
       <h4 class="text-start mb-4">Contributor</h4>
       <ContributorForm class="mb-12" />
@@ -50,6 +60,7 @@
           <li :class="{ 'question-ready': questionReadiness.answers, 'question-not-ready': !questionReadiness.answers }"><i></i>At least 2 answers</li>
           <li :class="{ 'question-ready': questionReadiness.correct, 'question-not-ready': !questionReadiness.correct }"><i></i>At least 1 correct answer</li>
           <li :class="{ 'question-ready': questionReadiness.explanations, 'question-not-ready': !questionReadiness.explanations }"><i></i>Detailed explanations for all answers</li>
+          <li :class="{ 'question-ready': questionReadiness.title, 'question-not-ready': !questionReadiness.title }"><i></i>One line summary</li>
           <li class="question-ready"><i></i><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC-BY-SA 4.0</a> license</li>
         </ul>
       </div>
@@ -79,6 +90,7 @@ import type { Answer, Question } from "@/interfaces";
 import Button from 'primevue/button';
 import RadioButton from 'primevue/radiobutton';
 import Textarea from 'primevue/textarea';
+import InputText from 'primevue/inputtext';
 import LoadingMessage from "./LoadingMessage.vue";
 import ContributorForm from "./ContributorForm.vue";
 
@@ -97,6 +109,7 @@ const selectedTopic = ref(""); // the topic of the question from TOPICS
 
 const questionText = ref(""); // the text of the question in markdown
 const answers = ref<Array<Answer>>([{ a: "", e: "", c: false, sel: false }]); // the list of answers
+const title = ref<string | undefined>(); // the title of the question
 
 // a reference to the preview window that can be opened on demand
 const previewWindow = ref<Window | null>(null);
@@ -110,6 +123,7 @@ const questionReadiness = ref({
   answers: false,
   correct: false,
   explanations: false,
+  title: false,
 });
 const questionReady = ref(false); // enables Submit button
 
@@ -214,6 +228,7 @@ async function submitQuestion() {
     answers: answers.value,
     correct: 0,
     contributor: question.value?.contributor, // this struct is set by a sub-component
+    title: title.value,
   });
 
   // console.log(submissionQuestion);
@@ -260,6 +275,7 @@ const showPreviewWindow = () => {
     question: questionText.value,
     answers: answers.value,
     contributor: question.value?.contributor,
+    title: title.value,
     // this is a very truncated version of a question - bare essentials
   }));
 
@@ -272,13 +288,14 @@ const debouncePostMsg = debounce(() => {
 }, 500);
 
 // update questionReadiness list and enable the submit button via questionReady
-watch([selectedTopic, questionText, answers.value, question], ([, , answersNew], [, , answersOld]) => {
+watch([selectedTopic, questionText, answers.value, title, question], ([, , answersNew], [, , answersOld]) => {
   // assess question readiness
   questionReadiness.value.topic = selectedTopic.value !== "";
   questionReadiness.value.question = questionText.value.length > 10;
   questionReadiness.value.answers = answers.value.length >= 2 && answers.value.every((answer) => answer.a.length > 0);
   questionReadiness.value.correct = answers.value.some((answer) => answer.c);
   questionReadiness.value.explanations = answers.value.every((answer) => answer.e.length > 10);
+  questionReadiness.value.title = title.value !== undefined && (title.value.length > 10);
 
   // enable / disable the submit button
   questionReady.value = Object.values(questionReadiness.value).every((value) => value);
@@ -292,6 +309,7 @@ watch([selectedTopic, questionText, answers.value, question], ([, , answersNew],
 function resetValuesForNewQuestion() {
   selectedTopic.value = "";
   questionText.value = "";
+  title.value = "";
   answers.value.length = 0;
   answers.value.push({ a: "", e: "", c: false, sel: false });
 
@@ -305,6 +323,7 @@ function loadQuestion(fetchedQuestion: Question) {
   // copy DDB values to the form models
   selectedTopic.value = fetchedQuestion.topic;
   questionText.value = fetchedQuestion.question;
+  title.value = fetchedQuestion.title;
 
   // copy the array while maintaining a reference to the original object
   // https://stackoverflow.com/questions/71353509/why-would-a-vue3-watcher-of-a-prop-not-be-triggered-composition-api
@@ -393,6 +412,7 @@ function postQuestionPreview() {
     answers: answers.value,
     correct: 0, // setting this to the correct value will enable checkboxes in the preview
     contributor: question.value?.contributor,
+    title: title.value,
   };
 
   console.log("Sending preview update msg");
