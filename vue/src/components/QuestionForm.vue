@@ -15,14 +15,14 @@
         </div>
       </div>
       <div class="w-full">
-        <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" @focusin="showMdPreview" />
+        <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" />
       </div>
     </div>
     <div class="flex flex-wrap gap-4 mb-8">
       <h4>Answers</h4>
       <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
-        <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full mb-2" placeholder="An answer options (always visible)" @keydown="formattingKeypress" @focusin="showMdPreview" />
-        <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" @focusin="showMdPreview" />
+        <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full mb-2" placeholder="An answer options (always visible)" @keydown="formattingKeypress" />
+        <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" />
         <div class="flex">
           <div class="flex-grow justify-start text-start ps-4">
             <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="true" class="h-8 w-8 dark:bg-neutral-700 checked:bg-green-600 p-3" />
@@ -60,9 +60,6 @@
     </div>
   </div>
   <LoadingMessage v-else />
-  <!--Popover v-if="!previewWindow" ref="mdPreviewPopover" class="max-w-screen-md w-screen">
-    <QuestionFieldMarkdown :text="mdTextForPreview" :correct="mdCorrectForPreview" />
-  </Popover -->
 </template>
 
 
@@ -82,8 +79,6 @@ import type { Answer, Question } from "@/interfaces";
 import Button from 'primevue/button';
 import RadioButton from 'primevue/radiobutton';
 import Textarea from 'primevue/textarea';
-// import Popover from "primevue/popover";
-// import QuestionFieldMarkdown from "./QuestionFieldMarkdown.vue";
 import LoadingMessage from "./LoadingMessage.vue";
 import ContributorForm from "./ContributorForm.vue";
 
@@ -106,7 +101,6 @@ const questionTextDebounced = ref(""); // for HTML conversion
 const answers = ref<Array<Answer>>([{ a: "", e: "", c: false, sel: false }]); // the list of answers
 const answersDebounced = ref<Array<Answer>>([{ a: "", e: "", c: false, sel: false }]); // for HTML conversion
 
-const mdPreviewPopover = ref();
 const mdTextForPreview = ref(""); // debounced markdown text from the input in focus to be displayed in the popover
 const mdCorrectForPreview = ref<boolean | undefined>(undefined); // status of answer.c (correct/incorrect) from the answer in focus for the popover
 
@@ -126,32 +120,6 @@ const questionReadiness = ref({
   explanations: false,
 });
 const questionReady = ref(false); // enables Submit button
-
-/// Turns on a Popover with a Markdown preview
-const showMdPreview = (event: FocusEvent) => {
-  const src = event.target as HTMLInputElement; // this cast is safe because only textarea elements calls this function
-  mdTextForPreview.value = src.value; // get the text from the input itself for the the initial state
-  inFocusInputId = src.id; // this ID will be used to update the preview when the text changes
-
-  // console.log(`showMdPreview id: ${inFocusInputId}`);
-
-  // find the right v-model to get `answer.c` status from
-  // only explanations need this value, others have it set to undefined
-  if (inFocusInputId.startsWith("explanationInput")) {
-    const index = parseInt(inFocusInputId.replace("explanationInput", ""));
-    mdCorrectForPreview.value = answers.value[index].c === true;
-  }
-  else {
-    mdCorrectForPreview.value = undefined;
-  }
-
-  // there is a bug that I cannot work around
-  // the popover remains attached to the previous input if you change focus
-  // to another field without clicking somewhere else first
-  //
-  // the popover is disabled if a live preview window is open
-  mdPreviewPopover.value?.show(event);
-}
 
 /// Adds an answer block to the form
 function addAnswer(index: number) {
