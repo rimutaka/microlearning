@@ -1,11 +1,11 @@
 # Run this script from the root of the project
 
-target=aarch64-unknown-linux-musl
+target=aarch64-unknown-linux-gnu
 region=us-east-1
 lambda=question-handler
 crate=question-handler
 
-cargo build --release --target $target --package $crate
+RUSTFLAGS='-C target-feature=+crt-static' cargo build --release --target $target --package $crate
 cp ./target/$target/release/$crate ./bootstrap && zip proxy.zip bootstrap && rm bootstrap
 aws lambda update-function-code --region $region --function-name $lambda --zip-file fileb://proxy.zip
 rm proxy.zip
