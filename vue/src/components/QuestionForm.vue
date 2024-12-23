@@ -96,18 +96,10 @@ const topics = ref(TOPICS);
 const selectedTopic = ref(""); // the topic of the question from TOPICS
 
 const questionText = ref(""); // the text of the question in markdown
-const questionTextDebounced = ref(""); // for HTML conversion
-
 const answers = ref<Array<Answer>>([{ a: "", e: "", c: false, sel: false }]); // the list of answers
-const answersDebounced = ref<Array<Answer>>([{ a: "", e: "", c: false, sel: false }]); // for HTML conversion
-
-const mdTextForPreview = ref(""); // debounced markdown text from the input in focus to be displayed in the popover
-const mdCorrectForPreview = ref<boolean | undefined>(undefined); // status of answer.c (correct/incorrect) from the answer in focus for the popover
 
 // a reference to the preview window that can be opened on demand
 const previewWindow = ref<Window | null>(null);
-
-let inFocusInputId = ""; // the ID of the input field that is currently in focus to enable MD rendering
 
 /// used to inform the user what steps are required
 /// affects questionReady
@@ -274,29 +266,6 @@ const showPreviewWindow = () => {
   previewWindow.value = window.open(`${window.location.origin}/preview`, PREVIEW_QUESTION_LS_KEY);
 }
 
-/// Slows down markdown conversion to HTML
-const debounceMarkdownForHtml = debounce(() => {
-  let textToDebounce = "";
-
-  // find the right v-model to debounce
-  if (inFocusInputId == "questionTextInput") {
-    textToDebounce = questionText.value;
-  } else if (inFocusInputId.startsWith("answerInput")) {
-    const index = parseInt(inFocusInputId.replace("answerInput", ""));
-    textToDebounce = answers.value[index]?.a;
-  } else if (inFocusInputId.startsWith("explanationInput")) {
-    const index = parseInt(inFocusInputId.replace("explanationInput", ""));
-    textToDebounce = answers.value[index]?.e;
-  }
-  else {
-    console.error("Unknown debouncing target: ", inFocusInputId);
-  }
-
-  mdTextForPreview.value = textToDebounce;
-
-  postQuestionPreview();
-}, 500);
-
 /// Slows down messaging the preview window for changes not covered by markdown conversion
 const debouncePostMsg = debounce(() => {
   postQuestionPreview();
@@ -314,33 +283,17 @@ watch([selectedTopic, questionText, answers.value, question], ([, , answersNew],
   // enable / disable the submit button
   questionReady.value = Object.values(questionReadiness.value).every((value) => value);
 
-  if (inFocusInputId) {
-    debounceMarkdownForHtml();
-    // for text changes postQuestionPreview is called in the debounced function 
-  }
-  else {
-    // other changes are sent to the preview immediately
-    debouncePostMsg();
-  }
+  // changes are sent to the preview with a debounce
+  debouncePostMsg();
 }, { deep: true });
 
 /// Resets local and store values to start accepting data for a brand new question
 /// from a blank form
 function resetValuesForNewQuestion() {
   selectedTopic.value = "";
-
   questionText.value = "";
-  questionTextDebounced.value = "";
-
   answers.value.length = 0;
   answers.value.push({ a: "", e: "", c: false, sel: false });
-
-  answersDebounced.value.length = 0;
-  answersDebounced.value.push({ a: "", e: "", c: false, sel: false });
-
-  mdTextForPreview.value = "";
-  mdCorrectForPreview.value = undefined;
-  inFocusInputId = "";
 
   // clear all fields from the question in store
   // this is a hack and there should be a more elegant solution
@@ -349,12 +302,6 @@ function resetValuesForNewQuestion() {
 
 /// Loads all local variables with the question data, if present.
 function loadQuestion(fetchedQuestion: Question) {
-
-  // set debounced values before the main values to avoid triggering out of index errors
-  // in the template
-  answersDebounced.value = JSON.parse(JSON.stringify(fetchedQuestion.answers));
-  questionTextDebounced.value = fetchedQuestion.question;
-
   // copy DDB values to the form models
   selectedTopic.value = fetchedQuestion.topic;
   questionText.value = fetchedQuestion.question;
