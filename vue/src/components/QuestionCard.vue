@@ -35,7 +35,7 @@
         <div v-if="!props.isPreview" class="flex">
           <!-- Hide this block in Preview mode -->
           <div class="flex-grow text-start">
-            <Button v-if="hasToken" label="Edit" size="small" icon="pi pi-pencil" severity="secondary" class="whitespace-nowrap me-2" @click="navigateToEditPage" />
+            <LinkButton v-if="hasToken"  :href="editPageUrl" label="Edit" class="me-2 mb-2" icon="pi pi-pencil" :via-router="true" />
             <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click="copyLinkToClipboard" />
             <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
             <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try one more question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
@@ -151,6 +151,9 @@ const questionTopicOnlyUrl = computed(() => `${document.location.origin}/${PageI
 /// A URL to the page with the question on its own
 /// for sharing or opening separately
 const questionTopicAndPageUrl = computed(() => `${questionTopicOnlyUrl.value}&${constants.URL_PARAM_QID}=${question.value?.qid}`);
+
+/// A URL to the question edit page
+const editPageUrl = computed(() => `/${PageIDs.ADD}?${constants.URL_PARAM_TOPIC}=${question.value?.topic}&${constants.URL_PARAM_QID}=${question.value?.qid}`);
 
 /// Toggles selections when the user clicks on the answer area
 const handleQuestionAreaClick = (index: number) => {
@@ -282,9 +285,5 @@ async function getAnswers() {
   }
 }
 
-/// navigates to edit page, but it should only work if the user has a token
-function navigateToEditPage() {
-  router.push(`/add?${constants.URL_PARAM_TOPIC}=${question.value?.topic}&${constants.URL_PARAM_QID}=${question.value?.qid}`);
-}
 
 </script>
