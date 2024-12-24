@@ -43,7 +43,8 @@
     <div class="flex flex-wrap gap-4 mb-8">
       <h4>One line summary</h4>
       <div class="w-full mb-6">
-        <InputText v-model="title" class="w-full mb-2" placeholder="A short title for the list of questions" />
+        <InputText v-model="title" class="w-full mb-2" maxlength="100" placeholder="A short title for the list of questions" />
+        <p class=" text-slate-500 dark:text-slate-300 text-xs text-end">Appears in the list of questions and on the question preview page. 100 characters max.</p>
       </div>
     </div>
 
@@ -75,7 +76,7 @@
 
 
 <script setup lang="ts">
-import { ref, watch, watchEffect } from "vue";
+import { ref, watch, watchEffect, computed } from "vue";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { useRouter } from "vue-router";
