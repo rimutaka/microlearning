@@ -315,6 +315,15 @@ footer a {
   @apply dark:bg-neutral-300 dark:p-1 dark:rounded-sm;
 }
 
+/* QUESTION LIST */
+.q-list p {
+  @apply mb-2;
+}
+
+.q-list p a {
+  @apply  no-underline text-inherit;;
+}
+
 /* About page */
 .about {
   @apply p-2 max-w-xl mx-auto;

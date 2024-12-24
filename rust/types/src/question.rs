@@ -112,6 +112,7 @@ pub struct Question {
     /// A one line summary of the question to display in the list of questions.
     /// This was an afterthought and is not present in the existing questions.
     /// Ideally, it needs to be generated from the question and answers.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
     pub title: Option<String>,
 }
 
@@ -248,6 +249,22 @@ impl Question {
                 skipped,
             }),
             ..self
+        }
+    }
+
+    /// Removes everything except stats, IDs and the title
+    pub fn strip_for_list_display(self) -> Self {
+        Question {
+            qid: self.qid,
+            topic: self.topic,
+            title: self.title,
+            stats: self.stats,
+            updated: self.updated,
+            answers: vec![],
+            question: "".to_string(),
+            correct: 0,
+            author: None,
+            contributor: None,
         }
     }
 

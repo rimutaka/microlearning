@@ -296,7 +296,7 @@ watch([selectedTopic, questionText, answers.value, title, question], ([, , answe
   questionReadiness.value.answers = answers.value.length >= 2 && answers.value.every((answer) => answer.a.length > 0);
   questionReadiness.value.correct = answers.value.some((answer) => answer.c);
   questionReadiness.value.explanations = answers.value.every((answer) => answer.e.length > 10);
-  questionReadiness.value.title = title.value !== undefined && (title.value.length > 10);
+  questionReadiness.value.title = title.value != undefined && (title.value.length > 10);
 
   // enable / disable the submit button
   questionReady.value = Object.values(questionReadiness.value).every((value) => value);

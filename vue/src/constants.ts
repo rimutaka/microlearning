@@ -1,5 +1,6 @@
 /// The endpoint for question-related requests.
 export const QUESTION_HANDLER_URL = "https://bitesized.info/q?";
+export const QUESTION_LIST_HANDLER_URL = "https://bitesized.info/ql?";
 /// The endpoint for user-related requests.
 export const USER_HANDLER_URL = "https://bitesized.info/u?";
 /// The endpoint for payment-related requests.
