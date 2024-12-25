@@ -1,5 +1,5 @@
 use crate::question::Question;
-use crate::user::AskedQuestion;
+use crate::user::AnswerStatus;
 use serde::{Deserialize, Serialize};
 
 /// Combines a question with its history.
@@ -11,5 +11,5 @@ use serde::{Deserialize, Serialize};
 pub struct QuestionWithHistory {
     pub question: Question,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub history: Option<Vec<AskedQuestion>>,
+    pub history: Option<Vec<AnswerStatus>>,
 }

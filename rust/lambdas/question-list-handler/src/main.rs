@@ -107,7 +107,7 @@ pub(crate) async fn my_handler(
                 let questions_with_history = questions
                     .into_iter()
                     .map(|v| {
-                        let history = user_question_history.remove(&v.qid).map(|v| vec![v]);
+                        let history = user_question_history.remove(&v.qid).map(|v| vec![v.status]);
                         QuestionWithHistory { question: v, history }
                     })
                     .collect::<Vec<QuestionWithHistory>>();

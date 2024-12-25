@@ -111,15 +111,8 @@ export interface AnswerStatus {
   skipped?: string,
 }
 
-/** Mirrors Rust's AskedQuestion struct */
-export interface AskedQuestion {
-  topic: string,
-  qid: string,
-  status: AnswerStatus,
-}
-
 /** Mirrors Rust's QuestionWithHistory struct */
 export interface QuestionWithHistory {
   question: Question,
-  history?: Array<AskedQuestion>,
+  history?: Array<AnswerStatus>,
 }
