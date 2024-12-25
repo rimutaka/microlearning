@@ -3,12 +3,14 @@ use aws_lambda_events::{
     lambda_function_urls::{LambdaFunctionUrlRequest, LambdaFunctionUrlResponse},
 };
 use aws_sdk_dynamodb::Client;
-use bitie_types::{ddb::fields, lambda};
+use bitie_types::{ddb::fields, lambda, relations::QuestionWithHistory, user::AskedQuestion};
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
+use std::collections::HashMap;
 use tracing::info;
 use tracing_subscriber::filter::LevelFilter;
 
 mod questions;
+mod user;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -51,6 +53,7 @@ pub(crate) async fn my_handler(
     };
     info!("Method: {}", method);
 
+    // get the topic from the query string
     let topic = match event.payload.query_string_parameters.get(fields::TOPIC) {
         Some(v) => {
             let v = v.trim().to_lowercase();
@@ -66,6 +69,9 @@ pub(crate) async fn my_handler(
         }
     };
 
+    // get user details from the JWT token
+    let jwt_user = lambda::get_email_from_token(&event.payload.headers);
+
     let client = Client::new(&aws_config::load_from_env().await);
 
     //decide on the action depending on the HTTP method
@@ -77,7 +83,48 @@ pub(crate) async fn my_handler(
                 Err(e) => return lambda::text_response(Some(e.to_string()), 500),
             };
 
-            lambda::json_response(Some(&questions), 200)
+            if let Some(jwt_user) = jwt_user {
+                // get the user's question history
+                let mut user_question_history =
+                    match user::get_user_question_history(&client, Some(&topic), &jwt_user.email).await {
+                        Some(v) => {
+                            // reduce the list to one entry per question to see if the question is worth looking at or has been answered before
+                            // and convert it into a hashmap for quicker search
+                            AskedQuestion::latest_answer_list(v)
+                                .into_iter()
+                                .map(|v| (v.qid.clone(), v))
+                                .collect::<HashMap<String, AskedQuestion>>()
+                        }
+                        None => HashMap::new(),
+                    };
+
+                info!(
+                    "Reduced history to one status per question: {}",
+                    user_question_history.len()
+                );
+
+                // combine the questions with the user's history
+                let questions_with_history = questions
+                    .into_iter()
+                    .map(|v| {
+                        let history = user_question_history.remove(&v.qid).map(|v| vec![v]);
+                        QuestionWithHistory { question: v, history }
+                    })
+                    .collect::<Vec<QuestionWithHistory>>();
+
+                return lambda::json_response(Some(&questions_with_history), 200);
+            }
+
+            // convert questions into questions with history, but without the history
+            let questions_with_history = questions
+                .into_iter()
+                .map(|v| QuestionWithHistory {
+                    question: v,
+                    history: None,
+                })
+                .collect::<Vec<QuestionWithHistory>>();
+
+            lambda::json_response(Some(&questions_with_history), 200)
         }
 
         // unsupported method

@@ -99,3 +99,27 @@ export interface QuestionSponsorship {
   topics?: string,
   contributor?: ContributorProfile,
 }
+
+/** A TS implementation of Rust's  AnswerStatus enum
+ * where every variant wraps DateTime<Utc> type.
+ * E.g. 2024-01-01T00:00:00Z
+ */
+export interface AnswerStatus {
+  asked?: string,
+  correct?: string,
+  incorrect?: string,
+  skipped?: string,
+}
+
+/** Mirrors Rust's AskedQuestion struct */
+export interface AskedQuestion {
+  topic: string,
+  qid: string,
+  status: AnswerStatus,
+}
+
+/** Mirrors Rust's QuestionWithHistory struct */
+export interface QuestionWithHistory {
+  question: Question,
+  history?: Array<AskedQuestion>,
+}

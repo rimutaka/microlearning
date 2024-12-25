@@ -1,6 +1,8 @@
 use anyhow::{Error, Result};
 use chrono::{DateTime, SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
+use std::cmp::PartialOrd;
+use std::collections::HashMap;
 use std::{fmt::Display, str::FromStr};
 use tracing::error;
 
@@ -8,7 +10,7 @@ use tracing::error;
 /// DDB value example: 2024-01-01T00:00:00Zc  
 /// Implements FromStr to convert from a string stored in DDB.  
 /// Implements Display to convert to a string for DDB.
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum AnswerStatus {
     /// The question was emailed or shown to the user
@@ -30,7 +32,7 @@ pub enum AnswerStatus {
 /// User interaction with the question.  
 /// Implements FromStr to convert from a string stored in DDB.  
 /// Implements Display to convert to a string for DDB.
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AskedQuestion {
     /// Question's topic, PK of questions table.
@@ -132,6 +134,74 @@ impl FromStr for AskedQuestion {
     }
 }
 
+impl PartialOrd for AnswerStatus {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for AnswerStatus {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let a = match self {
+            AnswerStatus::Asked(v) => v,
+            AnswerStatus::Skipped(v) => v,
+            AnswerStatus::Correct(v) => v,
+            AnswerStatus::Incorrect(v) => v,
+        };
+        let b = match other {
+            AnswerStatus::Asked(v) => v,
+            AnswerStatus::Skipped(v) => v,
+            AnswerStatus::Correct(v) => v,
+            AnswerStatus::Incorrect(v) => v,
+        };
+        a.cmp(b)
+    }
+}
+
+impl AskedQuestion {
+    /// Return a unique list of questions with the latest answer status.
+    /// If the question was answered, it returns the latest answer.
+    /// If the question was never answered, it returns the latest viewing.
+    pub fn latest_answer_list(mut questions: Vec<AskedQuestion>) -> Vec<AskedQuestion> {
+        let mut viewed = HashMap::<String, AskedQuestion>::with_capacity(questions.len());
+        let mut answered = HashMap::<String, AskedQuestion>::with_capacity(questions.len());
+
+        // this list should already be sorted in the ascending order by DDB as it appends to the end of the array
+        // but who knows if that is enforced, so sorting it again just in case
+        // a sort with no moves is cheap and linear
+        questions.sort_by(|a, b| a.status.cmp(&b.status));
+
+        // sort them into answered and viewed buckets
+        for q in questions.into_iter().rev() {
+            match q.status {
+                AnswerStatus::Asked(_) | AnswerStatus::Skipped(_) => {
+                    if !viewed.contains_key(&q.qid) {
+                        viewed.insert(q.qid.clone(), q);
+                    }
+                }
+                AnswerStatus::Correct(_) | AnswerStatus::Incorrect(_) => {
+                    if !answered.contains_key(&q.qid) {
+                        answered.insert(q.qid.clone(), q);
+                    }
+                }
+            }
+        }
+
+        // replace the viewed questions with the answered ones
+        for (k, v) in answered.into_iter() {
+            viewed.insert(k, v);
+        }
+
+        // convert the hashmap into a vector for sorting
+        let mut unique_questions = viewed.into_values().collect::<Vec<_>>();
+
+        // sort them by the timestamp in descending order
+        unique_questions.sort_by(|a, b| b.status.cmp(&a.status));
+
+        unique_questions
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -230,5 +300,152 @@ mod tests {
         for s in test_values.iter() {
             assert!(AskedQuestion::from_str(s).is_err(), "Test value: {}", s);
         }
+    }
+
+    #[test]
+    /// Test the sorting of the questions by the latest answer status.
+    fn answer_status_sort() {
+        let ts: [_; 4] = [
+            DateTime::parse_from_rfc3339("2024-01-01T00:00:00Z").unwrap().to_utc(),
+            DateTime::parse_from_rfc3339("2024-01-01T00:00:01Z").unwrap().to_utc(),
+            DateTime::parse_from_rfc3339("2024-01-01T00:00:02Z").unwrap().to_utc(),
+            DateTime::parse_from_rfc3339("2024-01-01T00:00:03Z").unwrap().to_utc(),
+        ];
+
+        let s0 = AnswerStatus::Correct(ts[0]);
+        let s1 = AnswerStatus::Asked(ts[1]);
+        let s2 = AnswerStatus::Incorrect(ts[2]);
+        let s3 = AnswerStatus::Skipped(ts[3]);
+
+        let qid = "3RuWxwkgBgpWk6ZUARaZx6".to_string();
+        let topic = "aws".to_string();
+
+        let q0 = AskedQuestion {
+            topic: topic.clone(),
+            qid: qid.clone(),
+            status: s0.clone(),
+        };
+        let q1 = AskedQuestion {
+            topic: topic.clone(),
+            qid: qid.clone(),
+            status: s1,
+        };
+        let q2 = AskedQuestion {
+            topic: topic.clone(),
+            qid: qid.clone(),
+            status: s2,
+        };
+        let q3 = AskedQuestion {
+            topic: topic.clone(),
+            qid: qid.clone(),
+            status: s3.clone(),
+        };
+
+        let mut questions = vec![q0, q1, q2, q3];
+
+        // sort ascending
+        questions.sort_by(|a, b| a.status.cmp(&b.status));
+        assert_eq!(questions[0].status, s0, "Ascending, expected: {:?}", s0);
+
+        // sort descending
+        questions.sort_by(|a, b| b.status.cmp(&a.status));
+        assert_eq!(questions[0].status, s3, "Descending, expected: {:?}", s3);
+    }
+
+    #[test]
+    /// Test the sorting of the questions by the latest answer status.
+    fn latest_answer_list() {
+        let qid = "3RuWxwkgBgpWk6ZUARaZx6".to_string();
+        let topic = "aws".to_string();
+
+        let ts1 = DateTime::parse_from_rfc3339("2024-01-01T00:00:00Z").unwrap().to_utc();
+        let ts2 = DateTime::parse_from_rfc3339("2024-01-01T00:00:01Z").unwrap().to_utc();
+        let ts3 = DateTime::parse_from_rfc3339("2024-01-01T00:00:02Z").unwrap().to_utc();
+        let ts4 = DateTime::parse_from_rfc3339("2024-01-01T00:00:03Z").unwrap().to_utc();
+        let ts5 = DateTime::parse_from_rfc3339("2024-01-01T00:00:04Z").unwrap().to_utc();
+
+        let q = AskedQuestion {
+            topic: topic.clone(),
+            qid: qid.clone(),
+            status: AnswerStatus::Asked(ts1),
+        };
+
+        let qa1 = AskedQuestion {
+            status: AnswerStatus::Asked(ts1),
+            ..q.clone()
+        };
+
+        let qa2 = AskedQuestion {
+            status: AnswerStatus::Asked(ts2),
+            ..q.clone()
+        };
+
+        let qc3 = AskedQuestion {
+            status: AnswerStatus::Correct(ts3),
+            ..q.clone()
+        };
+
+        let qi4 = AskedQuestion {
+            status: AnswerStatus::Incorrect(ts4),
+            ..q.clone()
+        };
+
+        let qc5 = AskedQuestion {
+            status: AnswerStatus::Correct(ts5),
+            ..q.clone()
+        };
+
+        // correct ordering
+        let questions = vec![qa1.clone(), qa2.clone(), qc3.clone(), qi4.clone(), qc5.clone()];
+        let sorted = AskedQuestion::latest_answer_list(questions);
+
+        assert_eq!(sorted.len(), 1, "Expected 1 question in the list");
+        assert_eq!(&sorted[0].status, &qc5.status, "Correct ordering");
+
+        // incorrect ordering
+        let questions = vec![qi4.clone(), qc3.clone(), qc5.clone(), qa1.clone(), qa2.clone()];
+        let sorted = AskedQuestion::latest_answer_list(questions);
+
+        assert_eq!(sorted.len(), 1, "Expected 1 question in the list");
+        assert_eq!(&sorted[0].status, &qc5.status, "Incorrect ordering");
+
+        // skipped after answering
+        let qa1 = AskedQuestion {
+            status: AnswerStatus::Asked(ts1),
+            ..q.clone()
+        };
+
+        let qi2 = AskedQuestion {
+            status: AnswerStatus::Incorrect(ts2),
+            ..q.clone()
+        };
+
+        let qc3 = AskedQuestion {
+            status: AnswerStatus::Correct(ts3),
+            ..q.clone()
+        };
+
+        let qs4 = AskedQuestion {
+            status: AnswerStatus::Skipped(ts4),
+            ..q.clone()
+        };
+
+        let qa5 = AskedQuestion {
+            status: AnswerStatus::Asked(ts5),
+            ..q.clone()
+        };
+
+        let questions = vec![qa1.clone(), qi2.clone(), qc3.clone(), qs4.clone(), qa5.clone()];
+        let sorted = AskedQuestion::latest_answer_list(questions);
+
+        assert_eq!(sorted.len(), 1, "Expected 1 question in the list");
+        assert_eq!(&sorted[0].status, &qc3.status, "Skipped after answering");
+
+        // no answers in the list
+        let questions = vec![qa1.clone(), qa2.clone(), qs4.clone(), qa5.clone()];
+        let sorted = AskedQuestion::latest_answer_list(questions);
+
+        assert_eq!(sorted.len(), 1, "Expected 1 question in the list");
+        assert_eq!(&sorted[0].status, &qa5.status, "No answers in the list");
     }
 }

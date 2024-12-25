@@ -2,11 +2,10 @@
   <h1 class="mb-4 md:mb-8 text-2xl text-start">Questions about <em class="italic">{{ topicName }}</em></h1>
   <LoadingMessage v-if="isLoading" />
 
-  <QuestionListItem v-for="(question, index) in questions" :question="question" :key="index" />
+  <QuestionListItem v-for="(question, index) in questions" :question="question.question" :key="index" />
   <div v-if="!isLoading && ctaBlockVisible" class="mb-12 md:mt-12 cta-box">
     <PostAnswerCTA />
   </div>
-  <ContributorCard class="mb-12 mt-8 md:mt-16" />
 </template>
 
 <script setup lang="ts">
@@ -17,7 +16,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { LoadingStatus } from '@/interfaces';
-import type { Question } from '@/interfaces';
+import type { QuestionWithHistory } from '@/interfaces';
 
 import QuestionListItem from '@/components/QuestionListItem.vue';
 import PostAnswerCTA from '@/components/PostAnswerCTA.vue';
@@ -41,7 +40,7 @@ const initialTopic = route.query.topic ? <string>route.query.topic : "";
 // so it is safe to cast them into a string
 const topic = ref<string>(initialTopic);
 const isLoadingQuestions = ref(LoadingStatus.Loading);
-const questions = ref<Question[]>([]);
+const questions = ref<QuestionWithHistory[]>([]);
 
 
 const ctaBlockVisible = computed(() => {
@@ -81,7 +80,7 @@ const loadQuestions = async (paramTopic: string) => {
     // an error may contain JSON or plain text, depending on where the errror occurred
     if (response.status === 200) {
       try {
-        questions.value = <Question[]>await response.json();
+        questions.value = <QuestionWithHistory[]>await response.json();
         console.log(questions.value);
         // console.log(question.topic);
         console.log(`Questions loaded: ${questions.value.length}`);

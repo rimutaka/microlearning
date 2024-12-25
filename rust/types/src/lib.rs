@@ -5,6 +5,7 @@ pub mod payments;
 pub mod question;
 pub mod topic;
 pub mod user;
+pub mod relations;
 
 /// Timestamp for 1 Jan 2024.
 /// Timestamps used for IDs can be made shorter by subtracting this constant.
