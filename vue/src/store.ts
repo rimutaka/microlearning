@@ -36,13 +36,13 @@ export const useMainStore = defineStore('main', () => {
 
   /** Is set to true when the user clicks on Show Random Question,
    then back to false on loading the view that includes the sample question */
-  const showingSampleQuestion = ref<boolean>(false)
+  const showingRandomQuestion = ref<boolean>(false)
 
   const reset = () => {
     question.value = undefined;
     selectedTopics.value = [];
     currentTopic.value = undefined;
-    showingSampleQuestion.value = false;
+    showingRandomQuestion.value = false;
     email.value = undefined;
     token.value = undefined;
     user.value = undefined;
@@ -172,7 +172,7 @@ export const useMainStore = defineStore('main', () => {
     question,
     selectedTopics,
     currentTopic,
-    showingSampleQuestion,
+    showingRandomQuestion,
     email,
     token,
     user,

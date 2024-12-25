@@ -5,7 +5,7 @@
   </TransitionSlot>
   <SubscriptionForm @hydrated="formHydrated = true" />
   <TransitionSlot>
-    <SampleQuestion v-if="formHydrated && showingSampleQuestion" />
+    <SampleQuestion v-if="formHydrated && showingRandomQuestion" />
   </TransitionSlot>
 </template>
 
@@ -18,10 +18,10 @@ import TransitionSlot from "@/components/TransitionSlot.vue";
 import SubscriptionCTA from '@/components/SubscriptionCTA.vue';
 import SubscriptionCompleted from '@/components/SubscriptionCompleted.vue';
 import SubscriptionForm from '@/components/SubscriptionForm.vue';
-import SampleQuestion from "@/components/SampleQuestion.vue";
+import SampleQuestion from "@/components/RandomQuestion.vue";
 
 const store = useMainStore();
-const { user, showingSampleQuestion, question } = storeToRefs(store);
+const { user, showingRandomQuestion, question } = storeToRefs(store);
 const formHydrated = ref(false);
 const firstTimeSub = ref(false); // true when the user changes from no sub to sub with topics
 
@@ -45,6 +45,6 @@ watch(user, (userNew, userOld) => {
 
 // do not show the sample question when the page is first displayed
 // it will be shown when the user clicks on the button requesting it
-showingSampleQuestion.value= false;
+showingRandomQuestion.value= false;
 
 </script>

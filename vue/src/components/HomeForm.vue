@@ -17,7 +17,7 @@
       </div>
     </div>
     <TransitionSlot>
-      <SampleQuestion v-if="showingSampleQuestion" />
+      <RandomQuestion v-if="showingRandomQuestion" />
     </TransitionSlot>
   </div>
 </template>
@@ -34,11 +34,11 @@ import { PageIDs } from '@/router';
 import Button from 'primevue/button';
 import TopicsList from './TopicsList.vue';
 import TransitionSlot from "./TransitionSlot.vue";
-import SampleQuestion from "./SampleQuestion.vue";
+import RandomQuestion from "./RandomQuestion.vue";
 import RandomQuestionButton from './RandomQuestionButton.vue';
 
 const store = useMainStore();
-const { selectedTopics, question, showingSampleQuestion } = storeToRefs(store);
+const { selectedTopics, question, showingRandomQuestion } = storeToRefs(store);
 
 async function navigateToSubscription() {
   console.log("Subscribing to topics: ", selectedTopics.value);
@@ -52,6 +52,6 @@ async function navigateToSubscription() {
 
 // do not show the sample question when the page is first displayed
 // it will be shown when the user clicks on the button requesting it
-showingSampleQuestion.value= false;
+showingRandomQuestion.value= false;
 
 </script>
