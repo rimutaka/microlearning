@@ -16,13 +16,14 @@ import { RouterView } from 'vue-router'
 import { useAuth0 } from '@auth0/auth0-vue';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
+import { fetchUser } from "@/fetch-getters"
 
 import TopHeader from './components/TopHeader.vue';
 import FooterStatic from './components/FooterStatic.vue';
 
 const { isAuthenticated, isLoading, idTokenClaims, getAccessTokenSilently } = useAuth0();
 const store = useMainStore();
-const { email, token } = storeToRefs(store);
+const { email, token, user } = storeToRefs(store);
 
 console.log(`App load/auth: ${isLoading.value}/${isAuthenticated.value}`);
 
@@ -37,7 +38,7 @@ watch([isAuthenticated, idTokenClaims], ([newIsAuth, newIdClaims]) => {
 });
 
 /// copy token details to the store
-function addTokenClaimsToStore() {
+async function addTokenClaimsToStore() {
   if (!isAuthenticated.value) {
     console.log("Cannot update token - not authenticated");
     return;
@@ -45,6 +46,13 @@ function addTokenClaimsToStore() {
 
   email.value = idTokenClaims.value?.email;
   token.value = idTokenClaims.value?.__raw;
+
+  // attempt to get user details from the server
+  // it's possible that an empty user object is in store from previous calls,
+  // so check if it has email property set
+  if (!user.value?.email && idTokenClaims.value?.email && idTokenClaims.value?.__raw) {
+    user.value = await fetchUser(idTokenClaims.value.email, idTokenClaims.value.__raw);
+  }
 }
 
 // attempt to get a new token silently
