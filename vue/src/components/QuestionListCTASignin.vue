@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3 class="mb-4 text-slate-700 dark:text-slate-300 w-full">For registered used only</h3>
+    <h3 class="mb-4 text-slate-700 dark:text-slate-300 w-full">For registered users only</h3>
 
     <div class="flex w-full">
       <div class="flex-shrink md:flex-grow">
