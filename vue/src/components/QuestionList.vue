@@ -1,9 +1,11 @@
 <template>
-  <LoadingMessage v-if="isLoadingQuestions == LoadingStatus.Loading" />
-  <div v-if="isLoadingQuestions == LoadingStatus.Loaded" class="q-list">
-    <QuestionListItem v-for="(question, index) in questions" :question="question" :key="index" />
+  <div>
+    <LoadingMessage v-if="isLoadingQuestions == LoadingStatus.Loading" />
+    <div v-if="isLoadingQuestions == LoadingStatus.Loaded" class="q-list">
+      <QuestionListItem v-for="(question, index) in questions" :question="question" :key="index" />
+    </div>
+    <div v-if="isLoadingQuestions == LoadingStatus.Error || isLoadingQuestions == LoadingStatus.NoData">Cannot load the list of questions - something went wrong.</div>
   </div>
-  <div v-if="isLoadingQuestions == LoadingStatus.Error || isLoadingQuestions == LoadingStatus.NoData">Cannot load the list of questions - something went wrong.</div>
 </template>
 
 <script setup lang="ts">

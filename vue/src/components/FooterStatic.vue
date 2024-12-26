@@ -58,7 +58,8 @@ const menuItems = ref([
 ]);
 
 /// Auth0 login
-function signin() {
+// TODO: move this to a shared file, but that requires making Auth0 working outside the component
+const signin = () => {
   if (!isAuthenticated.value) {
     console.log("Not authenticated. Will redirect to ", router.currentRoute.value.fullPath);
     loginWithRedirect({

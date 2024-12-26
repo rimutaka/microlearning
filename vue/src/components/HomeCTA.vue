@@ -7,7 +7,7 @@
       </div>
 
       <div class="card flex-grow md:flex-shrink text-slate-600 dark:text-slate-200">
-        <ul id="signup-pitch">
+        <ul class="signup-pitch">
           <li><h3><i class="pi pi-list-check"></i>high quality multi-choice questions</h3></li>
           <li><h3><i class="pi pi-envelope"></i>delivered to your inbox</h3></li>
           <li><h3><i class="pi pi-info-circle"></i>with <em>bite-sized</em> explanations</h3></li>

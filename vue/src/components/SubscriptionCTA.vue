@@ -6,7 +6,7 @@
 
       <div class="card flex-grow md:flex-shrink cta-box">
         <h3 class="text-justify md:text-center text-slate-700 dark:text-slate-200">Your free subscription to being 1% better every day</h3>
-        <ul id="signup-pitch">
+        <ul class="signup-pitch">
           <li><i class="pi pi-question-circle"></i>one question with detailed answers</li>
           <li><i class="pi pi-envelope"></i>emailed daily to <strong>{{ store.email }}</strong> </li>
           <li><i class="pi pi-pause-circle"></i>auto-paused if you get a backlog of questions</li>

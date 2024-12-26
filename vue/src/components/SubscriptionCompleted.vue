@@ -1,7 +1,7 @@
 <template>
   <div class="card flex-grow md:flex-shrink cta-box">
     <h3 class="text-justify md:text-center text-slate-700 dark:text-slate-200">About your subscription</h3>
-    <ul id="signup-pitch">
+    <ul class="signup-pitch">
       <li><i class="pi pi-envelope"></i>You will get one email per day on <strong>{{ store.email }}</strong> with a random question about one of your selected topics.</li>
       <li><i class="pi pi-clock"></i>The next email is scheduled for the following day when you answer the previous question.</li>
       <li><i class="pi pi-pause-circle"></i>Emails are automatically paused if you stop answering questions to minimize your backlog.</li>

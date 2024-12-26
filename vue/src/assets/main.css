@@ -63,19 +63,19 @@ input:checked.p-radiobutton-input {
 }
 
 /* Signup CTA */
-ul#signup-pitch {
+.signup-pitch {
   @apply mt-4 text-start  md:pl-8;
 }
 
-ul#signup-pitch li {
+.signup-pitch li {
   @apply my-3;
 }
 
-ul#signup-pitch li h3 {
+.signup-pitch li h3 {
   @apply text-base md:text-xl;
 }
 
-ul#signup-pitch li i {
+.signup-pitch li i {
   @apply me-2 font-normal text-slate-500 dark:text-slate-200;
 }
 
