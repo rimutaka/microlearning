@@ -1,6 +1,6 @@
 <template>
   <div>
-    <LoadingMessage v-if="isLoadingQuestions == LoadingStatus.Loading" />
+    <LoadingMessage v-if="isLoadingQuestions == LoadingStatus.Loading" :msg="`Loading questions about ${topicName}`"/>
     <div v-if="isLoadingQuestions == LoadingStatus.Loaded" class="q-list">
       <QuestionListItem v-for="(question, index) in questions" :question="question" :key="index" />
     </div>
@@ -9,8 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router'
+import { computed, watchEffect, ref } from 'vue';
 import * as constants from "@/constants";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
@@ -20,19 +19,19 @@ import type { QuestionWithHistory } from '@/interfaces';
 import QuestionListItem from '@/components/QuestionListItem.vue';
 import LoadingMessage from '@/components/LoadingMessage.vue';
 
-const route = useRoute();
 const store = useMainStore();
 const { token } = storeToRefs(store);
 
-
-// save the initial values to maintain state later because the topic and qid will change
-const initialTopic = route.query.topic ? <string>route.query.topic : "";
+const props = defineProps<{ topic: string }>();
 
 // route.query.topic and .qid can potentially be an array, but it should not happen in this app,
 // so it is safe to cast them into a string
 const isLoadingQuestions = ref(LoadingStatus.Loading);
 const questions = ref<QuestionWithHistory[]>([]);
 
+const topicName = computed(() => {
+  return (constants.TOPICS.find((t) => t.id == props.topic))?.t;
+});
 
 /// The topic always comes from props.topic
 /// The qid comes from props.qid if random is false.
@@ -86,8 +85,8 @@ const loadQuestions = async (paramTopic: string) => {
   }
 };
 
-
-// load the question when the component is mounted
-(async () => await loadQuestions(initialTopic))();
+watchEffect(async () => {
+  await loadQuestions(props.topic);
+});
 
 </script>

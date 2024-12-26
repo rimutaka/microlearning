@@ -14,6 +14,15 @@ import ThankYouView from '@/views/ThankYouView.vue';
 import LoginView from '@/views/LoginView.vue';
 import QuestionListView from '@/views/QuestionListView.vue';
 
+// Extend RouteMeta to enforce title property stored in meta for every page
+import 'vue-router'
+declare module 'vue-router' {
+  interface RouteMeta {
+    /** This is set as HTML title by router.afterEach in the router module */
+    title: string;
+  }
+}
+
 /// A list of page names used elsewhere in the app
 export const PageIDs = {
   HOME: 'home',
@@ -112,6 +121,9 @@ router.afterEach((to, from) => {
 
   // question pages have the topic name added at the front of the title
   if (to.name === PageIDs.QUESTION && topic) {
+    window.document.title = topic ? `${topic} ${metaTitle}` : metaTitle;
+  }
+  if (to.name === PageIDs.QUESTIONS && topic) {
     window.document.title = topic ? `${topic} ${metaTitle}` : metaTitle;
   }
   else {

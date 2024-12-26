@@ -7,10 +7,6 @@
           <span class="ms-2">{{ item.label }}</span>
         </a>
       </router-link>
-      <a v-else :href="item.url">
-        <span :class="item.icon" />
-        <span class="ms-2">{{ item.label }}</span>
-      </a>
     </template>
     <a v-if="isAuthenticated" @click="signout">
       <span class="pi pi-sign-out" />
@@ -41,6 +37,11 @@ const menuItems = ref([
     route: '/'
   },
   {
+    label: 'Topics',
+    icon: 'pi pi-list-check',
+    route:  `/${PageIDs.QUESTIONS}`
+  },
+  {
     label: 'Contribute',
     icon: 'pi pi-heart text-red-500',
     route: `/${PageIDs.CONTRIBUTE}`
@@ -49,11 +50,6 @@ const menuItems = ref([
     label: 'About',
     icon: 'pi pi-info-circle',
     route: `/${PageIDs.ABOUT}`
-  },
-  {
-    label: 'Contact',
-    icon: 'pi pi-comments',
-    url: 'mailto:max@bitesized.info'
   }
 ]);
 
