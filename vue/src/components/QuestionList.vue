@@ -66,8 +66,7 @@ const loadQuestions = async (paramTopic: string) => {
     if (response.status === 200) {
       try {
         questions.value = <QuestionWithHistory[]>await response.json();
-        console.log(questions.value);
-        // console.log(question.topic);
+        // console.log(questions.value);
         console.log(`Questions loaded: ${questions.value.length}`);
 
         isLoadingQuestions.value = LoadingStatus.Loaded;
