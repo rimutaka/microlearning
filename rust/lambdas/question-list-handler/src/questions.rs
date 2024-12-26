@@ -13,6 +13,7 @@ pub(crate) fn validate_topic(topic: &str) -> bool {
 /// Returns a single question for the given topic.
 /// Returns a error if no questions found.
 pub(crate) async fn get_all_questions_by_topic(client: &DdbClient, topic: &String) -> Result<Vec<Question>, Error> {
+    info!("Getting all questions for {topic}");
     // list of questions fetched from DDB
     let mut fetched_questions = Vec::new();
 
@@ -57,7 +58,7 @@ pub(crate) async fn get_all_questions_by_topic(client: &DdbClient, topic: &Strin
                         match item.get(fields::DETAILS) {
                             Some(AttributeValue::S(v)) => match Question::from_str(v) {
                                 Ok(v) => {
-                                    info!("Returning {topic} / {item_qid}");
+                                    // info!("Returning {topic} / {item_qid}");
                                     fetched_questions
                                         .push(v.with_stats(correct, incorrect, skipped).strip_for_list_display());
                                 }
@@ -83,6 +84,8 @@ pub(crate) async fn get_all_questions_by_topic(client: &DdbClient, topic: &Strin
             return Err(Error::msg("DDB error".to_string()));
         }
     }
+
+    info!("Fetched questions: {}", fetched_questions.len());
 
     // sort the questions by updated date
     fetched_questions.sort_by(|a, b| b.updated.cmp(&a.updated));

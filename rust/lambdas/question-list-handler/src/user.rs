@@ -62,7 +62,7 @@ pub(crate) async fn get_user_question_history(
             return None;
         }
     };
-    info!("Found questions in DDB: {}", history.len());
+    info!("Found history records in DDB: {}", history.len());
 
     // convert the list of questions into AskedQuestion for the specified topic
     let history = history
