@@ -1,6 +1,6 @@
 <template>
   <h3 class="">Select your topic of interest</h3>
-  <TopicList :as-links="true" />
+  <TopicList :as-links="true" :as-radio="true" />
   <div v-if="topic">
     <QuestionList :topic="topic" :key="topic" class="mt-12" />
     <div v-if="!email" class="mb-12 mt-12 cta-box">

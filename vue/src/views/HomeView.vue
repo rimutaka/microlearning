@@ -2,7 +2,7 @@
   <HomeCTA />
   <div class="mt-4">
     <h3 class="">Select your topics of interest</h3>
-    <TopicList :as-links="true" />
+    <TopicList :as-radio="true" />
   </div>
   <HomeForm />
 </template>

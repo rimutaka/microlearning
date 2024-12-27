@@ -1,14 +1,11 @@
 <template>
   <div class="flex flex-wrap items-center gap-4 justify-center my-4">
     <div class="flex" v-for="topic in TOPICS" :key="topic.id">
-      <div v-if="props.asLinks">
-        <RadioButton v-model="currentTopic" class="dark:opacity-85" :value="topic.id" :input-id="topic.id" />
-        <router-link :to="`/${PageIDs.QUESTIONS}?${URL_PARAM_TOPIC}=${topic.id}`" class="ms-2 me-4 no-decoration">{{ topic.t }}</router-link>
-      </div>
-      <div v-else>
-        <Checkbox v-model="selectedTopics" class="dark:opacity-85" :value="topic.id" :input-id="topic.id" />
-        <label :for="topic.id" class="ms-2 me-4">{{ topic.t }}</label>
-      </div>
+      <RadioButton v-if="asRadio" v-model="currentTopic" class="dark:opacity-85" :value="topic.id" :input-id="topic.id" />
+      <Checkbox v-else v-model="selectedTopics" class="dark:opacity-85" :value="topic.id" :input-id="topic.id" />
+
+      <router-link v-if="asLinks" :to="`/${PageIDs.QUESTIONS}?${URL_PARAM_TOPIC}=${topic.id}`" class="ms-2 me-4 no-decoration">{{ topic.t }}</router-link>
+      <label v-else :for="topic.id" class="ms-2 me-4">{{ topic.t }}</label>
     </div>
   </div>
 </template>
@@ -25,7 +22,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Checkbox from 'primevue/checkbox';
 import RadioButton from 'primevue/radiobutton';
 
-const props = defineProps<{ asLinks?: boolean }>();
+const props = defineProps<{ asRadio?: boolean, asLinks?: boolean }>();
 
 const route = useRoute();
 const router = useRouter();
