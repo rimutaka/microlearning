@@ -34,6 +34,10 @@ export const useMainStore = defineStore('main', () => {
    */
   const questionStatus = ref<LoadingStatusType | undefined>()
 
+  /** Set by components that load question lists.
+ */
+  const questionListStatus = ref<LoadingStatusType | undefined>()
+
   /** Is set to true when the user clicks on Show Random Question,
    then back to false on loading the view that includes the sample question */
   const showingRandomQuestion = ref<boolean>(false)
@@ -178,6 +182,7 @@ export const useMainStore = defineStore('main', () => {
     user,
     anonymousContributor,
     questionStatus,
+    questionListStatus,
     reset,
     resetQuestionToBlank,
     loadQuestion

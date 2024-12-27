@@ -10,7 +10,7 @@
       exploring possible answers and making sure the explanations will withstand the scrutiny of your peers.</p>
     <p>Give it a try. Our moderators will help you along the way.</p>
     <p class="cta text-sm">
-      <LinkButton :href="PageIDs.ADD" :via-router="true" label="Write a draft question" icon="pi pi-pen-to-square" />
+      <LinkButton :href="PageIDs.ADD"  label="Write a draft question" icon="pi pi-pen-to-square" />
     </p>
   </div>
 
@@ -22,7 +22,7 @@
     <p>Your donation will go towards writing quality questions to help the community become a tiny bit more knowledgeable.</p>
     <p>Your name or the name of your business will appear as the question contributor.</p>
     <p class="cta text-sm">
-      <LinkButton :href="PageIDs.SPONSORSHIP" :via-router="true" label="Sponsor now" icon="pi pi-lock-open" />
+      <LinkButton :href="PageIDs.SPONSORSHIP"  label="Sponsor now" icon="pi pi-lock-open" />
     </p>
   </div>
 

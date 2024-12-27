@@ -35,10 +35,11 @@
         <div v-if="!props.isPreview" class="flex">
           <!-- Hide this block in Preview mode -->
           <div class="flex-grow text-start">
-            <LinkButton v-if="hasToken"  :href="editPageUrl" label="Edit" class="me-2 mb-2" icon="pi pi-pencil" :via-router="true" />
-            <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click="copyLinkToClipboard" />
-            <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
-            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try one more question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
+            <LinkButton v-if="hasToken"  :href="editPageUrl" label="Edit" class="me-2 mb-2" icon="pi pi-pencil"  />
+            <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click.capture="copyLinkToClipboard"  />
+            <LinkButton :href="questionsPageUrl" label="View all questions" class="me-2 mb-2" icon="pi pi-list-check"  />
+            <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click.prevent="emit(NEXT_QUESTION_EMIT)"   />
+            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try another question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click.prevent="emit(NEXT_QUESTION_EMIT)"   />
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
@@ -144,9 +145,12 @@ const howManyOptionsLeftToSelect = computed(() => {
   }
 });
 
+/// A relative path to the list of questions
+const questionsPageUrl = computed(() => `/${PageIDs.QUESTIONS}?${constants.URL_PARAM_TOPIC}=${question.value?.topic}`);
+
 /// A URL to the page with the question on its own
 /// without the question ID to display a random question
-const questionTopicOnlyUrl = computed(() => `${document.location.origin}/${PageIDs.QUESTION}?${constants.URL_PARAM_TOPIC}=${question.value?.topic}`);
+const questionTopicOnlyUrl = computed(() => `/${PageIDs.QUESTION}?${constants.URL_PARAM_TOPIC}=${question.value?.topic}`);
 
 /// A URL to the page with the question on its own
 /// for sharing or opening separately
@@ -191,7 +195,8 @@ const handleRadioClick = (index: number) => {
 /// and changes the button message flag to display link copied msg
 const copyLinkToClipboard = (e: MouseEvent) => {
   e.preventDefault();
-  navigator.clipboard.writeText(questionTopicAndPageUrl.value);
+  const shareUrl = document.location.origin + questionTopicAndPageUrl.value;
+  navigator.clipboard.writeText(shareUrl);
   linkCopiedFlag.value = true;
   setTimeout(() => {
     linkCopiedFlag.value = false;

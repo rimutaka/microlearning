@@ -1,10 +1,10 @@
 <template>
   <div>
-    <LoadingMessage v-if="isLoadingQuestions == LoadingStatus.Loading" :msg="`Loading questions about ${topicName}`"/>
-    <div v-if="isLoadingQuestions == LoadingStatus.Loaded" class="q-list">
+    <LoadingMessage v-if="questionListStatus == undefined || questionListStatus == LoadingStatus.Loading" :msg="`Loading questions about ${topicName}`" />
+    <div v-if="questionListStatus == LoadingStatus.Loaded" class="q-list">
       <QuestionListItem v-for="(question, index) in questions" :question="question" :key="index" />
     </div>
-    <div v-if="isLoadingQuestions == LoadingStatus.Error || isLoadingQuestions == LoadingStatus.NoData">Cannot load the list of questions - something went wrong.</div>
+    <div v-if="questionListStatus == LoadingStatus.Error || questionListStatus == LoadingStatus.NoData">Cannot load the list of questions - something went wrong.</div>
   </div>
 </template>
 
@@ -20,13 +20,10 @@ import QuestionListItem from '@/components/QuestionListItem.vue';
 import LoadingMessage from '@/components/LoadingMessage.vue';
 
 const store = useMainStore();
-const { token } = storeToRefs(store);
+const { token, questionListStatus } = storeToRefs(store);
 
 const props = defineProps<{ topic: string }>();
 
-// route.query.topic and .qid can potentially be an array, but it should not happen in this app,
-// so it is safe to cast them into a string
-const isLoadingQuestions = ref(LoadingStatus.Loading);
 const questions = ref<QuestionWithHistory[]>([]);
 
 const topicName = computed(() => {
@@ -40,11 +37,11 @@ const loadQuestions = async (paramTopic: string) => {
   console.log(`Fetching questions for: ${paramTopic}`);
 
   // make sure nothing is showing if the component is reused
-  isLoadingQuestions.value = LoadingStatus.Loading;
+  questionListStatus.value = LoadingStatus.Loading;
 
   if (!paramTopic) {
     console.error("No topic provided - using any.");
-    isLoadingQuestions.value = LoadingStatus.Error;
+    questionListStatus.value = LoadingStatus.Error;
     return;
   }
 
@@ -68,18 +65,19 @@ const loadQuestions = async (paramTopic: string) => {
         // console.log(questions.value);
         console.log(`Questions loaded: ${questions.value.length}`);
 
-        isLoadingQuestions.value = LoadingStatus.Loaded;
+        // update the local loading status
+        questionListStatus.value = LoadingStatus.Loaded;
       } catch (error) {
         console.error(error);
         console.error("Failed to parse list of questions.");
       }
     }
     else {
-      isLoadingQuestions.value = LoadingStatus.Error;
+      questionListStatus.value = LoadingStatus.Error;
       console.error("Failed to get questions. Status: ", response.status);
     }
   } catch (error) {
-    isLoadingQuestions.value = LoadingStatus.Error;
+    questionListStatus.value = LoadingStatus.Error;
     console.error("Failed to get questions.");
     console.error(error);
   }

@@ -6,7 +6,7 @@
       <!-- Show it to logged out users -->
       <QuestionListCTASignin />
     </div>
-    <div v-if="email && !user?.topics?.length" class="mb-12 mt-12 cta-box">
+    <div v-if="email && !user?.topics?.length && questionListStatus == LoadingStatus.Loaded" class="mb-12 mt-12 cta-box">
       <!-- Show it to logged in users with no subscriptions -->
       <QuestionListCTASubscribe />
     </div>
@@ -18,6 +18,7 @@
 import { computed, ref, watchEffect } from 'vue';
 import { useRoute } from 'vue-router'
 import * as constants from "@/constants";
+import { LoadingStatus } from '@/interfaces';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 
@@ -30,7 +31,7 @@ import LoadingMessage from '@/components/LoadingMessage.vue';
 const route = useRoute();
 
 const store = useMainStore();
-const { email, user } = storeToRefs(store);
+const { email, user, questionListStatus } = storeToRefs(store);
 
 const topic = ref();
 
