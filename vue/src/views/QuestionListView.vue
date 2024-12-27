@@ -36,10 +36,6 @@ const { email, user, questionListStatus } = storeToRefs(store);
 
 const topic = ref();
 
-const topicName = computed(() => {
-  return (constants.TOPICS.find((t) => t.id == route.query.topic))?.t;
-});
-
 watchEffect(() => {
   topic.value = route.query.topic ? <string>route.query.topic : "";
 });

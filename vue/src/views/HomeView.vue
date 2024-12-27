@@ -14,8 +14,6 @@ import { useMainStore } from '@/store';
 import router from '@/router';
 import { PageIDs } from '@/router';
 
-
-import TransitionSlot from "@/components/TransitionSlot.vue";
 import HomeForm from '@/components/HomeForm.vue';
 import HomeCTA from '@/components/HomeCTA.vue';
 import TopicList from '@/components/TopicList.vue';
