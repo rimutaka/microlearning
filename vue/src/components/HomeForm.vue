@@ -1,24 +1,23 @@
 <template>
-  <div class="card mt-4">
-    <h3>Select your topics of interest</h3>
-    <TopicsList />
-
-    <div class="flex flex-wrap mt-12 mb-4">
-      <div class="flex-shrink text-start mx-auto">
-        <Button :label="question ? 'Browse more questions or subscribe' : 'Browse questions or subscribe'" icon="pi pi-envelope" raised rounded class="font-bold px-8 py-4 md:me-4 mb-2 whitespace-nowrap" @click="navigateToSubscription" />
-        <p class="text-xs text-center md:mb-auto text-slate-500 dark:text-slate-200">You will be asked to
-          <router-link :to="{ name: PageIDs.SUBSCRIPTION }">sign in</router-link>
-          with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i>
-        </p>
-      </div>
-      <p class="w-full text-center my-4">or</p>
-      <div class="flex-grow text-center mb-4">
-        <RandomQuestionButton />
-      </div>
+  <div class="mt-8">
+    <div class="mb-12 inline-flex gap-6 flex-wrap items-center">
+      <LinkButton :href="`/${PageIDs.QUESTIONS}`" label="View all questions" icon="pi pi-list-check" class="mx-auto" />
+      <RandomQuestionButton class="mx-auto" />
     </div>
     <TransitionSlot>
       <RandomQuestion v-if="showingRandomQuestion" />
     </TransitionSlot>
+
+    <div class="mx-auto">
+      <h3>Our subscribers get their questions by email to learn in <em>bite-sized portions</em>.</h3>
+      <p class="mb-4">It is a free service. The questions are contributed by other community members.</p>
+      <Button label="Subscribe" icon="pi pi-envelope" raised rounded class="mb-2" @click="navigateToSubscription" />
+      <p class="text-xs text-center md:mb-auto text-slate-500 dark:text-slate-200">
+        You will be asked to
+        <router-link :to="{ name: PageIDs.SUBSCRIPTION }">sign in</router-link>
+        with <i class="pi pi-github ms-1 me-2"></i><i class="pi pi-google me-2"></i>
+      </p>
+    </div>
   </div>
 </template>
 
@@ -28,11 +27,11 @@ import { ref } from 'vue';
 import router from '@/router';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import { TOPICS, URL_PARAM_LIST_SEPARATOR } from "@/constants";
+import { URL_PARAM_LIST_SEPARATOR } from "@/constants";
 import { PageIDs } from '@/router';
 
 import Button from 'primevue/button';
-import TopicsList from './TopicsList.vue';
+import LinkButton from './LinkButton.vue';
 import TransitionSlot from "./TransitionSlot.vue";
 import RandomQuestion from "./RandomQuestion.vue";
 import RandomQuestionButton from './RandomQuestionButton.vue';
@@ -52,6 +51,6 @@ async function navigateToSubscription() {
 
 // do not show the sample question when the page is first displayed
 // it will be shown when the user clicks on the button requesting it
-showingRandomQuestion.value= false;
+showingRandomQuestion.value = false;
 
 </script>

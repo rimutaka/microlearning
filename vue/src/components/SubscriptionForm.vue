@@ -3,7 +3,7 @@
     <h3 v-if="loading == LoadingStatus.Loading || !loading">Loading topics ...</h3>
     <h3 v-else-if="loading == LoadingStatus.Loaded">Your topics of interest</h3>
     <h3 v-else-if="loading == LoadingStatus.NoData">Select your topics of interest</h3>
-    <TopicsList v-if="loading == LoadingStatus.Loaded || loading == LoadingStatus.NoData" :key="user?.updated" />
+    <TopicList v-if="loading == LoadingStatus.Loaded || loading == LoadingStatus.NoData" :key="user?.updated" />
 
     <div class="mt-4 md:mt-12 mb-12">
       <div v-if="subscriptionStatus == SubscriptionStatus.LoadedWithSubs" class="text-center">
@@ -62,7 +62,7 @@ import { USER_HANDLER_URL, TOKEN_HEADER_NAME, URL_PARAM_TOPICS, URL_PARAM_LIST_S
 import { type User, LoadingStatus } from "@/interfaces";
 
 import Button from 'primevue/button';
-import TopicsList from './TopicsList.vue';
+import TopicList from './TopicList.vue';
 import RandomQuestionButton from "./RandomQuestionButton.vue";
 
 const emit = defineEmits([VUE_EVENT_HYDRATED]);

@@ -42,7 +42,7 @@ a,
   @apply text-blue-500 dark:text-blue-300 underline cursor-pointer;
 }
 
-a.no-decoration {
+.no-decoration {
   @apply no-underline text-inherit;
 }
 

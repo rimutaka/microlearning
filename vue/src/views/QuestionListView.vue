@@ -1,5 +1,6 @@
 <template>
-  <TopicsList :as-links="true" />
+  <h3 class="">Select your topic of interest</h3>
+  <TopicList :as-links="true" />
   <div v-if="topic">
     <QuestionList :topic="topic" :key="topic" class="mt-12" />
     <div v-if="!email" class="mb-12 mt-12 cta-box">
@@ -25,7 +26,7 @@ import { useMainStore } from '@/store';
 import QuestionListCTASignin from '@/components/QuestionListCTASignin.vue';
 import QuestionList from '@/components/QuestionList.vue';
 import QuestionListCTASubscribe from '@/components/QuestionListCTASubscribe.vue';
-import TopicsList from '@/components/TopicsList.vue';
+import TopicList from '@/components/TopicList.vue';
 import LoadingMessage from '@/components/LoadingMessage.vue';
 
 const route = useRoute();

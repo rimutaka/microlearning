@@ -1,7 +1,5 @@
 <template>
-  <Button v-if="selectedTopics.length == 1" :label="`${partOfButtonLabel} question about ${findTopicById(selectedTopics[0])}`" icon="pi pi-sparkles" severity="secondary" class="whitespace-nowrap" @click.prevent="loadNextQuestion" />
-  <Button v-else-if="selectedTopics.length > 1" :label="`${partOfButtonLabel} question on selected topics`" icon="pi pi-sparkles" severity="secondary" class="whitespace-nowrap" @click.prevent="loadNextQuestion" />
-  <Button v-else :label="`${partOfButtonLabel} random question`" icon="pi pi-sparkles" severity="secondary" class="" @click.prevent="loadNextQuestion" />
+  <LinkButton href="/" :label="buttonLabel" icon="pi pi-sparkles" class="whitespace-nowrap" @click.prevent="loadNextQuestion" />
 </template>
 
 
@@ -11,12 +9,28 @@ import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { findTopicById, URL_PARAM_LIST_SEPARATOR, ANY_TOPIC } from "@/constants";
 
-import Button from 'primevue/button';
+import LinkButton from './LinkButton.vue';
 
 const store = useMainStore();
 const { selectedTopics, currentTopic, questionStatus, showingRandomQuestion } = storeToRefs(store);
 
-const partOfButtonLabel = computed(() => showingRandomQuestion.value ? `Try another` : 'View a');
+
+const buttonLabel = computed(() => {
+  const partOfButtonLabel = showingRandomQuestion.value ? `Try another` : 'View';
+  return `${partOfButtonLabel} random question`;
+
+  if (selectedTopics.value.length == 1 && selectedTopics.value[0]) {
+    return `${partOfButtonLabel} question about ${findTopicById(selectedTopics.value[0])}`
+  }
+  else if (selectedTopics.value.length > 1) {
+    return `${partOfButtonLabel} question on selected topics`;
+
+  }
+  else {
+    return `${partOfButtonLabel} random question`;
+  }
+
+});
 
 // pull together currently selected topics and reload the question to show a new random one
 const loadNextQuestion = () => {

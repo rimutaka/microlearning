@@ -1,7 +1,9 @@
 <template>
-  <TransitionSlot>
-    <HomeCTA v-if="displayCTA"/>
-  </TransitionSlot>
+  <HomeCTA />
+  <div class="mt-4">
+    <h3 class="">Select your topics of interest</h3>
+    <TopicList :as-links="true" />
+  </div>
   <HomeForm />
 </template>
 
@@ -16,6 +18,7 @@ import { PageIDs } from '@/router';
 import TransitionSlot from "@/components/TransitionSlot.vue";
 import HomeForm from '@/components/HomeForm.vue';
 import HomeCTA from '@/components/HomeCTA.vue';
+import TopicList from '@/components/TopicList.vue';
 
 const store = useMainStore();
 const { token, question } = storeToRefs(store);
