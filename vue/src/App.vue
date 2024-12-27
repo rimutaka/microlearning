@@ -16,7 +16,7 @@ import { RouterView } from 'vue-router'
 import { useAuth0 } from '@auth0/auth0-vue';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import { fetchUser } from "@/fetch-getters"
+import { fetchUser } from "@/data-loaders/fetch-user"
 
 import TopHeader from './components/TopHeader.vue';
 import FooterStatic from './components/FooterStatic.vue';

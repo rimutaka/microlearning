@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { CONTRIBUTOR_DETAILS_LS_KEY, TOKEN_HEADER_NAME, RECENT_HEADER_NAME, URL_PARAM_TOPIC, URL_PARAM_QID, QUESTION_HANDLER_URL, ANY_TOPIC } from './constants'
 import type { Question, User, ContributorProfile, LoadingStatus as LoadingStatusType } from './interfaces'
 import { LoadingStatus } from './interfaces'
+import { fetchQuestion } from './data-loaders/fetch-question'
 
 /// The main store for the application
 export const useMainStore = defineStore('main', () => {
@@ -74,26 +75,7 @@ export const useMainStore = defineStore('main', () => {
     questionStatus.value = LoadingStatus.Loaded;
   }
 
-  // Stores the qid in a comma-separated list in the local storage.
-  // Removes old entries if the list gets longer than 10 items.
-  function storeRecentQuestionsInLS(paramQid: string) {
-    const recent = localStorage.getItem(RECENT_HEADER_NAME);
-    if (recent) {
-      const recentList = recent.split(",");
-      if (recentList.includes(paramQid)) {
-        // remove the old entry
-        recentList.splice(recentList.indexOf(paramQid), 1);
-      }
-      recentList.unshift(paramQid);
-      if (recentList.length > 10) {
-        console.log("Removing old entries from recent questions list");
-        recentList.pop();
-      }
-      localStorage.setItem(RECENT_HEADER_NAME, recentList.join(","));
-    } else {
-      localStorage.setItem(RECENT_HEADER_NAME, paramQid);
-    }
-  }
+
 
   /// The topic always comes from props.topic
   /// The qid comes from props.qid if random is false.
@@ -114,61 +96,23 @@ export const useMainStore = defineStore('main', () => {
     const currentTopicBak = currentTopic.value;
     currentTopic.value = undefined;
 
-    // add a token with the email, if there is one (logged in users)
-    const headers = new Headers();
-    if (token.value) headers.append(TOKEN_HEADER_NAME, token.value);
+    const fetchedQuestion = await fetchQuestion(paramTopic, paramQid, token.value);
 
-    // add list of recently viewed questions to the request
-    const recent = localStorage.getItem(RECENT_HEADER_NAME);
-    if (recent) headers.append(RECENT_HEADER_NAME, recent);
-
-    try {
-      // fetching by topic returns a random question
-      // fetching with qid returns a specific question
-      // fetching any topic has "any" for the topic
-      const fetchParams = `${URL_PARAM_TOPIC}=${paramTopic}`.concat(paramQid ? `&${URL_PARAM_QID}=${paramQid}` : "");
-      console.log("fetchParams", fetchParams);
-
-      const response = await fetch(`${QUESTION_HANDLER_URL}${fetchParams}`,
-        {
-          headers: headers,
-          signal: AbortSignal.timeout(5000),
-        });
-      console.log(`Fetched. Status: ${response.status}`);
-
-      // a successful response should contain the saved question
-      // an error may contain JSON or plain text, depending on where the errror occurred
-      if (response.status === 200) {
-        try {
-          question.value = <Question>await response.json();
-          // console.log(question);
-          // console.log(question.topic);
-          console.log(`Loaded ${question.value.topic} / ${question.value.qid}`);
-
-          currentTopic.value = question.value.topic;
-          questionStatus.value = LoadingStatus.Loaded;
-          storeRecentQuestionsInLS(question.value.qid); // add qid to the list of recent questions
-
-        } catch (error) {
-          console.error(error);
-          currentTopic.value = currentTopicBak;
-          console.error("Failed to parse question.");
-        }
-      }
-      else if (response.status === 404) {
-        questionStatus.value = LoadingStatus.NoData;
-        currentTopic.value = currentTopicBak;
-      }
-      else {
-        questionStatus.value = LoadingStatus.Error;
-        currentTopic.value = currentTopicBak;
-        console.error("Failed to get question. Status: ", response.status);
-      }
-    } catch (error) {
+    if (fetchedQuestion) {
+      // success
+      question.value = fetchedQuestion;
+      currentTopic.value = question.value.topic;
+      questionStatus.value = LoadingStatus.Loaded;
+    }
+    else if (fetchQuestion === null) {
+      // no question found
+      questionStatus.value = LoadingStatus.NoData;
+      currentTopic.value = currentTopicBak;
+    }
+    else {
+      // error
       questionStatus.value = LoadingStatus.Error;
       currentTopic.value = currentTopicBak;
-      console.error("Failed to get question.");
-      console.error(error);
     }
   };
 
