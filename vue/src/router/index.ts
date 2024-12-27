@@ -40,8 +40,13 @@ export const PageIDs = {
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  scrollBehavior() {
-    return { top: 0 };  // always scroll to top
+  scrollBehavior(to, from) {
+    if (to.name == from.name) {
+      return false;  // don't scroll if the user is just changing the query
+    }
+    else {
+      return { top: 0 }; // always scroll to top if the page name is different
+    }
   },
   routes: [
     {

@@ -1,14 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { CONTRIBUTOR_DETAILS_LS_KEY, TOKEN_HEADER_NAME, RECENT_HEADER_NAME, URL_PARAM_TOPIC, URL_PARAM_QID, QUESTION_HANDLER_URL, ANY_TOPIC } from './constants'
-import type { Question, User, ContributorProfile, LoadingStatus as LoadingStatusType } from './interfaces'
+import { CONTRIBUTOR_DETAILS_LS_KEY, ANY_TOPIC } from './constants'
+import type { Question, QuestionWithHistory, User, ContributorProfile, LoadingStatus as LoadingStatusType } from './interfaces'
 import { LoadingStatus } from './interfaces'
 import { fetchQuestion } from './data-loaders/fetch-question'
 
 /// The main store for the application
 export const useMainStore = defineStore('main', () => {
-  /// Currently loaded question
+  /** The last loaded question */
   const question = ref<Question | undefined>()
+
+  /** The last loaded list of questions */
+  const questionsWithHistory = ref<QuestionWithHistory[] | undefined>()
 
   /// All topics selected by the user
   const selectedTopics = ref<string[]>([])
@@ -45,6 +48,7 @@ export const useMainStore = defineStore('main', () => {
 
   const reset = () => {
     question.value = undefined;
+    questionsWithHistory.value = undefined;
     selectedTopics.value = [];
     currentTopic.value = undefined;
     showingRandomQuestion.value = false;
@@ -81,8 +85,6 @@ export const useMainStore = defineStore('main', () => {
   /// The qid comes from props.qid if random is false.
   const loadQuestion = async (paramTopic: string, paramQid?: string) => {
 
-    console.log(`Fetching question for: ${paramTopic} / ${paramQid}`);
-
     // make sure nothing is showing if the component is reused
     questionStatus.value = LoadingStatus.Loading;
     question.value = undefined;  // clear the value so that other components know it's being reloaded
@@ -118,6 +120,7 @@ export const useMainStore = defineStore('main', () => {
 
   return {
     question,
+    questionsWithHistory,
     selectedTopics,
     currentTopic,
     showingRandomQuestion,

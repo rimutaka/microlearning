@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { computed, watch, ref, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
-import { TOPICS, ANY_TOPIC } from "@/constants";
+import { TOPICS, ANY_TOPIC, findTopicById } from "@/constants";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { LoadingStatus } from '@/interfaces';
@@ -30,7 +30,7 @@ const store = useMainStore();
 const { question, email, questionStatus } = storeToRefs(store);
 
 const topicName = computed(() => {
-  return (TOPICS.find((t) => t.id == route.query.topic))?.t;
+  return findTopicById(route.query.topic as string | undefined);
 });
 
 // save the initial values to maintain state later because the topic and qid will change

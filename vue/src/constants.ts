@@ -64,6 +64,11 @@ export const TOPICS = <Array<TopicFields>>[
 /// this is a temporary hack until the randomness madness is sorted out
 export const ANY_TOPIC = "any";
 
+/** Choose this for random questions if nothing else was selected.
+ * It's a temp crutch. TODO: do not allow any data fetching without a topic.
+ */
+export const DEFAULT_TOPIC = "general";
+
 /// Returns the topic title by its ID
 export function findTopicById(id: string | undefined): string | undefined {
   if (!id) return undefined;
