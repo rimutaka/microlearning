@@ -72,7 +72,7 @@ const router = createRouter({
       path: '/' + PageIDs.QUESTIONS,
       name: PageIDs.QUESTIONS,
       component: QuestionListView,
-      meta: { title: 'Questions' }
+      meta: { title: 'Topics' }
     },
     {
       path: '/' + PageIDs.ABOUT,
@@ -121,10 +121,10 @@ router.afterEach((to, from) => {
 
   // question pages have the topic name added at the front of the title
   if (to.name === PageIDs.QUESTION && topic) {
-    window.document.title = topic ? `${topic} ${metaTitle}` : metaTitle;
+    // console.log(`Page title: ${window.document.title}`);
   }
-  if (to.name === PageIDs.QUESTIONS && topic) {
-    window.document.title = topic ? `${topic} ${metaTitle}` : metaTitle;
+  else if (to.name === PageIDs.QUESTIONS && topic) {
+    window.document.title = topic ? `${topic} questions` : metaTitle;
   }
   else {
     // other pages use the hardcoded meta property

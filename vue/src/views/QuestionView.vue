@@ -1,20 +1,22 @@
 <template>
   <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about <em class="italic">{{ topicName }}</em></h1>
-  <LoadingMessage v-if="isLoading" />
-  <QuestionCard v-if="!isLoading" :next="true" @next-question="loadNextQuestion" />
-  <div v-if="!isLoading && ctaBlockVisible" class="mb-12 md:mt-12 cta-box">
-    <PostAnswerCTA />
+  <LoadingMessage v-if="questionStatus == LoadingStatus.Loading" />
+  <div v-else>
+    <QuestionCard :next="true" @next-question="loadNextQuestion" />
+    <div v-if="ctaBlockVisible" class="mb-12 md:mt-12 cta-box">
+      <PostAnswerCTA />
+    </div>
+    <ContributorCard class="mb-12 mt-8 md:mt-16" />
   </div>
-  <ContributorCard class="mb-12 mt-8 md:mt-16" />
 </template>
 
 <script setup lang="ts">
-import { computed, watch, ref } from 'vue';
+import { computed, watch, ref, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
 import { TOPICS, ANY_TOPIC } from "@/constants";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import { useAuth0 } from '@auth0/auth0-vue';
+import { LoadingStatus } from '@/interfaces';
 
 import QuestionCard from "../components/QuestionCard.vue";
 import PostAnswerCTA from '@/components/PostAnswerCTA.vue';
@@ -25,8 +27,7 @@ const route = useRoute();
 const router = useRouter();
 
 const store = useMainStore();
-const { question, email } = storeToRefs(store);
-const { isLoading } = useAuth0();
+const { question, email, questionStatus } = storeToRefs(store);
 
 const topicName = computed(() => {
   return (TOPICS.find((t) => t.id == route.query.topic))?.t;
@@ -54,6 +55,7 @@ const ctaBlockVisible = computed(() => {
 const loadNextQuestion = () => {
   console.log("Load next question");
   qid.value = undefined;
+  replaceRouter = true;
   // if the initial topic is ANY then we should fetch the next question for ANY
   store.loadQuestion(initialTopic, undefined);
 };
@@ -65,6 +67,13 @@ watch(question, (newQuestion) => {
     topic.value = newQuestion.topic;
     qid.value = newQuestion.qid;
     console.log("question topic/qid: ", topic.value, qid.value);
+
+    // update page title
+    if (question.value?.title) {
+      console.log("setting title to ", question.value?.title);
+      window.document.title = question.value?.title;
+      console.log("title set to ", window.document.title);
+    }
 
     if (route.query.topic != topic.value || route.query.qid != qid.value) {
       if (replaceRouter) {
@@ -79,6 +88,16 @@ watch(question, (newQuestion) => {
   }
   else {
     console.log("question removed from store ");
+  }
+});
+
+// needed to load questions on back/forward navigation
+watch(route, (newQuery) => {
+  const newQid = newQuery.query.qid as string | undefined;
+  const newTopic = newQuery.query.topic as string | undefined;
+  console.log(`route.query ${newTopic} / ${newQid}`);
+  if (newTopic && (newTopic != topic.value || newQid != qid.value)) {
+    store.loadQuestion(newTopic, newQid);
   }
 });
 
