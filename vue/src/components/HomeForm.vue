@@ -1,8 +1,10 @@
 <template>
   <div class="mt-8">
-    <div class="mb-12 inline-flex gap-6 flex-wrap items-center">
-      <LinkButton :href="`/${PageIDs.QUESTIONS}`" label="View all questions" icon="pi pi-list-check" class="mx-auto" />
-      <RandomQuestionButton class="mx-auto" />
+    <div class="mb-12 flex gap-6 flex-wrap justify-center align-top">
+      <div class="">
+        <LinkButton :href="`/${PageIDs.QUESTIONS}`" label="View all questions" icon="pi pi-list-check" class="mb-auto" />
+      </div>
+      <RandomQuestionButton class="align-top" />
     </div>
     <TransitionSlot>
       <RandomQuestion v-if="showingRandomQuestion" />

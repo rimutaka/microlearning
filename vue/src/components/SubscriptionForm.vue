@@ -174,7 +174,7 @@ watchEffect(async () => {
   console.log(`Fetching user details for: ${email.value}`);
 
   // reset the current topic so that no questions are showing until the user presses the button to show one
-  store.currentTopic = undefined;
+  // store.currentTopic = undefined;
 
   // only fetch if the user is known
   if (!email.value) return;
