@@ -29,7 +29,7 @@ import { ref } from 'vue';
 import router from '@/router';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import { URL_PARAM_LIST_SEPARATOR } from "@/constants";
+import { URL_PARAM_TOPICS } from "@/constants";
 import { PageIDs } from '@/router';
 
 import Button from 'primevue/button';
@@ -39,13 +39,12 @@ import RandomQuestion from "./RandomQuestion.vue";
 import RandomQuestionButton from './RandomQuestionButton.vue';
 
 const store = useMainStore();
-const { selectedTopics, question, showingRandomQuestion } = storeToRefs(store);
+const { currentTopic, showingRandomQuestion } = storeToRefs(store);
 
 async function navigateToSubscription() {
-  console.log("Subscribing to topics: ", selectedTopics.value);
-  const subTopics = selectedTopics.value.map((t) => t).join(URL_PARAM_LIST_SEPARATOR);
-  if (subTopics) {
-    router.push({ name: 'subscription', query: { topics: subTopics } });
+  console.log("Subscribing to topic: ", currentTopic.value);
+  if (currentTopic.value) {
+    router.push({ name: 'subscription', query: { [URL_PARAM_TOPICS]: currentTopic.value } });
   } else {
     router.push({ name: 'subscription' });
   }
