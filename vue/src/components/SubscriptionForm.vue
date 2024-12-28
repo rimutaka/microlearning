@@ -1,8 +1,8 @@
 <template>
   <div class="card mt-8">
-    <h3 v-if="loading == LoadingStatus.Loading || !loading">Loading topics ...</h3>
+    <LoadingMessage v-if="loading == undefined || loading == LoadingStatus.Loading" msg="Loading your subscription ..." />
     <h3 v-else-if="loading == LoadingStatus.Loaded">Your topics of interest</h3>
-    <h3 v-else-if="loading == LoadingStatus.NoData">Select your topics of interest</h3>
+    <h3 v-else-if="loading == LoadingStatus.NoData">Select topics of interest</h3>
     <TopicList v-if="loading == LoadingStatus.Loaded || loading == LoadingStatus.NoData" :key="user?.updated" />
 
     <div class="mt-4 md:mt-12 mb-12">
@@ -64,6 +64,7 @@ import { type User, LoadingStatus } from "@/interfaces";
 import Button from 'primevue/button';
 import TopicList from './TopicList.vue';
 import RandomQuestionButton from "./RandomQuestionButton.vue";
+import LoadingMessage from "./LoadingMessage.vue";
 
 const emit = defineEmits([VUE_EVENT_HYDRATED]);
 

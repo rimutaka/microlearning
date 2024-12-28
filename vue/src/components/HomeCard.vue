@@ -13,7 +13,7 @@
     <div class="mx-auto">
       <h3>Our subscribers get their questions by email to learn in <em>bite-sized portions</em>.</h3>
       <p class="mb-4">It is a free service. The questions are contributed by other community members.</p>
-      <Button label="Subscribe" icon="pi pi-envelope" raised rounded class="mb-2" @click="navigateToSubscription" />
+      <Button label="Subscribe" icon="pi pi-envelope" raised rounded class="mb-2" @click="router.push({ name: PageIDs.SUBSCRIPTION })" />
       <p class="text-xs text-center md:mb-auto text-slate-500 dark:text-slate-200">
         You will be asked to
         <router-link :to="{ name: PageIDs.SUBSCRIPTION }">sign in</router-link>
@@ -29,7 +29,6 @@ import { ref } from 'vue';
 import router from '@/router';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import { URL_PARAM_TOPICS } from "@/constants";
 import { PageIDs } from '@/router';
 
 import Button from 'primevue/button';
@@ -40,15 +39,6 @@ import RandomQuestionButton from './RandomQuestionButton.vue';
 
 const store = useMainStore();
 const { currentTopic, showingRandomQuestion } = storeToRefs(store);
-
-async function navigateToSubscription() {
-  console.log("Subscribing to topic: ", currentTopic.value);
-  if (currentTopic.value) {
-    router.push({ name: 'subscription', query: { [URL_PARAM_TOPICS]: currentTopic.value } });
-  } else {
-    router.push({ name: 'subscription' });
-  }
-}
 
 // do not show the sample question when the page is first displayed
 // it will be shown when the user clicks on the button requesting it
