@@ -4,7 +4,7 @@
     <h3 class="">Select your topics of interest</h3>
     <TopicList :as-radio="true" />
   </div>
-  <HomeForm />
+  <HomeCard />
 </template>
 
 <script setup lang="ts">
@@ -14,7 +14,7 @@ import { useMainStore } from '@/store';
 import router from '@/router';
 import { PageIDs } from '@/router';
 
-import HomeForm from '@/components/HomeForm.vue';
+import HomeCard from '@/components/HomeCard.vue';
 import HomeCTA from '@/components/HomeCTA.vue';
 import TopicList from '@/components/TopicList.vue';
 
