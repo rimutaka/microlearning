@@ -21,14 +21,6 @@ import TopicList from '@/components/TopicList.vue';
 const store = useMainStore();
 const { token, question } = storeToRefs(store);
 
-// hide the CTA block when the user requests a sample question
-const displayCTA = ref(true);
-watch(question, (newVal) => {
-  if (newVal) {
-    displayCTA.value = false;
-  }
-});
-
 /// redirect to subscription page if the user is authenticated
 watchEffect(() => {
   // this redirect has to be here to redirect from homepage only
