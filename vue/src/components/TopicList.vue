@@ -32,14 +32,25 @@ const { selectedTopics, currentTopic } = storeToRefs(store);
 const initialTopic = currentTopic.value;
 const localCurrentTopic = ref(initialTopic);
 
-watch(localCurrentTopic, (newVal) => {
-  console.log(`Local current topic changed to ${newVal}`);
+// update the route when the user selects a new topic
+// WARNING: possible circular dependency
+watch(localCurrentTopic, (newVal, oldVal) => {
+  console.log(`Local current topic changed from ${oldVal} to ${newVal}`);
   let urlTopic = route.query.topic ? <string>route.query[URL_PARAM_TOPIC] : "";
 
   if (newVal && newVal != urlTopic) {
     console.log(`Navigating to topic ${newVal} from ${route.query[URL_PARAM_TOPIC]}`);
     router.push({ query: { [URL_PARAM_TOPIC]: newVal } });
   }
+});
+
+// update the local topic when the route changes
+// WARNING: possible circular dependency
+watch(currentTopic, (newVal) => {
+  console.log(`Current topic changed from ${localCurrentTopic.value} to ${newVal}`);
+
+  // update if there was a change
+  if (newVal != localCurrentTopic.value) localCurrentTopic.value = newVal;
 });
 
 </script>
