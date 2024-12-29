@@ -88,9 +88,19 @@ export const useMainStore = defineStore('main', () => {
 
 
 
-  /// The topic always comes from props.topic
-  /// The qid comes from props.qid if random is false.
+  /** Loads a question from the DB or reuses the existing one if the topic and qid match.
+   * Returns a random question for the topic if qid is not provided.
+   * Updates the questionStatus value during the loading process.
+   * Clear the question value to guarantee the latest version is loaded.
+   */
   const loadQuestion = async (paramTopic: string, paramQid?: string) => {
+
+    // check if the currently loaded question can be reused
+    if (question.value && question.value.topic === paramTopic && question.value.qid === paramQid) {
+      questionStatus.value = LoadingStatus.Loaded;
+      console.log("Reusing the current question.");
+      return;
+    }
 
     // make sure nothing is showing if the component is reused
     questionStatus.value = LoadingStatus.Loading;

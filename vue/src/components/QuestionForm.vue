@@ -94,6 +94,7 @@ import Textarea from 'primevue/textarea';
 import InputText from 'primevue/inputtext';
 import LoadingMessage from "./LoadingMessage.vue";
 import ContributorForm from "./ContributorForm.vue";
+import { PageIDs } from "@/router";
 
 const props = defineProps<{
   topic: string | undefined,
@@ -254,13 +255,13 @@ async function submitQuestion() {
   console.log("Response status: ", response.status);
   if (response.status === 200) {
     try {
-      const savedQuestion = <Question>await response.json();
+      question.value = <Question>await response.json();
       // clear the local storage
       localStorage.removeItem(PREVIEW_QUESTION_LS_KEY);
       // console.log("Saved OK: ", savedQuestion);
       // redirect to the saved question
       // TODO: make use of the returned question details to avoid an extra fetch
-      router.push(`/question?${URL_PARAM_TOPIC}=${savedQuestion.topic}&${URL_PARAM_QID}=${savedQuestion.qid}`);
+      router.push(`/${PageIDs.QUESTION}?${URL_PARAM_TOPIC}=${question.value.topic}&${URL_PARAM_QID}=${question.value.qid}`);
     } catch (error) {
       console.error(error);
     }
