@@ -66,7 +66,7 @@
         </ul>
       </div>
       <div class="flex-shrink text-end">
-        <Button label="Cancel" icon="pi pi-times" raised severity="secondary" class="me-4 whitespace-nowrap" @click="router.back()" />
+        <Button label="Cancel" icon="pi pi-times" raised severity="secondary" class="me-4 whitespace-nowrap" @click="cancelAndGoBack()" />
         <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
       </div>
     </div>
@@ -255,6 +255,8 @@ async function submitQuestion() {
   if (response.status === 200) {
     try {
       const savedQuestion = <Question>await response.json();
+      // clear the local storage
+      localStorage.removeItem(PREVIEW_QUESTION_LS_KEY);
       // console.log("Saved OK: ", savedQuestion);
       // redirect to the saved question
       // TODO: make use of the returned question details to avoid an extra fetch
@@ -271,14 +273,8 @@ async function submitQuestion() {
 /// LS is a reliable way of passing the initial data to the preview window
 /// subsequent updates are sent via postMessage
 const showPreviewWindow = () => {
-  localStorage.setItem(PREVIEW_QUESTION_LS_KEY, JSON.stringify(<Question>{
-    topic: selectedTopic.value,
-    question: questionText.value,
-    answers: answers.value,
-    contributor: question.value?.contributor,
-    title: title.value,
-    // this is a very truncated version of a question - bare essentials
-  }));
+
+  localStorage.setItem(PREVIEW_QUESTION_LS_KEY, JSON.stringify(packageQuestion()));
 
   previewWindow.value = window.open(`${window.location.origin}/preview`, PREVIEW_QUESTION_LS_KEY);
 }
@@ -305,8 +301,8 @@ watch([selectedTopic, questionText, answers.value, title, question], ([, , answe
   debouncePostMsg();
 }, { deep: true });
 
-/// Resets local and store values to start accepting data for a brand new question
-/// from a blank form
+/** Resets local and store values to start accepting data for a brand new question
+* from a blank form */
 function resetValuesForNewQuestion() {
   selectedTopic.value = "";
   questionText.value = "";
@@ -317,6 +313,33 @@ function resetValuesForNewQuestion() {
   // clear all fields from the question in store
   // this is a hack and there should be a more elegant solution
   store.resetQuestionToBlank();
+}
+
+/** Restore the question content from the local storage, if any */
+function restoreQuestionFromLS() {
+
+  // get the question from the local storage
+  const lsQuestion = localStorage.getItem(PREVIEW_QUESTION_LS_KEY);
+  if (!lsQuestion) {
+    console.log("No question found in the local storage");
+    return;
+  }
+
+  // load the question from the local storage
+  // this is assumed to be infallible because only the form can write to the LS
+  // it may fail if the contents is not JSON
+  const fetchedQuestion = <Question>JSON.parse(lsQuestion);
+
+  // delete the LS if the qid does not match the current question
+  // they have to be both present and match or both absent
+  if (fetchedQuestion.qid !== props.qid) {
+    console.log("Clear LS version - mismatch with the current question");
+    localStorage.removeItem(PREVIEW_QUESTION_LS_KEY);
+    return;
+  }
+
+  // load the question from the struct into the form and the store
+  loadQuestion(fetchedQuestion);
 }
 
 /// Loads all local variables with the question data, if present.
@@ -338,11 +361,18 @@ function loadQuestion(fetchedQuestion: Question) {
   question.value = JSON.parse(JSON.stringify(fetchedQuestion));; // store the question in the store
 }
 
+/** Clear the storage and go back to the previous page */
+function cancelAndGoBack() {
+  localStorage.removeItem(PREVIEW_QUESTION_LS_KEY);
+  router.back();
+}
+
 watchEffect(async () => {
   // if no topic/qid is set, this is a new question
   if (!(props.topic && props.qid)) {
     console.log("Adding a new question");
     resetValuesForNewQuestion();
+    restoreQuestionFromLS();
     hydrated.value = true; // enable the form
     return;
   }
@@ -393,9 +423,27 @@ watchEffect(async () => {
 
 });
 
+/** package the current question data from the input fields into a struct */
+function packageQuestion() {
+  return <Question>{
+    qid: props.qid,
+    topic: selectedTopic.value,
+    question: questionText.value,
+    answers: answers.value,
+    correct: 0, // setting this to the correct value will enable checkboxes in the preview
+    contributor: question.value?.contributor,
+    title: title.value,
+  };
+}
+
 /// Packages the current question data and sends it to the preview window, if open
 function postQuestionPreview() {
-  // do nothing if the window is not open, but this will not help if the window was closed
+
+  // save the question in the local storage as a backup in case the window was closed or refreshed
+  const msg = packageQuestion();
+  localStorage.setItem(PREVIEW_QUESTION_LS_KEY, JSON.stringify(packageQuestion()));
+
+  // do not attempt to post it if the window is not open, but this will not help if the window was closed
   // because the reference will still be there
   if (!previewWindow.value) return;
 
@@ -404,16 +452,6 @@ function postQuestionPreview() {
     console.log("Preview window was closed");
     previewWindow.value = null;
     return;
-  };
-
-  const msg = <Question>{
-    qid: props.qid,
-    topic: selectedTopic.value,
-    question: questionText.value,
-    answers: answers.value,
-    correct: 0, // setting this to the correct value will enable checkboxes in the preview
-    contributor: question.value?.contributor,
-    title: title.value,
   };
 
   console.log("Sending preview update msg");
