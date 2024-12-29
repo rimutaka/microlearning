@@ -11,8 +11,6 @@
     </TransitionSlot>
 
     <div class="mx-auto">
-      <h3>Our subscribers get their questions by email to learn in <em>bite-sized portions</em>.</h3>
-      <p class="mb-4">It is a free service. The questions are contributed by other community members.</p>
       <Button label="Subscribe" icon="pi pi-envelope" raised rounded class="mb-2" @click="router.push({ name: PageIDs.SUBSCRIPTION })" />
       <p class="text-xs text-center md:mb-auto text-slate-500 dark:text-slate-200">
         You will be asked to
