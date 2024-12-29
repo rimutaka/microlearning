@@ -26,7 +26,7 @@
     <ul class=" text-start">
       <li>Authentication: <a href="https://auth0.com">Auth0</a></li>
       <li>Infrastructure: AWS</li>
-      <li>Source code: <a href="https://github.com/rimutaka/bitesized">https://github.com/rimutaka/bitesized</a></li>
+      <li>Source code: <a href="https://github.com/rimutaka/microlearning">https://github.com/rimutaka/microlearning</a></li>
     </ul>
 
     <h3>Feedback</h3>
