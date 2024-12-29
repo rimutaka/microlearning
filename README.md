@@ -1,6 +1,7 @@
-# Bite-Sized Learning for Busy Software Engineers
+# An open-source platform for microlearning through questions
 
-**This project is work in progress, extremely unstable and should not be used for anything.**
+Implementations: 
+- https://bitesized.info
 
 ## Overview
 
@@ -44,6 +45,8 @@ Technical features:
 
 ## Deployment
 
+No deployment automation exists. Contact the maintainer to discuss.
+
 ### Dev env
 
 * Front-end: `npm run build` + `git push` to let [.github/workflows/deploy.yml] copy the built files to the S3 bucket.
@@ -52,9 +55,15 @@ Technical features:
 
 ### Adding, editing and removing questions
 
+This is done by approved users only. The front-end enables ADD/EDIT buttons if `x-bitie-token` is present in the local storage.
+
 ### Managing learner accounts
 
+Manually in DynamoDB
+
 ### Viewing stats
+
+Every question record in DynamoDB has stats for pass/fail/viewed, but the numbers are write-only.
 
 ## Tech stack and attribution
 
