@@ -27,9 +27,6 @@ export const RECENT_HEADER_NAME = "x-bitie-recent";
 /// The user is asked to auth if the key is present.
 export const LAST_AUTH_TIMESTAMP = "auth";
 
-/// Used for defining emits, e.g. defineEmits([VUE_EVENT_HYDRATED]);
-export const VUE_EVENT_HYDRATED = "hydrated";
-
 /// The name of the preview question in the localStorage and the name of the popup window
 /// with live preview rendering
 export const PREVIEW_QUESTION_LS_KEY = "previewQuestion";
