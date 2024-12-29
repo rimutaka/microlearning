@@ -3,16 +3,15 @@
   <TopicList :as-links="true" :as-radio="true" />
   <div v-if="topic">
     <QuestionList :topic="topic" :key="topic" class="mt-12" />
-    <div v-if="!email" class="mb-12 mt-12 cta-box">
-      <!-- Show it to logged out users -->
-      <QuestionListCTASignin />
+    <div v-if="!email && questionsWithHistory?.length" class="mb-12 mt-12 cta-box">
+        <!-- Show it to logged out users -->
+        <QuestionListCTASignin />
     </div>
     <div v-if="email && !user?.topics?.length && questionListStatus == LoadingStatus.Loaded" class="mb-12 mt-12 cta-box">
       <!-- Show it to logged in users with no subscriptions -->
       <QuestionListCTASubscribe />
     </div>
   </div>
-  <LoadingMessage v-else msg="Select a topic to view the list of questions" class="mt-12" />
 </template>
 
 <script setup lang="ts">
@@ -27,12 +26,11 @@ import QuestionListCTASignin from '@/components/QuestionListCTASignin.vue';
 import QuestionList from '@/components/QuestionList.vue';
 import QuestionListCTASubscribe from '@/components/QuestionListCTASubscribe.vue';
 import TopicList from '@/components/TopicList.vue';
-import LoadingMessage from '@/components/LoadingMessage.vue';
 
 const route = useRoute();
 
 const store = useMainStore();
-const { email, user, questionListStatus } = storeToRefs(store);
+const { email, user, questionListStatus, questionsWithHistory } = storeToRefs(store);
 
 const topic = ref();
 

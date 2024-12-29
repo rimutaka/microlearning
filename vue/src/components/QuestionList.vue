@@ -2,7 +2,7 @@
   <div>
     <LoadingMessage v-if="questionListStatus == undefined || questionListStatus == LoadingStatus.Loading" :msg="`Loading questions about ${topicName}`" />
     <div v-if="questionListStatus == LoadingStatus.Loaded" class="q-list">
-      <QuestionListItem v-for="(question, index) in questions" :question="question" :key="index" />
+      <QuestionListItem v-for="(question, index) in questionsWithHistory" :question="question" :key="index" />
     </div>
     <div v-if="questionListStatus == LoadingStatus.Error || questionListStatus == LoadingStatus.NoData">Cannot load the list of questions - something went wrong.</div>
   </div>
@@ -21,11 +21,10 @@ import QuestionListItem from '@/components/QuestionListItem.vue';
 import LoadingMessage from '@/components/LoadingMessage.vue';
 
 const store = useMainStore();
-const { token, questionListStatus } = storeToRefs(store);
+const { token, questionListStatus, questionsWithHistory } = storeToRefs(store);
 
 const props = defineProps<{ topic: string }>();
 
-const questions = ref<QuestionWithHistory[] | undefined>([]);
 
 const topicName = computed(() => {
   return (constants.TOPICS.find((t) => t.id == props.topic))?.t;
@@ -36,13 +35,13 @@ const topicName = computed(() => {
 const loadQuestions = async (paramTopic: string) => {
   // make sure nothing is showing while it's loading or if the component is reused
   questionListStatus.value = LoadingStatus.Loading;
-  questions.value = undefined;
+  questionsWithHistory.value = undefined;
 
   // load the data
-  questions.value = await fetchQuestions(paramTopic, token.value);
+  questionsWithHistory.value = await fetchQuestions(paramTopic, token.value);
 
   // update the status
-  if (questions.value && questions.value.length) {
+  if (questionsWithHistory.value && questionsWithHistory.value.length) {
     questionListStatus.value = LoadingStatus.Loaded;
   } else {
     questionListStatus.value = LoadingStatus.Error;
