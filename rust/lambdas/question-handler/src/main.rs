@@ -5,13 +5,12 @@ use aws_lambda_events::{
 use aws_sdk_dynamodb::Client;
 use bitie_types::{
     ddb::fields,
-    jwt::JwtUser,
     lambda,
     question::{Question, QuestionFormat},
 };
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
 use std::str::FromStr;
-use tracing::info;
+use tracing::{info, warn};
 use tracing_subscriber::filter::LevelFilter;
 
 mod question;
@@ -124,24 +123,35 @@ pub(crate) async fn my_handler(
         }
 
         Method::PUT => {
-            // a temporary hack to limit who can post questions
-            if !can_post(&jwt_user) {
-                return lambda::text_response(Some("Unauthorized".to_string()), 401);
-            }
+            // add / edit a question, get as markdown
 
-            if let Some(jwt_user) = jwt_user {
-                if let Some(body) = event.payload.body {
+            // must be an authenticated user
+            let jwt_user = match jwt_user {
+                Some(v) => v,
+                None => {
+                    info!("Unauthorized");
+                    return lambda::text_response(Some("Unauthorized".to_string()), 401);
+                }
+            };
+
+            match event.payload.body {
+                // save the question in the DB if there is a body
+                Some(body) => {
                     // info!("Received question: {body}");
                     let q = match Question::from_str(&body) {
+                        // the email hash is required for the author
                         Ok(v) => v.with_author(&jwt_user.email_hash).with_updated(),
                         Err(_) => return lambda::text_response(Some("Invalid question".to_string()), 400),
                     };
 
+                    // DDB returns an error if the author does not match
                     match question::save(&client, &q).await {
-                        Ok(_) => lambda::json_response(Some(&q.format(QuestionFormat::MarkdownFull)), 200),
+                        Ok(_) => lambda::json_response(Some(&q.format(QuestionFormat::HtmlShort)), 200),
                         Err(e) => lambda::text_response(Some(e.to_string()), 400),
                     }
-                } else {
+                }
+                // return the question in markdown format if there is no body
+                None => {
                     let (topic, qid) = match (topic, qid) {
                         (Some(topic), Some(qid)) => (topic, qid),
                         _ => {
@@ -152,50 +162,24 @@ pub(crate) async fn my_handler(
                             );
                         }
                     };
-                    // return the question in markdown format
-                    match question::get_exact(&client, topic, qid).await {
-                        Ok(Some(v)) => lambda::json_response(Some(&v.format(QuestionFormat::MarkdownFull)), 200),
-                        Ok(None) => lambda::text_response(Some("No question found".to_string()), 404), // this would be a bug
-                        Err(e) => lambda::text_response(Some(e.to_string()), 400),
+                    // return the question in markdown format if the author matches
+                    let question = match question::get_exact(&client, topic, qid).await {
+                        Ok(Some(v)) => v,
+                        Ok(None) => return lambda::text_response(Some("No question found".to_string()), 404), // this would be a bug
+                        Err(e) => return lambda::text_response(Some(e.to_string()), 400),
+                    };
+
+                    if question.author.as_ref() == Some(&jwt_user.email_hash) {
+                        lambda::json_response(Some(&question.format(QuestionFormat::MarkdownFull)), 200)
+                    } else {
+                        warn!("Unauthorized (email hash mismatch): {:?}", jwt_user);
+                        lambda::text_response(Some("Unauthorized".to_string()), 401)
                     }
                 }
-            } else {
-                lambda::text_response(Some("Unauthorized".to_string()), 401)
             }
         }
 
         // unsupported method
         _ => lambda::text_response(Some("Unsupported HTTP method".to_string()), 400),
-    }
-}
-
-/// Returns true if the email from jwt_user matches the token in the environment var.
-/// It is a temporary solution for authenticating DDB update requests.
-/// Logs an error if the token env var is missing.
-fn can_post(jwt_user: &Option<JwtUser>) -> bool {
-    const TOKEN_ENV_VAR: &str = "x_bitie_token";
-
-    // get the token from the environment
-    let token_env = match std::env::var(TOKEN_ENV_VAR) {
-        Ok(v) => v.trim().to_string(),
-        Err(e) => {
-            info!("Missing {TOKEN_ENV_VAR} with a token: {e}");
-            return false;
-        }
-    };
-
-    // make sure the token env var is not empty
-    if token_env.is_empty() {
-        info!("Empty {TOKEN_ENV_VAR}");
-        return false;
-    }
-
-    // get the token from the headers and compare
-    match jwt_user {
-        Some(v) => v.email == token_env,
-        None => {
-            info!("No email. Cannot allow posting.");
-            false
-        }
     }
 }
