@@ -3,8 +3,8 @@
     <div>
       <div class="flex flex-wrap gap-4 mb-4 items-center">
         <label for="qty-input">Number of questions:</label>
-        <InputText type="text" v-model="qty" size="small" :invalid="qty < 1 || qty > MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT" class="w-12" id="qty-input" />
-        =<span><span class="text-xs align-text-top">US$</span>{{ price * qty }}</span>
+        <InputText type="text" v-model="qty" size="small" :invalid="qtyNumber < 1 || qtyNumber > MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT" class="w-12" id="qty-input" />
+        =<span><span class="text-xs align-text-top">US$</span>{{ price * qtyNumber }}</span>
       </div>
       <div class="flex flex-wrap gap-4 mb-4 items-center">
         <label for="qty-input">Preferred topics:</label>
@@ -16,7 +16,7 @@
         <span class="p-button-label" id="stripe-logo" data-pc-section="label">Secure payment with </span>
       </Button>
       <div class="w-full h-6" id="secure-payments" aria-label="Supports google pay, apple pay and major cards"></div>
-      <p v-if="qty < 1 || qty > MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT" class="text-red-500 text-base mt-2">Maximum {{ MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT }} questions per transaction</p>
+      <p v-if="qtyNumber < 1 || qtyNumber > MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT" class="text-red-500 text-base mt-2">Maximum {{ MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT }} questions per transaction</p>
 
     </div>
     <LoadingMessage v-if="loadingStatus == LoadingStatus.Loading" />
@@ -47,11 +47,13 @@ const store = useMainStore();
 const { question, anonymousContributor } = storeToRefs(store);
 
 const price = 50;
-const qty = ref<number>(1);
+const qty = ref("1");
 const topics = ref("any topic");
 const loadingStatus = ref<LoadingStatusType>(LoadingStatus.Loaded);
 
 const sponsorDetailsInLS = localStorage.getItem(SPONSOR_DETAILS_LS_KEY);
+
+const qtyNumber = computed(() => +qty.value || 0 );
 
 /// Saves the default contributor details to local storage
 const saveDefaultSponsorDetails = () => {
@@ -70,7 +72,7 @@ async function get_checkout_url() {
 
   // quantity is the only required field and must be less than ...
   // it's a pointless check because it can be changed at the checkout
-  if (qty.value < 1 || qty.value > MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT) {
+  if (qtyNumber.value < 1 || qtyNumber.value > MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT) {
     console.log("Invalid quantity: ", qty.value);
     return;
   }
@@ -151,7 +153,7 @@ watchEffect(() => {
   // get the list of topics from the default contributor details saved in local storage from the previous time
   const sponsorDetails = sponsorDetailsInLS ? <QuestionSponsorship>JSON.parse(sponsorDetailsInLS) : undefined;
   if (sponsorDetails?.topics) topics.value = sponsorDetails.topics;
-  if (sponsorDetails?.qty) qty.value = sponsorDetails.qty;
+  if (sponsorDetails?.qty) qty.value = sponsorDetails.qty.toString();
 });
 
 </script>
