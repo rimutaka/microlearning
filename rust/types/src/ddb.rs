@@ -36,11 +36,13 @@ pub mod fields {
     pub const DETAILS: &str = "details";
     /// User's email address
     pub const EMAIL: &str = "email";
+    /// Hash of the user's email address
+    pub const EMAIL_HASH: &str = "email_hash";
     /// A unique unsubscribe token in lower-case
     pub const UNSUBSCRIBE: &str = "unsubscribe";
     /// The email address of the user who created the question.
     pub const AUTHOR: &str = "author";
-/// A counter for the number of correct answers.    
+    /// A counter for the number of correct answers.    
     pub const QUESTION_STATS_CORRECT: &str = "stat_c";
     /// A counter for the number of incorrect answers.
     pub const QUESTION_STATS_INCORRECT: &str = "stat_i";

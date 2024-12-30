@@ -139,7 +139,7 @@ pub(crate) async fn my_handler(
                 Some(body) => {
                     // info!("Received question: {body}");
                     let q = match Question::from_str(&body) {
-                        // the email hash is required for the author
+                        // add the email hash of the current user and update the timestamp
                         Ok(v) => v.with_author(&jwt_user.email_hash).with_updated(),
                         Err(_) => return lambda::text_response(Some("Invalid question".to_string()), 400),
                     };

@@ -43,6 +43,8 @@ export interface Question {
 export interface User {
   /// User's email address
   email: string,
+  /// An SHA256 hash of the email address in hex format
+  emailHash: string,
   /// The list of subscribed topics
   topics: string[],
   /// A unique string to use an unsubscribe key

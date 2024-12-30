@@ -13,7 +13,7 @@ use tracing::{error, info, warn};
 
 /// Save a user in the main user table.
 /// Replaces existing records unconditionally.
-pub(crate) async fn update_subscription(email: String, topics: Vec<String>) -> Result<Option<User>, Error> {
+pub(crate) async fn update_subscription(email: &str, topics: Vec<String>) -> Result<Option<User>, Error> {
     info!("Updating user sub: {}", email);
 
     let client = Client::new(&aws_config::load_from_env().await);
@@ -37,7 +37,7 @@ pub(crate) async fn update_subscription(email: String, topics: Vec<String>) -> R
         .update_item()
         .table_name(tables::USERS)
         .update_expression(UPDATE_EXPRESSION)
-        .key(fields::EMAIL, AttributeValue::S(email.clone()))
+        .key(fields::EMAIL, AttributeValue::S(email.to_string()))
         .key(
             fields::SORT_KEY,
             AttributeValue::S(DEFAULT_USER_TABLE_SK_VALUE.to_string()),
@@ -63,28 +63,30 @@ pub(crate) async fn update_subscription(email: String, topics: Vec<String>) -> R
     }
 }
 
-pub(crate) async fn create_new(email: String) -> Result<Option<User>, Error> {
+pub(crate) async fn create_new(email: &str, email_hash: &str) -> Result<Option<User>, Error> {
     info!("Creating new user: {}", email);
 
     let client = Client::new(&aws_config::load_from_env().await);
 
     // this has to be an update to prevent overwriting photo IDs
-    const UPDATE_EXPRESSION: &str = "SET #updated = :updated";
+    const UPDATE_EXPRESSION: &str = "SET #updated = :updated, #email_hash = :email_hash";
 
     match client
         .update_item()
         .table_name(tables::USERS)
         .update_expression(UPDATE_EXPRESSION)
-        .key(fields::EMAIL, AttributeValue::S(email.clone()))
+        .key(fields::EMAIL, AttributeValue::S(email.to_string()))
         .key(
             fields::SORT_KEY,
             AttributeValue::S(DEFAULT_USER_TABLE_SK_VALUE.to_string()),
         )
         .expression_attribute_names("#updated", fields::UPDATED)
         .expression_attribute_values(
-            [":", fields::UPDATED].concat(),
+            ":updated",
             AttributeValue::S(Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true)),
         )
+        .expression_attribute_names("#email_hash", fields::EMAIL_HASH)
+        .expression_attribute_values(":email_hash", AttributeValue::S(email_hash.to_string()))
         .return_values(ReturnValue::AllNew)
         .send()
         .await
@@ -98,7 +100,7 @@ pub(crate) async fn create_new(email: String) -> Result<Option<User>, Error> {
 }
 
 /// Get a user from the main user table.
-pub(crate) async fn get_user(email: String) -> Result<Option<User>, Error> {
+pub(crate) async fn get_user(email: &str) -> Result<Option<User>, Error> {
     info!("Getting user: {}", email);
 
     let client = Client::new(&aws_config::load_from_env().await);
@@ -108,7 +110,7 @@ pub(crate) async fn get_user(email: String) -> Result<Option<User>, Error> {
         .table_name(tables::USERS)
         .key_condition_expression("#email = :email")
         .expression_attribute_names("#email", fields::EMAIL)
-        .expression_attribute_values(":email", AttributeValue::S(email.clone()))
+        .expression_attribute_values(":email", AttributeValue::S(email.to_string()))
         .send()
         .await
     {
@@ -137,7 +139,7 @@ pub(crate) async fn get_user(email: String) -> Result<Option<User>, Error> {
 /// A reusable part of converting DDB output into User.
 fn query_output_to_user(
     query_output: Option<HashMap<String, AttributeValue>>,
-    email: String,
+    email: &str,
 ) -> Result<Option<User>, Error> {
     /// A generic error to return back to the caller.
     const INVALID_USER: &str = "Invalid user in DDB";
@@ -145,6 +147,11 @@ fn query_output_to_user(
     // process a single item
     if let Some(item) = query_output {
         let unsubscribe = match item.get(fields::UNSUBSCRIBE) {
+            Some(AttributeValue::S(v)) => v.clone(),
+            _ => String::new(),
+        };
+
+        let email_hash = match item.get(fields::EMAIL_HASH) {
             Some(AttributeValue::S(v)) => v.clone(),
             _ => String::new(),
         };
@@ -168,7 +175,8 @@ fn query_output_to_user(
 
         info!("Returning user dets");
         Ok(Some(User {
-            email,
+            email_hash,
+            email: email.to_string(),
             topics,
             questions: Vec::new(),
             unsubscribe,

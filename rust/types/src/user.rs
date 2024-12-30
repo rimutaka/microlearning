@@ -49,6 +49,9 @@ pub struct AskedQuestion {
 pub struct User {
     /// User's email address
     pub email: String,
+    /// Hash of the email address in hex format, e.g. 0e3bf888c95b085a7172b2e819692bb5b46c26ad067f9405c8ba1dd950732b65
+    /// It is used an the anonymous user ID that can be recalculated from the email address without a DB request
+    pub email_hash: String,
     /// The list of subscribed topics
     pub topics: Vec<String>,
     /// The list of asked questions

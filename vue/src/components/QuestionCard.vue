@@ -35,11 +35,11 @@
         <div v-if="!props.isPreview" class="flex">
           <!-- Hide this block in Preview mode -->
           <div class="flex-grow text-start">
-            <LinkButton v-if="hasToken"  :href="editPageUrl" label="Edit" class="me-2 mb-2" icon="pi pi-pencil"  />
-            <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click.capture="copyLinkToClipboard"  />
-            <LinkButton :href="questionsPageUrl" label="View all questions" class="me-2 mb-2" icon="pi pi-list-check"  />
-            <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click.prevent="emit(NEXT_QUESTION_EMIT)"   />
-            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try another question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click.prevent="emit(NEXT_QUESTION_EMIT)"   />
+            <LinkButton v-if="hasToken" :href="editPageUrl" label="Edit" class="me-2 mb-2" icon="pi pi-pencil" />
+            <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click.capture="copyLinkToClipboard" />
+            <LinkButton :href="questionsPageUrl" label="View all questions" class="me-2 mb-2" icon="pi pi-list-check" />
+            <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
+            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try another question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
@@ -84,7 +84,7 @@ const NEXT_QUESTION_EMIT = 'nextQuestion';
 const emit = defineEmits([NEXT_QUESTION_EMIT]);
 
 const store = useMainStore();
-const { token, question, questionStatus } = storeToRefs(store);
+const { token, question, questionStatus, user } = storeToRefs(store);
 
 // as fetched from the server
 const answersCheckbox = ref<string[]>([]);
@@ -92,14 +92,10 @@ const answerRadio = ref<string | undefined>();
 const linkCopiedFlag = ref(false); // controls share button: f: Copy link, t: Link copied
 const emphasizedSubmitReminder = ref(false); // Toggles the class of Submit button block to reminder to select the right number of answers
 
-// a temporary solution to enable editing links
-const hasToken = computed(() => {
-  return localStorage.getItem(constants.TOKEN_HEADER_NAME) ? true : false;
-});
+// only the author of the question can edit it
+const hasToken = computed(() => question.value?.author && question.value.author === user.value?.emailHash);
 
-const isAnswered = computed(() => {
-  if (question.value?.answers?.[0].e) { return true } else { return false };
-});
+const isAnswered = computed(() => question.value?.answers?.[0].e ? true : false);
 
 const isQuestionReady = computed(() => {
   emphasizedSubmitReminder.value = false;

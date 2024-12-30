@@ -73,14 +73,14 @@ pub(crate) async fn my_handler(
         Method::GET => {
             // get the user or update the user subscription
             let user = match topics {
-                Some(v) => user::update_subscription(jwt_user.email.clone(), v).await,
-                None => user::get_user(jwt_user.email.clone()).await,
+                Some(v) => user::update_subscription(&jwt_user.email, v).await,
+                None => user::get_user(&jwt_user.email).await,
             };
 
             // create a new user if it's the first time login
             let user = match user {
                 Ok(Some(v)) => Ok(Some(v)),
-                Ok(None) => user::create_new(jwt_user.email).await,
+                Ok(None) => user::create_new(&jwt_user.email, &jwt_user.email_hash).await,
                 _ => user,
             };
 
