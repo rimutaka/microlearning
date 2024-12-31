@@ -7,6 +7,14 @@ use std::fmt::Display;
 use std::str::FromStr;
 use tracing::error;
 
+/// The maximum size of a serialized question in bytes
+/// .from_str() returns an error if the size is exceeded.
+pub const MAX_QUESTION_LEN: usize = 12_000;
+
+/// The maximum size of a deserialized title in bytes
+/// The excess should be truncated.
+pub const MAX_TITLE_LEN: usize = 120;
+
 /// The possible formats for the question response.
 /// The value is taken from the `QUESTION_FORMAT_HEADER_NAME` header.
 /// Use the `FromStr` trait to convert the string to the enum.
@@ -312,6 +320,14 @@ impl FromStr for Question {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self> {
+        // limit the size to something reasonable
+        if s.len() > MAX_QUESTION_LEN {
+            error!("Question is too large: {}", s.len());
+            return Err(Error::msg(format!(
+                "Question is too large. {MAX_QUESTION_LEN} bytes allowed"
+            )));
+        }
+
         let q = match serde_json::from_str::<Self>(s) {
             Ok(v) => v,
             Err(e) => {
@@ -338,10 +354,39 @@ impl FromStr for Question {
             return Err(Error::msg("Invalid topic"));
         }
 
+        // a helper function needed at the next step
+        let title_from_question = || {
+            if q.question.len() > 10 {
+                let v = &q.question.trim().replace(['\n', '\r'], " ").replace("  ", " ");
+                v[..v.len().min(MAX_TITLE_LEN)].to_string()
+            } else {
+                "Untitled".to_string()
+            }
+        };
+
+        // the title should be trimmed and truncated, if present
+        // if not, we should make something up
+        // it is needed in the front-end to display the list of questions
+        let title = match q.title {
+            Some(v) => {
+                let v = v.trim();
+                if v.is_empty() {
+                    Some(title_from_question())
+                } else {
+                    Some(v[..v.len().min(MAX_TITLE_LEN)].to_string())
+                }
+            }
+            None => {
+                // make an effort to get it from the question part of the question
+                Some(title_from_question())
+            }
+        };
+
         // this structure should be safe enough for further processing
         Ok(Question {
             qid,
             topic,
+            title,
             correct,
             stats: None,
             ..q
@@ -567,5 +612,73 @@ mod test {
         let q2 = Question::from_str(&s).unwrap();
 
         assert_ne!(q, q2);
+    }
+
+    #[test]
+    fn test_question_to_from_str_no_title() {
+        let mut q = Question {
+            qid: "89yZBXJBa9t2LB6xfj46Rm".to_string(),
+            topic: "aws".to_string(),
+            question: "What is 1+1?".to_string(),
+            answers: vec![
+                Answer {
+                    a: "1".to_string(),
+                    e: None,
+                    c: Some(false),
+                    sel: None,
+                },
+                Answer {
+                    a: "2".to_string(),
+                    e: None,
+                    c: Some(true),
+                    sel: None,
+                },
+            ],
+            correct: 1,
+            author: Some("you@me.us".to_string()),
+            updated: Some(Utc::now()),
+            stats: None,
+            contributor: Some(ContributorProfile {
+                name: Some("John Doe".to_string()),
+                url: Some("https://example.com".to_string()),
+                img_url: Some("https://example.com/img.jpg".to_string()),
+                about: Some("A great developer".to_string()),
+            }),
+            title: Some("".to_string()),
+        };
+
+        // blank title, question copied to title as-is
+        assert_eq!(
+            Question::from_str(&q.to_string()).unwrap().title.unwrap(),
+            q.question,
+            "blank title should be == question"
+        );
+
+        // test for question copied to title as-is
+        q.title = Some("  ".to_string());
+        assert_eq!(
+            Question::from_str(&q.to_string()).unwrap().title.unwrap(),
+            q.question,
+            "whitespace title should be == question"
+        );
+
+        // test for question copied to title as-is
+        q.title = None;
+        assert_eq!(
+            Question::from_str(&q.to_string()).unwrap().title.unwrap(),
+            q.question,
+            "None title should be == question"
+        );
+
+        // test for a single line truncation
+        q.question = "\nThe syntax and capabilities of closures make them very convenient for on the fly usage.\r \
+        Calling a closure is exactly like calling a function. However,\
+         both input and return types can be inferred and input variable names must be specified."
+            .to_string();
+        assert_eq!(
+            Question::from_str(&q.to_string()).unwrap().title,
+            Some("The syntax and capabilities of closures make them very convenient for on the fly usage. Calling a closure is exactly lik".to_string()),
+            "expected question truncated to MAX_TITLE_LEN with line breaks removed"
+        );
     }
 }

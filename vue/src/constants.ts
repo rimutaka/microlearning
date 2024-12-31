@@ -41,6 +41,15 @@ export const SPONSOR_DETAILS_LS_KEY = "sponsorship";
 
 export const MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT = 20;
 
+/// The maximum size of a serialized question in bytes
+/// .from_str() returns an error if the size is exceeded.
+export const MAX_QUESTION_LEN = 12_000;
+
+/// The maximum size of a deserialized question in bytes
+/// The excess is truncated.
+/// The lambda may allow for a few extra bytes to account for the Unicode overhead.
+export const MAX_TITLE_LEN = 100;
+
 /// Keypair for the topic title and DDB topic ID, e.g. "AWS"/"aws".
 export interface TopicFields {
   t: string,

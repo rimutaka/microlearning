@@ -43,7 +43,7 @@
     <div class="flex flex-wrap gap-4 mb-8">
       <h4>One line summary</h4>
       <div class="w-full mb-6">
-        <InputText v-model="title" class="w-full mb-2" maxlength="100" placeholder="A short title for the list of questions" />
+        <InputText v-model="title" class="w-full mb-2" :maxlength="MAX_TITLE_LEN" placeholder="A short title for the list of questions" />
         <p class=" text-slate-500 dark:text-slate-300 text-xs text-end">Appears in the list of questions and on the question preview page. 100 characters max.</p>
       </div>
     </div>
@@ -85,7 +85,7 @@ import { toHex } from "uint8array-tools";
 import debounce from "lodash.debounce"
 import _ from "lodash";
 
-import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, PREVIEW_QUESTION_LS_KEY } from "@/constants";
+import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, PREVIEW_QUESTION_LS_KEY, MAX_TITLE_LEN } from "@/constants";
 import type { Answer, Question } from "@/interfaces";
 
 import Button from 'primevue/button';

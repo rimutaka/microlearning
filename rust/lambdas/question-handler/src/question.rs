@@ -177,12 +177,12 @@ async fn get_question(
 
 /// Save a question in the main questions table.
 /// Replaces existing records unconditionally.
-pub(crate) async fn save(client: &DdbClient, q: &Question) -> Result<(), Error> {
-    info!("Saving question {}/{}", q.topic, q.qid);
-    info!("{:?}", q);
+pub(crate) async fn save(client: &DdbClient, question: &Question) -> Result<(), Error> {
+    info!("Saving question {}/{}", question.topic, question.qid);
+    info!("{:?}", question);
 
     // this field is optional, but must be present for the question to be saved
-    let author = match &q.author {
+    let author = match &question.author {
         Some(v) => v.clone(),
         None => {
             error!("Missing author field. It's a bug.");
@@ -191,7 +191,7 @@ pub(crate) async fn save(client: &DdbClient, q: &Question) -> Result<(), Error> 
     };
 
     // this field may be needed for sorting later, remove fractional seconds
-    let updated = match q.updated {
+    let updated = match question.updated {
         Some(v) => v.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
         None => {
             error!("Missing updated field. It's a bug.");
@@ -199,22 +199,33 @@ pub(crate) async fn save(client: &DdbClient, q: &Question) -> Result<(), Error> 
         }
     };
 
+    // Title is used in indexes and must be present at the record level
+    let title = match &question.title {
+        Some(v) => v.clone(),
+        None => {
+            error!("Missing Title field. it's a bug.");
+            "Untitled".to_string()
+        }
+    };
+
     // this has to be an update to prevent overwriting photo IDs
     const UPDATE_EXPRESSION: &str =
-        "SET #author = if_not_exists(#author, :author), #updated = :updated, #details = :details";
+        "SET #author = if_not_exists(#author, :author), #updated = :updated, #details = :details, #title = :title";
 
     match client
         .update_item()
         .table_name(tables::QUESTIONS)
         .update_expression(UPDATE_EXPRESSION)
-        .key(fields::TOPIC, AttributeValue::S(q.topic.clone()))
-        .key(fields::QID, AttributeValue::S(q.qid.clone()))
+        .key(fields::TOPIC, AttributeValue::S(question.topic.clone()))
+        .key(fields::QID, AttributeValue::S(question.qid.clone()))
         .expression_attribute_names("#author", fields::AUTHOR)
         .expression_attribute_values(":author", AttributeValue::S(author))
         .expression_attribute_names("#updated", fields::UPDATED)
         .expression_attribute_values(":updated", AttributeValue::S(updated))
         .expression_attribute_names("#details", fields::DETAILS)
-        .expression_attribute_values(":details", AttributeValue::S(q.to_string()))
+        .expression_attribute_values(":details", AttributeValue::S(question.to_string()))
+        .expression_attribute_names("#title", fields::TITLE)
+        .expression_attribute_values(":title", AttributeValue::S(title))
         .condition_expression("#author = :author OR attribute_not_exists(#author)") // makes the query fail with an error if the author is different
         .send()
         .await
@@ -224,7 +235,7 @@ pub(crate) async fn save(client: &DdbClient, q: &Question) -> Result<(), Error> 
             Ok(())
         }
         Err(e) => {
-            error!("Failed to save question {}/{}: {:?}", q.topic, q.qid, e);
+            error!("Failed to save question {}/{}: {:?}", question.topic, question.qid, e);
             Err(Error::msg("Failed to save question".to_string()))
         }
     }

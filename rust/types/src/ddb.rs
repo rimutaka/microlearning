@@ -42,6 +42,8 @@ pub mod fields {
     pub const UNSUBSCRIBE: &str = "unsubscribe";
     /// The email address of the user who created the question.
     pub const AUTHOR: &str = "author";
+    /// The title of the question. It's duplicated from the question field.
+    pub const TITLE: &str = "title";
     /// A counter for the number of correct answers.    
     pub const QUESTION_STATS_CORRECT: &str = "stat_c";
     /// A counter for the number of incorrect answers.
