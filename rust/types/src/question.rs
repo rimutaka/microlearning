@@ -7,14 +7,6 @@ use std::fmt::Display;
 use std::str::FromStr;
 use tracing::error;
 
-/// The maximum size of a serialized question in bytes
-/// .from_str() returns an error if the size is exceeded.
-pub const MAX_QUESTION_LEN: usize = 12_000;
-
-/// The maximum size of a deserialized title in bytes
-/// The excess should be truncated.
-pub const MAX_TITLE_LEN: usize = 120;
-
 /// The possible formats for the question response.
 /// The value is taken from the `QUESTION_FORMAT_HEADER_NAME` header.
 /// Use the `FromStr` trait to convert the string to the enum.
@@ -125,6 +117,17 @@ pub struct Question {
 }
 
 impl Question {
+    /// The maximum size of a serialized question in bytes
+    /// .from_str() returns an error if the size is exceeded.
+    pub const MAX_QUESTION_LEN: usize = 12_000;
+
+    /// The maximum size of a deserialized title in bytes
+    /// The excess should be truncated.
+    pub const MAX_TITLE_LEN: usize = 120;
+
+    /// The value to use when no title is present and it cannot be generated from the question.
+    pub const DEFAULT_TITLE: &str = "Untitled";
+
     /// Converts markdown members (question, answers) to HTML.
     /// Supports CommonMark only.
     /// See https://crates.io/crates/pulldown-cmark for more information.
@@ -321,10 +324,11 @@ impl FromStr for Question {
 
     fn from_str(s: &str) -> Result<Self> {
         // limit the size to something reasonable
-        if s.len() > MAX_QUESTION_LEN {
+        if s.len() > Self::MAX_QUESTION_LEN {
             error!("Question is too large: {}", s.len());
             return Err(Error::msg(format!(
-                "Question is too large. {MAX_QUESTION_LEN} bytes allowed"
+                "Question is too large. {} bytes allowed",
+                Self::MAX_QUESTION_LEN
             )));
         }
 
@@ -358,9 +362,9 @@ impl FromStr for Question {
         let title_from_question = || {
             if q.question.len() > 10 {
                 let v = &q.question.trim().replace(['\n', '\r'], " ").replace("  ", " ");
-                v[..v.len().min(MAX_TITLE_LEN)].to_string()
+                v[..v.len().min(Self::MAX_TITLE_LEN)].to_string()
             } else {
-                "Untitled".to_string()
+                Self::DEFAULT_TITLE.to_string()
             }
         };
 
@@ -373,7 +377,7 @@ impl FromStr for Question {
                 if v.is_empty() {
                     Some(title_from_question())
                 } else {
-                    Some(v[..v.len().min(MAX_TITLE_LEN)].to_string())
+                    Some(v[..v.len().min(Self::MAX_TITLE_LEN)].to_string())
                 }
             }
             None => {

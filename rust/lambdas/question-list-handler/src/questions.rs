@@ -1,7 +1,7 @@
 use anyhow::Error;
 use aws_sdk_dynamodb::{types::AttributeValue, Client as DdbClient};
 use bitie_types::{ddb::fields, ddb::tables, question::Question, topic::Topic};
-use std::str::FromStr;
+use chrono::{DateTime, Utc};
 use tracing::{error, info, warn};
 
 /// Returns True if the param a single valid topic,
@@ -21,6 +21,7 @@ pub(crate) async fn get_all_questions_by_topic(client: &DdbClient, topic: &Strin
     match client
         .query()
         .table_name(tables::QUESTIONS)
+        .index_name(tables::QUESTIONS_IDX_TOPIC_QID)
         .key_condition_expression("#topic = :topic")
         .expression_attribute_names("#topic", fields::TOPIC)
         .expression_attribute_values(":topic", AttributeValue::S(topic.to_owned()))
@@ -41,37 +42,44 @@ pub(crate) async fn get_all_questions_by_topic(client: &DdbClient, topic: &Strin
                             }
                         };
 
-                        // get question stats that live outside the details attribute
-                        let correct = match item.get(fields::QUESTION_STATS_CORRECT) {
-                            Some(AttributeValue::N(v)) => Some(v.as_str()),
-                            _ => None,
-                        };
-                        let incorrect = match item.get(fields::QUESTION_STATS_INCORRECT) {
-                            Some(AttributeValue::N(v)) => Some(v.as_str()),
-                            _ => None,
-                        };
-                        let skipped = match item.get(fields::QUESTION_STATS_SKIPPED) {
-                            Some(AttributeValue::N(v)) => Some(v.as_str()),
-                            _ => None,
+                        // get question title from an included attribute
+                        let title = match item.get(fields::TITLE) {
+                            Some(AttributeValue::S(v)) => Some(v.clone()),
+                            _ => {
+                                warn!("invalid `title` attribute for {topic} / {item_qid}");
+                                Some(Question::DEFAULT_TITLE.to_string())
+                            }
                         };
 
-                        match item.get(fields::DETAILS) {
-                            Some(AttributeValue::S(v)) => match Question::from_str(v) {
-                                Ok(v) => {
-                                    // info!("Returning {topic} / {item_qid}");
-                                    fetched_questions
-                                        .push(v.with_stats(correct, incorrect, skipped).strip_for_list_display());
-                                }
-                                Err(_) => {
-                                    warn!("Cannot deser details attribute: {topic} / {item_qid}: ");
-                                    continue;
+                        // get updated field from an included attribute
+                        let updated = match item.get(fields::UPDATED) {
+                            Some(AttributeValue::S(v)) => match DateTime::parse_from_rfc3339(v) {
+                                Ok(v) => Some(v.with_timezone(&Utc)),
+                                Err(e) => {
+                                    warn!("invalid `updated` attribute for {topic} / {item_qid}: {:?}", e);
+                                    Some(DateTime::<Utc>::MIN_UTC)
                                 }
                             },
                             _ => {
-                                warn!("Invalid question {topic} / {item_qid}: missing details attribute");
-                                continue;
+                                warn!("invalid `updated` attribute for {topic} / {item_qid}");
+                                Some(DateTime::<Utc>::MIN_UTC)
                             }
-                        }
+                        };
+
+                        let question = Question {
+                            topic: topic.to_string(),
+                            qid: item_qid,
+                            title,
+                            updated,
+                            answers: Vec::new(),
+                            question: "".to_string(),
+                            correct: 0,
+                            author: None,
+                            contributor: None,
+                            stats: None,
+                        };
+
+                        fetched_questions.push(question);
                     }
                 }
                 None => {

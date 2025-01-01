@@ -5,6 +5,8 @@ pub const DEFAULT_USER_TABLE_SK_VALUE: &str = "sub";
 pub mod tables {
     /// Contains the full text of the questions along with the metadata.
     pub const QUESTIONS: &str = "questions_20241009_1118";
+    /// A shorter representation of the questions for the list view: topic, qid,
+    pub const QUESTIONS_IDX_TOPIC_QID: &str = "topic-qid-index";
     /// List of users, their subscriptions and answered questions.
     pub const USERS: &str = "users_20241023_0712";
 }
