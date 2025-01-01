@@ -20,8 +20,6 @@ export const URL_PARAM_LIST_SEPARATOR = "."
 
 /// A temporary measure to limit who can save data in DDB
 export const TOKEN_HEADER_NAME = "x-bitie-token";
-/// A comma-separated list of recently viewed questions
-export const RECENT_HEADER_NAME = "x-bitie-recent";
 
 /// The key name for the last authentication timestamp in the localStorage.
 /// The user is asked to auth if the key is present.

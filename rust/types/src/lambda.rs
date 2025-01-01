@@ -9,7 +9,6 @@ use tracing::info;
 
 /// An HTTP header for the JWT token.
 pub const X_BITIE_TOKEN_HEADER: &str = "x-bitie-token";
-pub const X_BITIE_RECENT: &str = "x-bitie-recent";
 
 // /// The header name for the question format.
 // /// The value should be one of the `QuestionFormat` enum values.

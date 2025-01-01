@@ -67,15 +67,19 @@ pub(crate) async fn my_handler(
             None
         }
     };
-    // get x-bitie-recent header if present
-    let recent_questions = event
-        .payload
-        .headers
-        .get(lambda::X_BITIE_RECENT)
-        .map(|v| v.to_str().unwrap_or_default().to_string());
 
-    let topic = event.payload.query_string_parameters.get(fields::TOPIC);
-    let qid = event.payload.query_string_parameters.get(fields::QID);
+    let topic = event
+        .payload
+        .query_string_parameters
+        .get(fields::TOPIC)
+        .map(|v| v.trim().to_ascii_lowercase()) // trim whitespace, convert to lowercase
+        .filter(|v| !v.is_empty()); // convert "" to None
+    let qid = event
+        .payload
+        .query_string_parameters
+        .get(fields::QID)
+        .map(|v| v.trim().to_string()) // trim whitespace, qid is case sensitive
+        .filter(|v| !v.is_empty()); // convert "" to None
 
     let client = Client::new(&aws_config::load_from_env().await);
 
@@ -83,20 +87,16 @@ pub(crate) async fn my_handler(
     match method {
         Method::GET => {
             // topic param is required for get queries
-            let topic = match topic {
-                Some(v) if !v.trim().is_empty() => v.trim().to_lowercase(),
+            let (topic, qid) = match (topic, qid) {
+                (Some(topic), Some(qid)) => (topic, qid),
                 _ => {
-                    info!("No topics found in the query string");
-                    return lambda::text_response(Some("No topics found in the query string".to_string()), 400);
+                    info!("Missing topic/qid in the query string");
+                    return lambda::text_response(Some("No topic/qid found in the query string".to_string()), 400);
                 }
             };
 
             // get the question from the DB
-            let question = match qid {
-                Some(qid) if !qid.is_empty() => question::get_exact(&client, &topic, qid).await,
-
-                _ => question::get_random(&client, &topic, &recent_questions).await,
-            };
+            let question = question::get(&client, &topic, &qid).await;
 
             let question = match question {
                 Ok(Some(v)) => v,
@@ -152,7 +152,7 @@ pub(crate) async fn my_handler(
                 }
                 // return the question in markdown format if there is no body
                 None => {
-                    let (topic, qid) = match (topic, qid) {
+                    let (topic, qid) = match (&topic, &qid) {
                         (Some(topic), Some(qid)) => (topic, qid),
                         _ => {
                             info!("Missing topic or qid in the query string: {:?} / {:?}", topic, qid);
@@ -163,7 +163,7 @@ pub(crate) async fn my_handler(
                         }
                     };
                     // return the question in markdown format if the author matches
-                    let question = match question::get_exact(&client, topic, qid).await {
+                    let question = match question::get(&client, topic, qid).await {
                         Ok(Some(v)) => v,
                         Ok(None) => return lambda::text_response(Some("No question found".to_string()), 404), // this would be a bug
                         Err(e) => return lambda::text_response(Some(e.to_string()), 400),
