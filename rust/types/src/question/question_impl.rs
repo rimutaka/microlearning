@@ -1,4 +1,4 @@
-use super::{Answer, ContributorProfile, QuestionFormat, Stats};
+use super::{Answer, ContributorProfile, PublishStage, QuestionFormat, Stats};
 use crate::topic::Topic;
 use anyhow::{Error, Result};
 use chrono::{DateTime, Timelike, Utc};
@@ -54,6 +54,11 @@ pub struct Question {
     /// Ideally, it needs to be generated from the question and answers.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub title: Option<String>,
+    /// Controls visibility of the question: draft, review, published.
+    /// Maintained in the struct and as a DDB attribute for indexing.
+    /// The struct is the source of truth.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub stage: Option<PublishStage>,
 }
 
 impl Question {
@@ -211,6 +216,7 @@ impl Question {
             title: self.title,
             stats: self.stats,
             updated: self.updated,
+            stage: None,
             answers: vec![],
             question: "".to_string(),
             correct: 0,
@@ -388,6 +394,7 @@ mod test {
             stats: None,
             contributor: None,
             title: None,
+            stage: None,
         };
 
         assert!(q.is_correct(&[1]), "correct");
@@ -429,6 +436,7 @@ mod test {
             stats: None,
             contributor: None,
             title: None,
+            stage: None,
         };
 
         assert!(q.is_correct(&[0, 2]), "correct");
@@ -477,6 +485,7 @@ mod test {
                 about: Some("A great developer".to_string()),
             }),
             title: Some("Simple Rust question".to_string()),
+            stage: Some(PublishStage::Draft),
         };
 
         let s = q.to_string();
@@ -527,6 +536,7 @@ mod test {
                 about: Some("A great developer".to_string()),
             }),
             title: Some("Simple Rust question".to_string()),
+            stage: Some(PublishStage::Draft),
         };
 
         let s = q.to_string();
@@ -566,6 +576,7 @@ mod test {
                 img_url: Some("https://example.com/img.jpg".to_string()),
                 about: Some("A great developer".to_string()),
             }),
+            stage: None, // it was Draft in other tests, making it None to vary the test
             title: Some("".to_string()),
         };
 

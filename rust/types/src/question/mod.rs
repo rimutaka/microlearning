@@ -1,6 +1,7 @@
+pub use question_impl::Question;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
-pub use question_impl::Question;
+use std::str::FromStr;
 
 mod question_impl;
 
@@ -84,5 +85,39 @@ impl Display for ContributorProfile {
             .join(" / ");
 
         write!(f, "{}", contents)
+    }
+}
+
+/// Controls visibility of the question.
+/// - Draft - visible to the author and mods
+/// - Published - visible to everyone
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum PublishStage {
+    Draft,
+    Published,
+}
+
+impl FromStr for PublishStage {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "draft" => Ok(PublishStage::Draft),
+            "published" => Ok(PublishStage::Published),
+            _ => Err(format!("Invalid publish stage: {}", s)),
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_publish_stage_from_str() {
+        assert_eq!(PublishStage::from_str("draft").unwrap(), PublishStage::Draft);
+        assert_eq!(PublishStage::from_str("published").unwrap(), PublishStage::Published);
+        assert!(PublishStage::from_str("invalid").is_err());
     }
 }

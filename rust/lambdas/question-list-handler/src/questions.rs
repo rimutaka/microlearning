@@ -77,6 +77,7 @@ pub(crate) async fn get_all_questions_by_topic(client: &DdbClient, topic: &str) 
                             author: None,
                             contributor: None,
                             stats: None,
+                            stage: None,
                         };
 
                         fetched_questions.push(question);
@@ -176,6 +177,7 @@ pub(crate) async fn get_all_questions_by_author(client: &DdbClient, email_hash: 
                             author: None,
                             contributor: None,
                             stats: None,
+                            stage: None,
                         };
 
                         fetched_questions.push(question);
