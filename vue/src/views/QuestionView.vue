@@ -1,5 +1,5 @@
 <template>
-  <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about <em class="italic">{{ topicName }}</em></h1>
+  <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about <em class="italic">{{ question?.title || topicName }}</em></h1>
   <LoadingMessage v-if="questionStatus == LoadingStatus.Loading" />
   <div v-else>
     <QuestionCard :next="true" @next-question="loadNextQuestion" />

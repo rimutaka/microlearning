@@ -1,7 +1,6 @@
 <template>
   <div class="mb-4 md:mb-8 text-start">
-    <h1 class="mb-2 text-2xl">Question preview about <em class="italic">{{ topicName }}</em></h1>
-    <p v-if="question?.title" class="italic text-sm ">{{ question?.title }}</p>
+    <h1 class="mb-2 text-2xl">Question preview about <em class="italic">{{ question?.title || topicName }}</em></h1>
   </div>
   <QuestionCard :next="false" :is-preview="true" />
   <ContributorCard class="mb-12 mt-8 md:mt-16" />
