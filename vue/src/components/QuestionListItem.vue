@@ -3,6 +3,7 @@
     <p>
       <i></i>
       <router-link :to="questionTopicAndPageUrl" :aria-label="status.class + title">{{ title }}</router-link>
+      <span v-if="showTopic" class="tag">{{ topicName }}</span>
     </p>
   </div>
 </template>
@@ -15,17 +16,24 @@ import type { QuestionWithHistory } from "@/interfaces";
 import * as constants from "@/constants";
 
 const props = defineProps<{
+  /** The question to display */
   question: QuestionWithHistory,
+  /** Display the topic name if True */
+  showTopic?: boolean,
 }>()
 
 const title = computed(() => props.question.question?.title ? props.question.question?.title : "Untitled question");
+
+const topicName = computed(() => {
+  return (constants.TOPICS.find((t) => t.id == props.question.question.topic))?.t;
+});
 
 // contains CSS class and aria-label for the question
 const status = computed((): { class: string, aria: string } => {
   if (props.question?.history?.[0].correct) return { class: "correct", aria: "Correctly answered before, " };
   if (props.question?.history?.[0].incorrect) return { class: "incorrect", aria: "Incorrect answer last time, " };
   if (props.question?.history?.[0]) return { class: "viewed", aria: "Viewed before, " };
-  return {class: "", aria: ""}; // not viewed
+  return { class: "", aria: "" }; // not viewed
 });
 
 /// A URL to the page with the question on its own

@@ -7,6 +7,8 @@ pub mod tables {
     pub const QUESTIONS: &str = "questions_20241009_1118";
     /// A shorter representation of the questions for the list view: topic, qid,
     pub const QUESTIONS_IDX_TOPIC_QID: &str = "topic-qid-index";
+    /// A list of questions with keys + title by author's email hash
+    pub const QUESTIONS_IDX_AUTHOR: &str = "author-title-status-updated";
     /// List of users, their subscriptions and answered questions.
     pub const USERS: &str = "users_20241023_0712";
 }

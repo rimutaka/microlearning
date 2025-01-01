@@ -10,7 +10,7 @@ use tracing::{error, info, warn};
 /// Each question appears only once with correct/incorrect status having the precedence.
 pub(crate) async fn get_user_question_history(
     client: &DdbClient,
-    topic: Option<&str>,
+    topic: &Option<String>,
     user_email: &str,
 ) -> Option<Vec<AskedQuestion>> {
     info!("Getting user question history for {user_email}");
@@ -69,7 +69,7 @@ pub(crate) async fn get_user_question_history(
         .iter()
         .filter_map(|v| match (AskedQuestion::from_str(v), topic) {
             // must match a topic if specified
-            (Ok(v), Some(t)) if v.topic == t => Some(v),
+            (Ok(v), Some(t)) if &v.topic == t => Some(v),
             (Ok(v), _) => Some(v), // no topic specified
             (Err(_), _) => {
                 warn!("Cannot deser question: {v}");

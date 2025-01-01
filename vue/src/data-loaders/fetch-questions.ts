@@ -2,20 +2,22 @@ import { QUESTION_LIST_HANDLER_URL, TOKEN_HEADER_NAME, URL_PARAM_TOPIC } from "@
 import { type QuestionWithHistory } from "@/interfaces";
 
 /** Makes the best effort to fetch a list of questions. Returns `undefined` on error. */
-export const fetchQuestions = async (topic: string, token?: string): Promise<QuestionWithHistory[] | undefined> => {
+export const fetchQuestions = async (topic?: string, token?: string): Promise<QuestionWithHistory[] | undefined> => {
   console.log(`Fetching questions for: ${topic}`);
 
   if (!topic) {
-    console.error("No topic provided - exiting.");
-    return;
+    console.error("No topic provided - getting user-authored questions.");
   }
 
   // add a token with the email, if there is one (logged in users)
   const headers = new Headers();
   if (token) headers.append(TOKEN_HEADER_NAME, token);
 
+  // no topic param if no topic is provided
+  const fetchParams = topic ? `${URL_PARAM_TOPIC}=${topic}` : "";
+
   try {
-    const response = await fetch(`${QUESTION_LIST_HANDLER_URL}${URL_PARAM_TOPIC}=${topic}`,
+    const response = await fetch(`${QUESTION_LIST_HANDLER_URL}${fetchParams}`,
       {
         headers: headers,
         signal: AbortSignal.timeout(5000),

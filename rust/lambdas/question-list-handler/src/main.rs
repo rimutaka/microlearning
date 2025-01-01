@@ -61,11 +61,11 @@ pub(crate) async fn my_handler(
                 info!("Invalid topic: {v}");
                 return lambda::text_response(Some("Invalid topic".to_string()), 400);
             }
-            v
+            Some(v)
         }
         None => {
-            info!("Missing topic param");
-            return lambda::text_response(Some("Missing topic param.".to_string()), 400);
+            info!("No topic param");
+            None
         }
     };
 
@@ -77,54 +77,82 @@ pub(crate) async fn my_handler(
     //decide on the action depending on the HTTP method
     match method {
         Method::GET => {
-            // get the question from the DB
-            let questions = match questions::get_all_questions_by_topic(&client, &topic).await {
-                Ok(v) => v,
-                Err(e) => return lambda::text_response(Some(e.to_string()), 500),
-            };
-
-            if let Some(jwt_user) = jwt_user {
-                // get the user's question history
-                let mut user_question_history =
-                    match user::get_user_question_history(&client, Some(&topic), &jwt_user.email).await {
-                        Some(v) => {
+            // get the list of questions
+            let (questions, user_question_history) = match (&topic, &jwt_user) {
+                // get the list of topic questions and user history
+                (Some(t), Some(u)) => (
+                    // TODO: execute this concurrently
+                    questions::get_all_questions_by_topic(&client, t).await,
+                    user::get_user_question_history(&client, &topic, &u.email).await.map(|v|
                             // reduce the list to one entry per question to see if the question is worth looking at or has been answered before
                             // and convert it into a hashmap for quicker search
                             AskedQuestion::latest_answer_list(v)
                                 .into_iter()
                                 .map(|v| (v.qid.clone(), v))
-                                .collect::<HashMap<String, AskedQuestion>>()
-                        }
-                        None => HashMap::new(),
-                    };
+                                .collect::<HashMap<String, AskedQuestion>>()),
+                ),
+                // get the list of topic questions without user history since there is no user
+                (Some(t), None) => (questions::get_all_questions_by_topic(&client, t).await, None),
 
+                // get the list of questions authored by the user and none of the history
+                (None, Some(v)) => (
+                    questions::get_all_questions_by_author(&client, &v.email_hash).await,
+                    None,
+                ),
+                // anything else should not be handled
+                _ => {
+                    info!("No topic or user");
+                    return lambda::text_response(Some("No topic or user".to_string()), 400);
+                }
+            };
+
+            if let Some(user_question_history) = &user_question_history {
                 info!(
                     "Reduced history to one status per question: {}",
                     user_question_history.len()
                 );
-
-                // combine the questions with the user's history
-                let questions_with_history = questions
-                    .into_iter()
-                    .map(|v| {
-                        let history = user_question_history.remove(&v.qid).map(|v| vec![v.status]);
-                        QuestionWithHistory { question: v, history }
-                    })
-                    .collect::<Vec<QuestionWithHistory>>();
-
-                return lambda::json_response(Some(&questions_with_history), 200);
             }
 
-            // convert questions into questions with history, but without the history
-            let questions_with_history = questions
-                .into_iter()
-                .map(|v| QuestionWithHistory {
-                    question: v,
-                    history: None,
-                })
-                .collect::<Vec<QuestionWithHistory>>();
+            match (questions, user_question_history) {
+                // no questions found
+                (None, _) => {
+                    info!("Returning empty list of QuestionWithHistory");
+                    lambda::json_response(Some(&Vec::<QuestionWithHistory>::new()), 200)
+                }
 
-            lambda::json_response(Some(&questions_with_history), 200)
+                // questions + history
+                (Some(questions), Some(mut user_question_history)) => {
+                    // combine the questions with the user's history
+                    let questions_with_history = questions
+                        .into_iter()
+                        .map(|v| {
+                            let history = user_question_history.remove(&v.qid).map(|v| vec![v.status]);
+                            QuestionWithHistory { question: v, history }
+                        })
+                        .collect::<Vec<QuestionWithHistory>>();
+
+                    info!("Returning list questions + history: {}", questions_with_history.len());
+                    lambda::json_response(Some(&questions_with_history), 200)
+                }
+
+                // only questions found, no history
+                (Some(questions), None) => {
+                    // convert questions into questions with history, but without the history
+                    let questions_with_history = questions
+                        .into_iter()
+                        .map(|v| QuestionWithHistory {
+                            question: v,
+                            history: None,
+                        })
+                        .collect::<Vec<QuestionWithHistory>>();
+
+                    info!(
+                        "Returning list of questions, no history: {}",
+                        questions_with_history.len()
+                    );
+                    lambda::json_response(Some(&questions_with_history), 200)
+                }
+            }
         }
 
         // unsupported method

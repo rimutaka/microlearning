@@ -1,8 +1,8 @@
 <template>
   <div>
-    <LoadingMessage v-if="questionListStatus == undefined || questionListStatus == LoadingStatus.Loading" :msg="`Loading questions about ${topicName}`" />
+    <LoadingMessage v-if="questionListStatus == undefined || questionListStatus == LoadingStatus.Loading" :msg="loadingMsg" />
     <div v-if="questionListStatus == LoadingStatus.Loaded" class="q-list">
-      <QuestionListItem v-for="(question, index) in questionsWithHistory" :question="question" :key="index" />
+      <QuestionListItem v-for="(question, index) in questionsWithHistory" :question="question" :key="index" :show-topic="topic == undefined" />
     </div>
     <div v-if="questionListStatus == LoadingStatus.Error || questionListStatus == LoadingStatus.NoData">Cannot load the list of questions - something went wrong.</div>
   </div>
@@ -23,16 +23,18 @@ import LoadingMessage from '@/components/LoadingMessage.vue';
 const store = useMainStore();
 const { token, questionListStatus, questionsWithHistory } = storeToRefs(store);
 
-const props = defineProps<{ topic: string }>();
+const props = defineProps<{ topic?: string }>();
 
 
 const topicName = computed(() => {
   return (constants.TOPICS.find((t) => t.id == props.topic))?.t;
 });
 
+const loadingMsg = computed(() => topicName.value ? `Loading questions about ${topicName.value}` : "Loading your questions");
+
 /// The topic always comes from props.topic
 /// The qid comes from props.qid if random is false.
-const loadQuestions = async (paramTopic: string) => {
+const loadQuestions = async (paramTopic?: string) => {
   // make sure nothing is showing while it's loading or if the component is reused
   questionListStatus.value = LoadingStatus.Loading;
   questionsWithHistory.value = undefined;
