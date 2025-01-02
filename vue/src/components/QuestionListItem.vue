@@ -1,8 +1,9 @@
 <template>
-  <div :class="status.class">
+  <div :class="status.cssClass">
     <p>
       <i></i>
-      <router-link :to="questionTopicAndPageUrl" :aria-label="status.class + title">{{ title }}</router-link>
+      <i v-if="isAuthor" class="author"></i>
+      <router-link :to="questionTopicAndPageUrl" :aria-label="status.aria + title">{{ title }}</router-link>
       <span v-if="showTopic" class="tag">{{ topicName }}</span>
     </p>
   </div>
@@ -20,6 +21,8 @@ const props = defineProps<{
   question: QuestionWithHistory,
   /** Display the topic name if True */
   showTopic?: boolean,
+  /** Taken from store.user to match with the question author hash */
+  user_email_hash?: string,
 }>()
 
 const title = computed(() => props.question.question?.title ? props.question.question?.title : "Untitled question");
@@ -28,12 +31,14 @@ const topicName = computed(() => {
   return (constants.TOPICS.find((t) => t.id == props.question.question.topic))?.t;
 });
 
+const isAuthor = computed(() => props.showTopic || (props.user_email_hash != undefined && props.user_email_hash === props.question.question.author));
+
 // contains CSS class and aria-label for the question
-const status = computed((): { class: string, aria: string } => {
-  if (props.question?.history?.[0].correct) return { class: "correct", aria: "Correctly answered before, " };
-  if (props.question?.history?.[0].incorrect) return { class: "incorrect", aria: "Incorrect answer last time, " };
-  if (props.question?.history?.[0]) return { class: "viewed", aria: "Viewed before, " };
-  return { class: "", aria: "" }; // not viewed
+const status = computed((): { cssClass: string, aria: string } => {
+  if (props.question?.history?.[0].correct) return { cssClass: `correct`, aria: "Correctly answered before, " };
+  if (props.question?.history?.[0].incorrect) return { cssClass: "incorrect", aria: "Incorrect answer last time, " };
+  if (props.question?.history?.[0]) return { cssClass: "viewed", aria: "Viewed before, " };
+  return { cssClass: "", aria: "" }; // not viewed
 });
 
 /// A URL to the page with the question on its own

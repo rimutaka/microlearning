@@ -2,7 +2,7 @@
   <div>
     <LoadingMessage v-if="questionListStatus == undefined || questionListStatus == LoadingStatus.Loading" :msg="loadingMsg" />
     <div v-if="questionListStatus == LoadingStatus.Loaded" class="q-list">
-      <QuestionListItem v-for="(question, index) in questionsWithHistory" :question="question" :key="index" :show-topic="topic == undefined" />
+      <QuestionListItem v-for="(question, index) in questionsWithHistory" :question="question" :key="index" :show-topic="topic == undefined" :user_email_hash="user?.emailHash" />
     </div>
     <div v-if="questionListStatus == LoadingStatus.Error || questionListStatus == LoadingStatus.NoData">Cannot load the list of questions - something went wrong.</div>
   </div>
@@ -21,7 +21,7 @@ import QuestionListItem from '@/components/QuestionListItem.vue';
 import LoadingMessage from '@/components/LoadingMessage.vue';
 
 const store = useMainStore();
-const { token, questionListStatus, questionsWithHistory } = storeToRefs(store);
+const { token, questionListStatus, questionsWithHistory, user } = storeToRefs(store);
 
 const props = defineProps<{ topic?: string }>();
 
