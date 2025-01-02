@@ -17,7 +17,11 @@ pub(crate) fn validate_topic(topic: &str) -> bool {
 /// Returns a list questions for the given topic.
 /// Not all Question fields are included because this query uses an index.
 /// Returns a error if no questions found.
-pub(crate) async fn get_published_questions_by_topic(client: &DdbClient, topic: &str) -> Option<Vec<Question>> {
+pub(crate) async fn get_published_questions_by_topic(
+    client: &DdbClient,
+    topic: &str,
+    email_hash: Option<&str>,
+) -> Option<Vec<Question>> {
     info!("Getting all questions for {topic}");
     // list of questions fetched from DDB
     let mut fetched_questions = Vec::new();
@@ -88,6 +92,13 @@ pub(crate) async fn get_published_questions_by_topic(client: &DdbClient, topic: 
                             }
                         };
 
+                        // only include the author ID if the user is the author
+                        // it is of no use to the UI if the user is not the author
+                        let author = match item.get(fields::AUTHOR) {
+                            Some(AttributeValue::S(v)) if Some(v.as_str()) == email_hash => Some(v.clone()),
+                            _ => None,
+                        };
+
                         let question = Question {
                             topic: topic.to_string(),
                             qid: item_qid,
@@ -96,7 +107,7 @@ pub(crate) async fn get_published_questions_by_topic(client: &DdbClient, topic: 
                             answers: Vec::new(),
                             question: "".to_string(),
                             correct: 0,
-                            author: None,
+                            author,
                             contributor: None,
                             stats: None,
                             stage,
@@ -211,7 +222,7 @@ pub(crate) async fn get_all_questions_by_author(client: &DdbClient, email_hash: 
                             answers: Vec::new(),
                             question: "".to_string(),
                             correct: 0,
-                            author: None,
+                            author: None, // all questions are authored by the user, no point in including this
                             contributor: None,
                             stats: None,
                             stage,

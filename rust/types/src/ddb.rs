@@ -6,7 +6,7 @@ pub mod tables {
     /// Contains the full text of the questions along with the metadata.
     pub const QUESTIONS: &str = "questions_20241009_1118";
     /// A shorter representation of the questions for the list view: topic, qid,
-    pub const QUESTIONS_IDX_TOPIC: &str = "topic-stage-title-updated";
+    pub const QUESTIONS_IDX_TOPIC: &str = "topic-stage-title-updated-author";
     /// A list of questions with keys + title by author's email hash
     pub const QUESTIONS_IDX_AUTHOR: &str = "author-title-stage-updated";
     /// List of users, their subscriptions and answered questions.
