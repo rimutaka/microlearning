@@ -91,9 +91,10 @@ impl Display for ContributorProfile {
 /// Controls visibility of the question.
 /// - Draft - visible to the author and mods
 /// - Published - visible to everyone
-#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub enum PublishStage {
+    #[default]
     Draft,
     Published,
 }

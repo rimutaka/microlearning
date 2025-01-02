@@ -82,7 +82,7 @@ pub(crate) async fn my_handler(
                 // get the list of topic questions and user history
                 (Some(t), Some(u)) => (
                     // TODO: execute this concurrently
-                    questions::get_all_questions_by_topic(&client, t).await,
+                    questions::get_published_questions_by_topic(&client, t).await,
                     user::get_user_question_history(&client, &topic, &u.email).await.map(|v|
                             // reduce the list to one entry per question to see if the question is worth looking at or has been answered before
                             // and convert it into a hashmap for quicker search
@@ -91,14 +91,16 @@ pub(crate) async fn my_handler(
                                 .map(|v| (v.qid.clone(), v))
                                 .collect::<HashMap<String, AskedQuestion>>()),
                 ),
+
                 // get the list of topic questions without user history since there is no user
-                (Some(t), None) => (questions::get_all_questions_by_topic(&client, t).await, None),
+                (Some(t), None) => (questions::get_published_questions_by_topic(&client, t).await, None),
 
                 // get the list of questions authored by the user and none of the history
                 (None, Some(v)) => (
                     questions::get_all_questions_by_author(&client, &v.email_hash).await,
                     None,
                 ),
+
                 // anything else should not be handled
                 _ => {
                     info!("No topic or user");

@@ -143,7 +143,7 @@ pub(crate) async fn my_handler(
                         Ok(v) => v
                             .with_author(&jwt_user.email_hash) // defaults to the current user
                             .with_updated()
-                            .with_stage(Some(PublishStage::Draft)), // always reset it to Draft in save, other stages are set elsewhere
+                            .with_stage(PublishStage::Draft), // always reset it to Draft in save, other stages are set elsewhere
                         Err(_) => return lambda::text_response(Some("Invalid question".to_string()), 400),
                     };
 

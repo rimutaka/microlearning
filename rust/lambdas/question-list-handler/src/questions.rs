@@ -1,6 +1,11 @@
 use aws_sdk_dynamodb::{types::AttributeValue, Client as DdbClient};
-use bitie_types::{ddb::fields, ddb::tables, question::Question, topic::Topic};
+use bitie_types::{
+    ddb::{fields, tables},
+    question::{PublishStage, Question},
+    topic::Topic,
+};
 use chrono::{DateTime, Utc};
+use std::str::FromStr;
 use tracing::{error, info, warn};
 
 /// Returns True if the param a single valid topic,
@@ -12,7 +17,7 @@ pub(crate) fn validate_topic(topic: &str) -> bool {
 /// Returns a list questions for the given topic.
 /// Not all Question fields are included because this query uses an index.
 /// Returns a error if no questions found.
-pub(crate) async fn get_all_questions_by_topic(client: &DdbClient, topic: &str) -> Option<Vec<Question>> {
+pub(crate) async fn get_published_questions_by_topic(client: &DdbClient, topic: &str) -> Option<Vec<Question>> {
     info!("Getting all questions for {topic}");
     // list of questions fetched from DDB
     let mut fetched_questions = Vec::new();
@@ -21,10 +26,12 @@ pub(crate) async fn get_all_questions_by_topic(client: &DdbClient, topic: &str) 
     match client
         .query()
         .table_name(tables::QUESTIONS)
-        .index_name(tables::QUESTIONS_IDX_TOPIC_QID)
-        .key_condition_expression("#topic = :topic")
+        .index_name(tables::QUESTIONS_IDX_TOPIC)
+        .key_condition_expression("#topic = :topic AND #stage = :stage")
         .expression_attribute_names("#topic", fields::TOPIC)
         .expression_attribute_values(":topic", AttributeValue::S(topic.to_owned()))
+        .expression_attribute_names("#stage", fields::STAGE)
+        .expression_attribute_values(":stage", AttributeValue::S(PublishStage::Published.to_string()))
         .send()
         .await
     {
@@ -44,10 +51,25 @@ pub(crate) async fn get_all_questions_by_topic(client: &DdbClient, topic: &str) 
 
                         // get question title from an included attribute
                         let title = match item.get(fields::TITLE) {
-                            Some(AttributeValue::S(v)) => Some(v.clone()),
+                            Some(AttributeValue::S(v)) => v.clone(),
                             _ => {
                                 warn!("Invalid `title` attribute for {topic} / {item_qid}");
-                                Some(Question::DEFAULT_TITLE.to_string())
+                                Question::DEFAULT_TITLE.to_string()
+                            }
+                        };
+
+                        // get question title from an included attribute
+                        let stage = match item.get(fields::STAGE) {
+                            Some(AttributeValue::S(v)) => match PublishStage::from_str(v) {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    warn!("Invalid `stage` attribute for {topic} / {item_qid}: {:?}", e);
+                                    PublishStage::default()
+                                }
+                            },
+                            _ => {
+                                warn!("Invalid `stage` attribute for {topic} / {item_qid}");
+                                PublishStage::default()
                             }
                         };
 
@@ -77,7 +99,7 @@ pub(crate) async fn get_all_questions_by_topic(client: &DdbClient, topic: &str) 
                             author: None,
                             contributor: None,
                             stats: None,
-                            stage: None,
+                            stage,
                         };
 
                         fetched_questions.push(question);
@@ -144,10 +166,25 @@ pub(crate) async fn get_all_questions_by_author(client: &DdbClient, email_hash: 
 
                         // get question title from an included attribute
                         let title = match item.get(fields::TITLE) {
-                            Some(AttributeValue::S(v)) => Some(v.clone()),
+                            Some(AttributeValue::S(v)) => v.clone(),
                             _ => {
                                 warn!("Invalid `title` attribute for {topic} / {qid}");
-                                Some(Question::DEFAULT_TITLE.to_string())
+                                Question::DEFAULT_TITLE.to_string()
+                            }
+                        };
+
+                        // get question title from an included attribute
+                        let stage = match item.get(fields::STAGE) {
+                            Some(AttributeValue::S(v)) => match PublishStage::from_str(v) {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    warn!("Invalid `stage` attribute for {topic} / {qid}: {:?}", e);
+                                    PublishStage::default()
+                                }
+                            },
+                            _ => {
+                                warn!("Invalid `stage` attribute for {topic} / {qid}");
+                                PublishStage::default()
                             }
                         };
 
@@ -177,7 +214,7 @@ pub(crate) async fn get_all_questions_by_author(client: &DdbClient, email_hash: 
                             author: None,
                             contributor: None,
                             stats: None,
-                            stage: None,
+                            stage,
                         };
 
                         fetched_questions.push(question);

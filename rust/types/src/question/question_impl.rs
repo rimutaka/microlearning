@@ -40,6 +40,15 @@ pub struct Question {
     /// The date when the question was last modified.
     /// This value only changes when the contents are updated.
     pub updated: Option<DateTime<Utc>>,
+    /// A one line summary of the question to display in the list of questions.
+    /// This was an afterthought and is not present in the existing questions.
+    /// Ideally, it needs to be generated from the question and answers.
+    pub title: String,
+    /// Controls visibility of the question: draft, review, published.
+    /// Maintained in the struct and as a DDB attribute for indexing.
+    /// The struct is the source of truth.
+    #[serde(default)]
+    pub stage: PublishStage,
     /// Counters for correct, incorrect and skipped user interactions with the question
     /// to provide the data to the front-end.
     /// The values are set during DDB reads.
@@ -49,16 +58,6 @@ pub struct Question {
     /// Details of the person or business who contributed the question
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub contributor: Option<ContributorProfile>,
-    /// A one line summary of the question to display in the list of questions.
-    /// This was an afterthought and is not present in the existing questions.
-    /// Ideally, it needs to be generated from the question and answers.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub title: Option<String>,
-    /// Controls visibility of the question: draft, review, published.
-    /// Maintained in the struct and as a DDB attribute for indexing.
-    /// The struct is the source of truth.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub stage: Option<PublishStage>,
 }
 
 impl Question {
@@ -209,7 +208,7 @@ impl Question {
     }
 
     /// Returns Self with updated `stage` field.
-    pub fn with_stage(self, stage: Option<PublishStage>) -> Self {
+    pub fn with_stage(self, stage: PublishStage) -> Self {
         Question { stage, ..self }
     }
 
@@ -221,7 +220,7 @@ impl Question {
             title: self.title,
             stats: self.stats,
             updated: self.updated,
-            stage: None,
+            stage: self.stage,
             answers: vec![],
             question: "".to_string(),
             correct: 0,
@@ -322,18 +321,12 @@ impl FromStr for Question {
         // the title should be trimmed and truncated, if present
         // if not, we should make something up
         // it is needed in the front-end to display the list of questions
-        let title = match q.title {
-            Some(v) => {
-                let v = v.trim();
-                if v.is_empty() {
-                    Some(title_from_question())
-                } else {
-                    Some(v[..v.len().min(Self::MAX_TITLE_LEN)].to_string())
-                }
-            }
-            None => {
-                // make an effort to get it from the question part of the question
-                Some(title_from_question())
+        let title = {
+            let v = q.title.trim();
+            if v.is_empty() {
+                title_from_question()
+            } else {
+                v[..v.len().min(Self::MAX_TITLE_LEN)].to_string()
             }
         };
 
@@ -398,8 +391,8 @@ mod test {
             updated: Some(Utc::now()),
             stats: None,
             contributor: None,
-            title: None,
-            stage: None,
+            title: "".to_string(),
+            stage: PublishStage::Draft,
         };
 
         assert!(q.is_correct(&[1]), "correct");
@@ -440,8 +433,8 @@ mod test {
             updated: Some(Utc::now()),
             stats: None,
             contributor: None,
-            title: None,
-            stage: None,
+            title: "".to_string(),
+            stage: PublishStage::Draft,
         };
 
         assert!(q.is_correct(&[0, 2]), "correct");
@@ -489,8 +482,8 @@ mod test {
                 img_url: Some("https://example.com/img.jpg".to_string()),
                 about: Some("A great developer".to_string()),
             }),
-            title: Some("Simple Rust question".to_string()),
-            stage: Some(PublishStage::Draft),
+            title: "Simple Rust question".to_string(),
+            stage: PublishStage::Draft,
         };
 
         let s = q.to_string();
@@ -540,8 +533,8 @@ mod test {
                 img_url: Some("https://example.com/img.jpg".to_string()),
                 about: Some("A great developer".to_string()),
             }),
-            title: Some("Simple Rust question".to_string()),
-            stage: Some(PublishStage::Draft),
+            title: "Simple Rust question".to_string(),
+            stage: PublishStage::Draft,
         };
 
         let s = q.to_string();
@@ -581,31 +574,23 @@ mod test {
                 img_url: Some("https://example.com/img.jpg".to_string()),
                 about: Some("A great developer".to_string()),
             }),
-            stage: None, // it was Draft in other tests, making it None to vary the test
-            title: Some("".to_string()),
+            stage: PublishStage::Published, // it was Draft in other tests, vary the test here
+            title: "".to_string(),
         };
 
         // blank title, question copied to title as-is
         assert_eq!(
-            Question::from_str(&q.to_string()).unwrap().title.unwrap(),
+            Question::from_str(&q.to_string()).unwrap().title,
             q.question,
             "blank title should be == question"
         );
 
         // test for question copied to title as-is
-        q.title = Some("  ".to_string());
+        q.title = "  ".to_string();
         assert_eq!(
-            Question::from_str(&q.to_string()).unwrap().title.unwrap(),
+            Question::from_str(&q.to_string()).unwrap().title,
             q.question,
             "whitespace title should be == question"
-        );
-
-        // test for question copied to title as-is
-        q.title = None;
-        assert_eq!(
-            Question::from_str(&q.to_string()).unwrap().title.unwrap(),
-            q.question,
-            "None title should be == question"
         );
 
         // test for a single line truncation
@@ -615,7 +600,7 @@ mod test {
             .to_string();
         assert_eq!(
             Question::from_str(&q.to_string()).unwrap().title,
-            Some("The syntax and capabilities of closures make them very convenient for on the fly usage. Calling a closure is exactly lik".to_string()),
+            "The syntax and capabilities of closures make them very convenient for on the fly usage. Calling a closure is exactly lik".to_string(),
             "expected question truncated to MAX_TITLE_LEN with line breaks removed"
         );
     }
@@ -632,11 +617,11 @@ mod test {
             updated: None,
             stats: None,
             contributor: None,
-            title: None,
-            stage: None,
+            title: "".to_string(),
+            stage: PublishStage::Published,
         };
 
-        let q = q.with_stage(Some(PublishStage::Draft));
-        assert_eq!(q.stage, Some(PublishStage::Draft));
+        let q = q.with_stage(PublishStage::Draft);
+        assert_eq!(q.stage, PublishStage::Draft);
     }
 }
