@@ -6,9 +6,9 @@ pub mod tables {
     /// Contains the full text of the questions along with the metadata.
     pub const QUESTIONS: &str = "questions_20241009_1118";
     /// A shorter representation of the questions for the list view: topic, qid,
-    pub const QUESTIONS_IDX_TOPIC_QID: &str = "topic-qid-index";
+    pub const QUESTIONS_IDX_TOPIC_QID: &str = "topic-stage-title-updated";
     /// A list of questions with keys + title by author's email hash
-    pub const QUESTIONS_IDX_AUTHOR: &str = "author-title-status-updated";
+    pub const QUESTIONS_IDX_AUTHOR: &str = "author-title-stage-updated";
     /// List of users, their subscriptions and answered questions.
     pub const USERS: &str = "users_20241023_0712";
 }
@@ -48,6 +48,8 @@ pub mod fields {
     pub const AUTHOR: &str = "author";
     /// The title of the question. It's duplicated from the question field.
     pub const TITLE: &str = "title";
+    /// The publishing stage of the question: draft, in review, published.
+    pub const STAGE: &str = "stage";
     /// A counter for the number of correct answers.    
     pub const QUESTION_STATS_CORRECT: &str = "stat_c";
     /// A counter for the number of incorrect answers.

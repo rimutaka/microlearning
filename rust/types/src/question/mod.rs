@@ -110,14 +110,25 @@ impl FromStr for PublishStage {
     }
 }
 
+impl Display for PublishStage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PublishStage::Draft => write!(f, "draft"),
+            PublishStage::Published => write!(f, "published"),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn test_publish_stage_from_str() {
-        assert_eq!(PublishStage::from_str("draft").unwrap(), PublishStage::Draft);
-        assert_eq!(PublishStage::from_str("published").unwrap(), PublishStage::Published);
+        let x = PublishStage::Draft;
+        assert_eq!(PublishStage::from_str(&x.to_string()).unwrap(), PublishStage::Draft);
+        let x = PublishStage::Published;
+        assert_eq!(PublishStage::from_str(&x.to_string()).unwrap(), PublishStage::Published);
         assert!(PublishStage::from_str("invalid").is_err());
     }
 }

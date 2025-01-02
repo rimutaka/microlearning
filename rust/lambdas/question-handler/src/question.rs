@@ -1,6 +1,6 @@
 use anyhow::Error;
 use aws_sdk_dynamodb::{types::AttributeValue, Client as DdbClient};
-use bitie_types::{ddb::fields, ddb::tables, jwt::JwtUser, question::Question};
+use bitie_types::{ddb::fields, ddb::tables, jwt::JwtUser, question::PublishStage, question::Question};
 use std::str::FromStr;
 use tracing::{error, info, warn};
 
@@ -116,9 +116,18 @@ pub(crate) async fn save(client: &DdbClient, question: &Question) -> Result<(), 
         }
     };
 
+    // Stage is used in indexes and must be present at the record level
+    let stage = match &question.stage {
+        Some(v) => v.clone(),
+        None => {
+            error!("Missing Stage field. Setting it to Draft. It's a bug.");
+            PublishStage::Draft
+        }
+    };
+
     // this has to be an update to prevent overwriting photo IDs
     const UPDATE_EXPRESSION: &str =
-        "SET #author = if_not_exists(#author, :author), #updated = :updated, #details = :details, #title = :title";
+        "SET #author = if_not_exists(#author, :author), #updated = :updated, #details = :details, #title = :title, #stage = :stage";
 
     match client
         .update_item()
@@ -134,6 +143,8 @@ pub(crate) async fn save(client: &DdbClient, question: &Question) -> Result<(), 
         .expression_attribute_values(":details", AttributeValue::S(question.to_string()))
         .expression_attribute_names("#title", fields::TITLE)
         .expression_attribute_values(":title", AttributeValue::S(title))
+        .expression_attribute_names("#stage", fields::STAGE)
+        .expression_attribute_values(":stage", AttributeValue::S(stage.to_string()))
         .condition_expression("#author = :author OR attribute_not_exists(#author)") // makes the query fail with an error if the author is different
         .send()
         .await

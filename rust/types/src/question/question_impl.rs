@@ -208,6 +208,11 @@ impl Question {
         }
     }
 
+    /// Returns Self with updated `stage` field.
+    pub fn with_stage(self, stage: Option<PublishStage>) -> Self {
+        Question { stage, ..self }
+    }
+
     /// Removes everything except stats, IDs and the title
     pub fn strip_for_list_display(self) -> Self {
         Question {
@@ -613,5 +618,25 @@ mod test {
             Some("The syntax and capabilities of closures make them very convenient for on the fly usage. Calling a closure is exactly lik".to_string()),
             "expected question truncated to MAX_TITLE_LEN with line breaks removed"
         );
+    }
+
+    #[test]
+    fn test_question_with_stage() {
+        let q = Question {
+            qid: "89yZBXJBa9t2LB6xfj46Rm".to_string(),
+            topic: "aws".to_string(),
+            question: "What is 1+1?".to_string(),
+            answers: vec![],
+            correct: 1,
+            author: None,
+            updated: None,
+            stats: None,
+            contributor: None,
+            title: None,
+            stage: None,
+        };
+
+        let q = q.with_stage(Some(PublishStage::Draft));
+        assert_eq!(q.stage, Some(PublishStage::Draft));
     }
 }

@@ -6,7 +6,7 @@ use aws_sdk_dynamodb::Client;
 use bitie_types::{
     ddb::fields,
     lambda,
-    question::{Question, QuestionFormat},
+    question::{PublishStage, Question, QuestionFormat},
 };
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
 use std::str::FromStr;
@@ -140,7 +140,10 @@ pub(crate) async fn my_handler(
                     // info!("Received question: {body}");
                     let q = match Question::from_str(&body) {
                         // add the email hash of the current user and update the timestamp
-                        Ok(v) => v.with_author(&jwt_user.email_hash).with_updated(),
+                        Ok(v) => v
+                            .with_author(&jwt_user.email_hash) // defaults to the current user
+                            .with_updated()
+                            .with_stage(Some(PublishStage::Draft)), // always reset it to Draft in save, other stages are set elsewhere
                         Err(_) => return lambda::text_response(Some("Invalid question".to_string()), 400),
                     };
 
