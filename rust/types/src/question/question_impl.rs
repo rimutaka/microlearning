@@ -46,7 +46,7 @@ pub struct Question {
     pub title: String,
     /// Controls visibility of the question: draft, review, published.
     /// Maintained in the struct and as a DDB attribute for indexing.
-    /// The struct is the source of truth.
+    /// The DDB attribute is the source of truth and is copied to the struct on DDB read.
     #[serde(default)]
     pub stage: PublishStage,
     /// Counters for correct, incorrect and skipped user interactions with the question

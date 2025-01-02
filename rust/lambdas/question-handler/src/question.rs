@@ -1,6 +1,11 @@
 use anyhow::Error;
 use aws_sdk_dynamodb::{types::AttributeValue, Client as DdbClient};
-use bitie_types::{ddb::fields, ddb::tables, jwt::JwtUser, question::Question};
+use bitie_types::{
+    ddb::fields,
+    ddb::tables,
+    jwt::JwtUser,
+    question::{PublishStage, Question},
+};
 use std::str::FromStr;
 use tracing::{error, info, warn};
 
@@ -48,11 +53,26 @@ pub(crate) async fn get(client: &DdbClient, topic: &str, qid: &str) -> Result<Op
                             _ => None,
                         };
 
+                        // get question title from an included attribute
+                        let stage = match item.get(fields::STAGE) {
+                            Some(AttributeValue::S(v)) => match PublishStage::from_str(v) {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    warn!("Invalid `stage` attribute for {topic} / {item_qid}: {:?}", e);
+                                    PublishStage::default()
+                                }
+                            },
+                            _ => {
+                                warn!("Invalid `stage` attribute for {topic} / {item_qid}");
+                                PublishStage::default()
+                            }
+                        };
+
                         match item.get(fields::DETAILS) {
                             Some(AttributeValue::S(v)) => match Question::from_str(v) {
                                 Ok(v) => {
                                     info!("Returning {topic} / {item_qid}");
-                                    Ok(Some(v.with_stats(correct, incorrect, skipped)))
+                                    Ok(Some(v.with_stats(correct, incorrect, skipped).with_stage(stage)))
                                 }
                                 Err(_) => {
                                     warn!("Cannot deser details attribute: {topic} / {item_qid}: ");
