@@ -1,5 +1,7 @@
 <template>
-  <h1 class="mb-4 md:mb-8 text-2xl text-start">Question about <em class="italic">{{ question?.title || topicName }}</em></h1>
+  <h1 v-if="question?.title" class="mb-4 md:mb-8 text-2xl text-start">{{ question?.title }}</h1>
+  <h1 v-else class="mb-4 md:mb-8 text-2xl text-start">Question about <em class="italic">{{ topicName }}</em></h1>
+  <QuestionDraftCTA v-if="question?.stage == PublishStage.Draft" />
   <LoadingMessage v-if="questionStatus == LoadingStatus.Loading" />
   <div v-else>
     <QuestionCard :next="true" @next-question="loadNextQuestion" />
@@ -16,12 +18,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { TOPICS, ANY_TOPIC, findTopicById } from "@/constants";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import { LoadingStatus } from '@/interfaces';
+import { LoadingStatus, PublishStage } from '@/interfaces';
 
 import QuestionCard from "../components/QuestionCard.vue";
 import PostAnswerCTA from '@/components/PostAnswerCTA.vue';
 import LoadingMessage from '@/components/LoadingMessage.vue';
 import ContributorCard from "../components/ContributorCard.vue";
+import QuestionDraftCTA from '@/components/QuestionDraftCTA.vue';
 
 const route = useRoute();
 const router = useRouter();

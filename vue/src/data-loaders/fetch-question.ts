@@ -52,3 +52,44 @@ export const fetchQuestion = async (topic: string, qid?: string, token?: string)
     console.error("Failed to fetch question.", error);
   }
 };
+
+/** Fetches the question in Markdown form for editing. Returns `undefined` on error. */
+export const fetchQuestionMD = async (topic: string, qid: string, token: string): Promise<Question | undefined | null> => {
+
+  // fetching an existing question for editing
+  console.log(`Fetching question in Markdown for ${topic}/${qid}`);
+  if (!token) {
+    console.log("No token found.");
+    return undefined;
+  }
+
+  try {
+    const response = await fetch(`${QUESTION_HANDLER_URL}${URL_PARAM_TOPIC}=${topic}&${URL_PARAM_QID}=${qid}`, {
+      method: "PUT",
+      headers: {
+        "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", // empty body hash
+        [TOKEN_HEADER_NAME]: token,
+      },
+    });
+
+    // a successful response should contain the requested question with all fields in Markdown
+    // an error may contain JSON or plain text, depending on where the error occurred
+    if (response.status === 200) {
+      try {
+        console.log(`Fetched. Status: ${response.status}`);
+        const fetchedQuestion = <Question>await response.json();
+        // console.log(question);
+        return fetchedQuestion;
+      } catch (error) {
+        console.error(error);
+        return undefined;
+      }
+    } else {
+      console.error("Failed to get question. Status: ", response.status);
+      return undefined;
+    }
+  } catch (error) {
+    console.error("Failed to get question.", error);
+    return undefined;
+  }
+};

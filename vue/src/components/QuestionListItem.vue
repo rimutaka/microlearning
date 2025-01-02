@@ -1,10 +1,11 @@
 <template>
   <div :class="status.cssClass">
     <p>
-      <i></i>
       <i v-if="isAuthor" class="author"></i>
+      <i v-else></i>
       <router-link :to="questionTopicAndPageUrl" :aria-label="status.aria + title">{{ title }}</router-link>
       <span v-if="showTopic" class="tag">{{ topicName }}</span>
+      <span v-if="isDraft" class="tag draft">draft</span>
     </p>
   </div>
 </template>
@@ -14,6 +15,7 @@ import { ref, watchEffect, computed, watch } from "vue";
 import router, { PageIDs } from "@/router";
 
 import type { QuestionWithHistory } from "@/interfaces";
+import { PublishStage } from "@/interfaces"
 import * as constants from "@/constants";
 
 const props = defineProps<{
@@ -32,6 +34,8 @@ const topicName = computed(() => {
 });
 
 const isAuthor = computed(() => props.showTopic || (props.user_email_hash != undefined && props.user_email_hash === props.question.question.author));
+
+const isDraft = computed(() => props.question.question.stage == PublishStage.Draft);
 
 // contains CSS class and aria-label for the question
 const status = computed((): { cssClass: string, aria: string } => {

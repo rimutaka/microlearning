@@ -1,77 +1,81 @@
 <template>
-  <div v-if="hydrated" class="card mt-12">
-    <div class="flex flex-wrap gap-4 mb-8">
-      <h4>Topics: </h4>
-      <div class="flex" v-for="topic in topics" :key="topic.id">
-        <RadioButton v-model="selectedTopic" name="topics" :value="topic.id" />
-        <label :for="topic.id" class="ms-2 me-4">{{ topic.t }}</label>
-      </div>
-    </div>
-
-    <div class="mb-4">
-      <div class="flex flex-wrap gap-4 mb-4">
-        <h4 class="mt-auto">Question </h4>
-        <div class="flex-grow text-end">
-          <Button :label="previewWindow ? 'Referesh preview' : 'Open preview'" icon="pi pi-receipt" severity="secondary" class="whitespace-nowrap" iconPos="right" @click="showPreviewWindow()" />
+  <div class="card mt-12">
+    <div v-if="hydrated == LoadingStatus.Loaded || hydrated == LoadingStatus.NoData">
+      <div class="flex flex-wrap gap-4 mb-8">
+        <h4>Topics: </h4>
+        <div class="flex" v-for="topic in topics" :key="topic.id">
+          <RadioButton v-model="selectedTopic" name="topics" :value="topic.id" />
+          <label :for="topic.id" class="ms-2 me-4">{{ topic.t }}</label>
         </div>
       </div>
-      <div class="w-full">
-        <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" />
-      </div>
-    </div>
 
-    <div class="flex flex-wrap gap-4 mb-8">
-      <h4>Answers</h4>
-      <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
-        <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full mb-2" placeholder="An answer options (always visible)" @keydown="formattingKeypress" />
-        <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" />
-        <div class="flex">
-          <div class="flex-grow justify-start text-start ps-4">
-            <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="true" class="h-8 w-8 dark:bg-neutral-700 checked:bg-green-600 p-3" />
-            <label class="ms-2" :for="`c${idx}`">Correct</label>
-            <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="false" :checked="!answer.c" class="h-8 w-8 dark:bg-neutral-700 checked:bg-red-600 p-3 ms-6" />
-            <label class="ms-2" :for="`c${idx}`">Incorrect</label>
+      <div class="mb-4">
+        <div class="flex flex-wrap gap-4 mb-4">
+          <h4 class="mt-auto">Question </h4>
+          <div class="flex-grow text-end">
+            <Button :label="previewWindow ? 'Referesh preview' : 'Open preview'" icon="pi pi-receipt" severity="secondary" class="whitespace-nowrap" iconPos="right" @click="showPreviewWindow()" />
           </div>
-          <div class="flex-shrink">
-            <Button label="Add another answer" icon="pi pi-plus" severity="secondary" class="ms-4 whitespace-nowrap" @click="addAnswer(idx)" />
-            <Button v-if="answers.length > 1" label="Delete this answer" icon="pi pi-trash" severity="secondary" class="ms-4 whitespace-nowrap" @click="deleteAnswer(idx)" />
+        </div>
+        <div class="w-full">
+          <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" />
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-4 mb-8">
+        <h4>Answers</h4>
+        <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
+          <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full mb-2" placeholder="An answer options (always visible)" @keydown="formattingKeypress" />
+          <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" />
+          <div class="flex">
+            <div class="flex-grow justify-start text-start ps-4">
+              <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="true" class="h-8 w-8 dark:bg-neutral-700 checked:bg-green-600 p-3" />
+              <label class="ms-2" :for="`c${idx}`">Correct</label>
+              <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="false" :checked="!answer.c" class="h-8 w-8 dark:bg-neutral-700 checked:bg-red-600 p-3 ms-6" />
+              <label class="ms-2" :for="`c${idx}`">Incorrect</label>
+            </div>
+            <div class="flex-shrink">
+              <Button label="Add another answer" icon="pi pi-plus" severity="secondary" class="ms-4 whitespace-nowrap" @click="addAnswer(idx)" />
+              <Button v-if="answers.length > 1" label="Delete this answer" icon="pi pi-trash" severity="secondary" class="ms-4 whitespace-nowrap" @click="deleteAnswer(idx)" />
+            </div>
           </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-4 mb-8">
+        <h4>One line summary</h4>
+        <div class="w-full mb-6">
+          <InputText v-model="title" class="w-full mb-2" :maxlength="MAX_TITLE_LEN" placeholder="A short title for the list of questions" />
+          <p class=" text-slate-500 dark:text-slate-300 text-xs text-end">Appears in the list of questions and on the question preview page. 100 characters max.</p>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="text-start mb-4">Contributor</h4>
+        <ContributorForm class="mb-12" />
+      </div>
+      <div class="flex gap-12 mt-8">
+        <div class="text-left flex-grow">
+          <h4 class="mb-4">Question readiness</h4>
+          <ul class="question-readiness">
+            <li :class="{ 'question-ready': questionReadiness.topic, 'question-not-ready': !questionReadiness.topic }"><i></i>Topic selected</li>
+            <li :class="{ 'question-ready': questionReadiness.question, 'question-not-ready': !questionReadiness.question }"><i></i>Question text entered</li>
+            <li :class="{ 'question-ready': questionReadiness.answers, 'question-not-ready': !questionReadiness.answers }"><i></i>At least 2 answers</li>
+            <li :class="{ 'question-ready': questionReadiness.correct, 'question-not-ready': !questionReadiness.correct }"><i></i>At least 1 correct answer</li>
+            <li :class="{ 'question-ready': questionReadiness.explanations, 'question-not-ready': !questionReadiness.explanations }"><i></i>Detailed explanations for all answers</li>
+            <li :class="{ 'question-ready': questionReadiness.title, 'question-not-ready': !questionReadiness.title }"><i></i>One line summary</li>
+            <li class="question-ready"><i></i><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC-BY-SA 4.0</a> license</li>
+          </ul>
+        </div>
+        <div class="flex-shrink text-end">
+          <Button label="Cancel" icon="pi pi-times" raised severity="secondary" class="me-4 whitespace-nowrap" @click="cancelAndGoBack()" />
+          <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
         </div>
       </div>
     </div>
 
-    <div class="flex flex-wrap gap-4 mb-8">
-      <h4>One line summary</h4>
-      <div class="w-full mb-6">
-        <InputText v-model="title" class="w-full mb-2" :maxlength="MAX_TITLE_LEN" placeholder="A short title for the list of questions" />
-        <p class=" text-slate-500 dark:text-slate-300 text-xs text-end">Appears in the list of questions and on the question preview page. 100 characters max.</p>
-      </div>
-    </div>
-
-    <div>
-      <h4 class="text-start mb-4">Contributor</h4>
-      <ContributorForm class="mb-12" />
-    </div>
-    <div class="flex gap-12 mt-8">
-      <div class="text-left flex-grow">
-        <h4 class="mb-4">Question readiness</h4>
-        <ul class="question-readiness">
-          <li :class="{ 'question-ready': questionReadiness.topic, 'question-not-ready': !questionReadiness.topic }"><i></i>Topic selected</li>
-          <li :class="{ 'question-ready': questionReadiness.question, 'question-not-ready': !questionReadiness.question }"><i></i>Question text entered</li>
-          <li :class="{ 'question-ready': questionReadiness.answers, 'question-not-ready': !questionReadiness.answers }"><i></i>At least 2 answers</li>
-          <li :class="{ 'question-ready': questionReadiness.correct, 'question-not-ready': !questionReadiness.correct }"><i></i>At least 1 correct answer</li>
-          <li :class="{ 'question-ready': questionReadiness.explanations, 'question-not-ready': !questionReadiness.explanations }"><i></i>Detailed explanations for all answers</li>
-          <li :class="{ 'question-ready': questionReadiness.title, 'question-not-ready': !questionReadiness.title }"><i></i>One line summary</li>
-          <li class="question-ready"><i></i><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC-BY-SA 4.0</a> license</li>
-        </ul>
-      </div>
-      <div class="flex-shrink text-end">
-        <Button label="Cancel" icon="pi pi-times" raised severity="secondary" class="me-4 whitespace-nowrap" @click="cancelAndGoBack()" />
-        <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
-      </div>
-    </div>
+    <LoadingMessage v-if="hydrated == LoadingStatus.Loading" />
+    <h3 v-if="hydrated == LoadingStatus.Error" class="mt-8 mb-8 text-slate-500 dark:text-slate-100">Sorry, something went wrong. Try again.</h3>
   </div>
-  <LoadingMessage v-else />
 </template>
 
 
@@ -87,6 +91,8 @@ import _ from "lodash";
 
 import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, PREVIEW_QUESTION_LS_KEY, MAX_TITLE_LEN } from "@/constants";
 import type { Answer, Question } from "@/interfaces";
+import { fetchQuestionMD } from "@/data-loaders/fetch-question";
+import { LoadingStatus } from "@/interfaces";
 
 import Button from 'primevue/button';
 import RadioButton from 'primevue/radiobutton';
@@ -105,7 +111,7 @@ const router = useRouter();
 const store = useMainStore();
 const { token, question } = storeToRefs(store);
 
-const hydrated = ref(false); // toggles the form between loading and the full form
+const hydrated = ref(LoadingStatus.Loading); // toggles the form between loading and the full form
 const topics = ref(TOPICS);
 const selectedTopic = ref(""); // the topic of the question from TOPICS
 
@@ -374,12 +380,12 @@ watchEffect(async () => {
     console.log("Adding a new question");
     resetValuesForNewQuestion();
     restoreQuestionFromLS();
-    hydrated.value = true; // enable the form
+    hydrated.value = LoadingStatus.Loaded; // enable the form
     return;
   }
 
   // disable the form while fetching the question
-  hydrated.value = false;
+  hydrated.value = LoadingStatus.Loading;
 
   // fetching an existing question for editing
   console.log(`Fetching question for ${props.topic}/${props.qid}`);
@@ -389,39 +395,14 @@ watchEffect(async () => {
     return;
   }
 
-  try {
-    const response = await fetch(`${QUESTION_HANDLER_URL}${URL_PARAM_TOPIC}=${props.topic}&${URL_PARAM_QID}=${props.qid}`, {
-      method: "PUT",
-      headers: {
-        "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", // empty body hash
-        [TOKEN_HEADER_NAME]: token.value,
-      },
-    });
-
-
-    // a successful response should contain the saved question
-    // an error may contain JSON or plain text, depending on where the errror occurred
-    if (response.status === 200) {
-      try {
-        console.log(`Fetched. Status: ${response.status}`);
-        const fetchedQuestion = <Question>await response.json();
-        // console.log(question);
-
-        loadQuestion(fetchedQuestion);
-
-      } catch (error) {
-        console.error(error);
-      }
-    } else {
-      console.error("Failed to get question. Status: ", response.status);
-    }
-  } catch (error) {
-    console.error("Failed to get question.");
-    console.error(error);
+  const fetchedQuestion = await fetchQuestionMD(props.topic, props.qid, token.value);
+  if (fetchedQuestion) {
+    loadQuestion(fetchedQuestion);
+    hydrated.value = LoadingStatus.Loaded; // enable the form
   }
-
-  hydrated.value = true; // enable the form
-
+  else {
+    hydrated.value = LoadingStatus.Error; // enable the error message
+  }
 });
 
 /** package the current question data from the input fields into a struct */
