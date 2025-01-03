@@ -10,14 +10,12 @@
 import { computed, watch, ref } from 'vue';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import { findTopicById, URL_PARAM_LIST_SEPARATOR, ANY_TOPIC, TOPICS, DEFAULT_TOPIC } from "@/constants";
 import { fetchQuestions } from '@/data-loaders/fetch-questions';
 
-import LinkButton from './LinkButton.vue';
 import Button from 'primevue/button';
 
 const store = useMainStore();
-const { selectedTopics, currentTopic, questionStatus, showingRandomQuestion, questionsWithHistory, question } = storeToRefs(store);
+const { currentTopic, showingRandomQuestion, questionsWithHistory, question } = storeToRefs(store);
 
 // True if the user requested a random question without selecting a topic
 const mustSelectTopic = ref(false);
@@ -36,28 +34,10 @@ const loadNextQuestion = async () => {
     return;
   }
 
-  // load the list of questions if none exists, or exists for a different topic
-  if ((!questionsWithHistory.value || questionsWithHistory.value.length === 0) || questionsWithHistory.value[0].question.topic !== currentTopic.value) {
-    // load the list of questions for the given topic
-    questionsWithHistory.value = await fetchQuestions(currentTopic.value)
-  }
-
-  // TODO: report the error to the user
-  if (!questionsWithHistory.value || questionsWithHistory.value.length === 0) {
-    console.error("No questions found for the topic: ", currentTopic.value);
-    return;
-  }
-
-  // find the index of the current question by ID and pick the next one from the list or start from the beginning
-  const currentQuestionIndex = (question.value ? questionsWithHistory.value.findIndex(q => q.question.qid === question.value?.qid) : -1) + 1;
-  const nextQuestionIndex = currentQuestionIndex < questionsWithHistory.value.length ? currentQuestionIndex : 0;
-  console.log(`currentQuestionIndex: ${currentQuestionIndex}, nextQuestionIndex: ${nextQuestionIndex}`);
+  await store.loadNextQuestion(currentTopic.value);
 
   // enable the sample question component via this flag
   showingRandomQuestion.value = true;
-
-  // load the next question
-  store.loadQuestion(currentTopic.value, questionsWithHistory.value[nextQuestionIndex].question.qid);
 };
 
 // change the URL to match the current topic

@@ -64,9 +64,10 @@ export const TOPICS = <Array<TopicFields>>[
   { t: "Rust", id: "rust" }
 ];
 
-/// A special topic that shows questions from all topics
-/// this is a temporary hack until the randomness madness is sorted out
-export const ANY_TOPIC = "any";
+/** Returns a random topic id from the TOPICS list  */
+export function randomTopicId(): string {
+  return TOPICS[Math.floor(Math.random() * TOPICS.length)].id;
+}
 
 /** Choose this for random questions if nothing else was selected.
  * It's a temp crutch. TODO: do not allow any data fetching without a topic.

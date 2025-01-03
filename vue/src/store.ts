@@ -2,11 +2,11 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { CONTRIBUTOR_DETAILS_LS_KEY, ANY_TOPIC, URL_PARAM_TOPIC } from './constants'
+import { CONTRIBUTOR_DETAILS_LS_KEY, URL_PARAM_TOPIC, randomTopicId } from './constants'
 import type { Question, QuestionWithHistory, User, ContributorProfile, LoadingStatus as LoadingStatusType } from './interfaces'
 import { LoadingStatus, PublishStage } from './interfaces'
 import { fetchQuestion } from './data-loaders/fetch-question'
-
+import { fetchQuestions } from './data-loaders/fetch-questions'
 
 
 /// The main store for the application
@@ -115,7 +115,7 @@ export const useMainStore = defineStore('main', () => {
 
     if (!paramTopic) {
       console.error("No topic provided - using any.");
-      paramTopic = ANY_TOPIC;
+      paramTopic = randomTopicId();
     }
 
     const fetchedQuestion = await fetchQuestion(paramTopic, paramQid, token.value);
@@ -135,6 +135,35 @@ export const useMainStore = defineStore('main', () => {
     }
   };
 
+  /** Loads the list of questions for the given topic, if not already loaded.
+   * Finds the position of the currently loaded question in the list and loads the next one.
+   * It loads the first question when the end of the list is reached.
+   */
+  const loadNextQuestion = async (topic: string) => {
+    console.log("Load next question for topic: ", topic);
+
+
+    // load the list of questions if none exists, or exists for a different topic
+    if ((!questionsWithHistory.value || questionsWithHistory.value.length === 0) || questionsWithHistory.value[0].question.topic !== topic) {
+      // load the list of questions for the given topic
+      questionsWithHistory.value = await fetchQuestions(topic)
+    }
+
+    // TODO: report the error to the user
+    if (!questionsWithHistory.value || questionsWithHistory.value.length === 0) {
+      console.error("No questions found for the topic: ", topic);
+      return;
+    }
+
+    // find the index of the current question by ID and pick the next one from the list or start from the beginning
+    const currentQuestionIndex = (question.value ? questionsWithHistory.value.findIndex(q => q.question.qid === question.value?.qid) : -1) + 1;
+    const nextQuestionIndex = currentQuestionIndex < questionsWithHistory.value.length ? currentQuestionIndex : 0;
+    console.log(`currentQuestionIndex: ${currentQuestionIndex}, nextQuestionIndex: ${nextQuestionIndex}`);
+
+    // load the next question
+    loadQuestion(topic, questionsWithHistory.value[nextQuestionIndex].question.qid);
+  };
+
   return {
     question,
     questionMD,
@@ -150,6 +179,7 @@ export const useMainStore = defineStore('main', () => {
     questionListStatus,
     reset,
     resetQuestionToBlank,
-    loadQuestion
+    loadQuestion,
+    loadNextQuestion,
   }
 })

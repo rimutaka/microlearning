@@ -1,4 +1,4 @@
-import { QUESTION_HANDLER_URL, TOKEN_HEADER_NAME, URL_PARAM_TOPIC, ANY_TOPIC, URL_PARAM_QID } from "@/constants";
+import { QUESTION_HANDLER_URL, TOKEN_HEADER_NAME, URL_PARAM_TOPIC, URL_PARAM_QID } from "@/constants";
 import { type Question } from "@/interfaces";
 
 
