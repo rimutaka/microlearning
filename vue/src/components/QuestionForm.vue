@@ -17,7 +17,16 @@
           </div>
         </div>
         <div class="w-full">
-          <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" />
+          <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" placeholder="Enter the text of the question here as plain text or Markdown." />
+          <p v-if="questionText" class=" text-slate-500 dark:text-slate-300 text-xs text-end">Plain or Markdown text of the question.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-4 mb-8">
+        <h4>One line summary for a title</h4>
+        <div class="w-full mb-6">
+          <InputText v-model="title" class="w-full mb-2" :maxlength="MAX_TITLE_LEN" placeholder="A short title for the list of questions" />
+          <p v-if="title" class=" text-slate-500 dark:text-slate-300 text-xs text-end">Appears in the list of questions and on the question preview page. 100 characters max.</p>
         </div>
       </div>
 
@@ -27,25 +36,22 @@
           <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full mb-2" placeholder="An answer options (always visible)" @keydown="formattingKeypress" />
           <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" />
           <div class="flex">
-            <div class="flex-grow justify-start text-start ps-4">
-              <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="true" class="h-8 w-8 dark:bg-neutral-700 checked:bg-green-600 p-3" />
-              <label class="ms-2" :for="`c${idx}`">Correct</label>
-              <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="false" :checked="!answer.c" class="h-8 w-8 dark:bg-neutral-700 checked:bg-red-600 p-3 ms-6" />
-              <label class="ms-2" :for="`c${idx}`">Incorrect</label>
+            <div class="flex-grow justify-start text-start ps-4 gap-4 flex flex-wrap">
+              <div class="w-fit  whitespace-nowrap">
+                <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="true" class="h-8 w-8 dark:bg-neutral-700 checked:bg-green-600 p-3" />
+                <label class="ms-2" :for="`c${idx}`">Correct</label>
+              </div>
+              <div class="w-fit whitespace-nowrap">
+                <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="false" :checked="!answer.c" class="h-8 w-8 dark:bg-neutral-700 checked:bg-red-600 p-3" />
+                <label class="ms-2" :for="`c${idx}`">Incorrect</label>
+              </div>
+
             </div>
-            <div class="flex-shrink">
-              <Button label="Add another answer" icon="pi pi-plus" severity="secondary" class="ms-4 whitespace-nowrap" @click="addAnswer(idx)" />
-              <Button v-if="answers.length > 1" label="Delete this answer" icon="pi pi-trash" severity="secondary" class="ms-4 whitespace-nowrap" @click="deleteAnswer(idx)" />
+            <div class="flex-shrink flex gap-4 flex-wrap justify-end">
+              <Button v-if="answers.length > 1" label="Delete this answer" icon="pi pi-trash" severity="secondary" class="whitespace-nowrap" @click="deleteAnswer(idx)" />
+              <Button label="Add another answer" icon="pi pi-plus" severity="secondary" class="whitespace-nowrap" @click="addAnswer(idx)" />
             </div>
           </div>
-        </div>
-      </div>
-
-      <div class="flex flex-wrap gap-4 mb-8">
-        <h4>One line summary</h4>
-        <div class="w-full mb-6">
-          <InputText v-model="title" class="w-full mb-2" :maxlength="MAX_TITLE_LEN" placeholder="A short title for the list of questions" />
-          <p class=" text-slate-500 dark:text-slate-300 text-xs text-end">Appears in the list of questions and on the question preview page. 100 characters max.</p>
         </div>
       </div>
 
@@ -56,18 +62,25 @@
       <div class="flex gap-12 mt-8">
         <div class="text-left flex-grow">
           <h4 class="mb-4">Question readiness</h4>
-          <ul class="question-readiness">
-            <li :class="{ 'question-ready': questionReadiness.topic, 'question-not-ready': !questionReadiness.topic }"><i></i>Topic selected</li>
-            <li :class="{ 'question-ready': questionReadiness.question, 'question-not-ready': !questionReadiness.question }"><i></i>Question text entered</li>
-            <li :class="{ 'question-ready': questionReadiness.answers, 'question-not-ready': !questionReadiness.answers }"><i></i>At least 2 answers</li>
-            <li :class="{ 'question-ready': questionReadiness.correct, 'question-not-ready': !questionReadiness.correct }"><i></i>At least 1 correct answer</li>
-            <li :class="{ 'question-ready': questionReadiness.explanations, 'question-not-ready': !questionReadiness.explanations }"><i></i>Detailed explanations for all answers</li>
-            <li :class="{ 'question-ready': questionReadiness.title, 'question-not-ready': !questionReadiness.title }"><i></i>One line summary</li>
-            <li class="question-ready"><i></i><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC-BY-SA 4.0</a> license</li>
-          </ul>
+          <div class="flex flex-wrap gap-4">
+            <ul class="question-readiness">
+              <li>Required: </li>
+              <li :class="{ 'question-ready': questionReadiness.topic, 'question-not-ready': !questionReadiness.topic }"><i></i>Topic selected</li>
+              <li :class="{ 'question-ready': questionReadiness.question, 'question-not-ready': !questionReadiness.question }"><i></i>Question text entered</li>
+              <li :class="{ 'question-ready': questionReadiness.title, 'question-not-ready': !questionReadiness.title }"><i></i>One line summary</li>
+            </ul>
+            <ul class="question-readiness">
+              <li>Can enter later: </li>
+              <li :class="{ 'question-ready': questionReadiness.answers, 'question-not-ready': !questionReadiness.answers }"><i></i>At least 2 answers</li>
+              <li :class="{ 'question-ready': questionReadiness.correct, 'question-not-ready': !questionReadiness.correct }"><i></i>At least 1 correct answer</li>
+              <li :class="{ 'question-ready': questionReadiness.explanations, 'question-not-ready': !questionReadiness.explanations }"><i></i>Detailed explanations for all answers</li>
+            </ul>
+          </div>
+          <p class="question-ready"><i></i><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC-BY-SA 4.0</a> license</p>
+
         </div>
-        <div class="flex-shrink text-end">
-          <Button label="Cancel" icon="pi pi-times" raised severity="secondary" class="me-4 whitespace-nowrap" @click="cancelAndGoBack()" />
+        <div class="flex-shrink text-end flex-row space-x-4 space-y-4">
+          <Button label="Cancel" icon="pi pi-times" raised severity="secondary" class="whitespace-nowrap" @click="cancelAndGoBack()" />
           <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
         </div>
       </div>
