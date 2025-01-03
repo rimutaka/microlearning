@@ -51,6 +51,11 @@ a.p-button {
   @apply no-underline;
 }
 
+/* COMMON COLOURS */
+.red-highlight {
+  @apply text-red-500;
+}
+
 /* Dark styles for topic checkboxes */
 input.p-checkbox-input,
 input.p-radiobutton-input {
@@ -126,6 +131,10 @@ footer a {
 
 .question-not-ready i {
   @apply pi pi-stop me-4 text-neutral-500 bg-neutral-200 dark:bg-neutral-800 rounded-sm;
+}
+
+.input-help-line {
+  @apply text-slate-500 dark:text-slate-300 text-xs text-end;
 }
 
 /* QUESTION CARD, PREVIEW and MD RENDERING */

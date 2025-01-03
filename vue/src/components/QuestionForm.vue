@@ -4,8 +4,8 @@
       <div class="flex flex-wrap gap-4 mb-8">
         <h4>Topics: </h4>
         <div class="flex" v-for="topic in topics" :key="topic.id">
-          <RadioButton v-model="selectedTopic" name="topics" :value="topic.id" />
-          <label :for="topic.id" class="ms-2 me-4">{{ topic.t }}</label>
+          <RadioButton v-model="selectedTopic" name="topics" :value="topic.id" :inputId="topic.id" :disabled="props.topic != undefined" />
+          <label :for="topic.id" class="ms-2">{{ topic.t }}</label>
         </div>
       </div>
 
@@ -18,32 +18,32 @@
         </div>
         <div class="w-full">
           <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" placeholder="Enter the text of the question here as plain text or Markdown." />
-          <p v-if="questionText" class=" text-slate-500 dark:text-slate-300 text-xs text-end">Plain or Markdown text of the question.</p>
+          <p v-if="questionText" class=" input-help-line">Plain or Markdown text of the question.</p>
         </div>
       </div>
 
       <div class="flex flex-wrap gap-4 mb-8">
         <h4>One line summary for a title</h4>
         <div class="w-full mb-6">
-          <InputText v-model="title" class="w-full mb-2" :maxlength="MAX_TITLE_LEN" placeholder="A short title for the list of questions" />
-          <p v-if="title" class=" text-slate-500 dark:text-slate-300 text-xs text-end">Appears in the list of questions and on the question preview page. 100 characters max.</p>
+          <InputText v-model="title" class="w-full mb-2" :maxlength="MAX_TITLE_LEN" placeholder="A short title for the question." />
+          <p v-if="title" class=" input-help-line">A short description of what the question is about. No Markdown, 100 characters max.</p>
         </div>
       </div>
 
       <div class="flex flex-wrap gap-4 mb-8">
         <h4>Answers</h4>
         <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
-          <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full mb-2" placeholder="An answer options (always visible)" @keydown="formattingKeypress" />
-          <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation (visible after answering)" @keydown="formattingKeypress" />
+          <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full mb-2" placeholder="One of possible answers, always visible." @keydown="formattingKeypress" />
+          <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation, revealed after answering." @keydown="formattingKeypress" />
           <div class="flex">
             <div class="flex-grow justify-start text-start ps-4 gap-4 flex flex-wrap">
               <div class="w-fit  whitespace-nowrap">
-                <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="true" class="h-8 w-8 dark:bg-neutral-700 checked:bg-green-600 p-3" />
+                <input type="radio" v-model="answer.c" :name="`ci${idx}`" :id="`c${idx}`" :value="true" class="h-8 w-8 dark:bg-neutral-700 checked:bg-green-600 p-3" />
                 <label class="ms-2" :for="`c${idx}`">Correct</label>
               </div>
               <div class="w-fit whitespace-nowrap">
-                <input type="radio" v-model="answer.c" :name="`c${idx}`" :value="false" :checked="!answer.c" class="h-8 w-8 dark:bg-neutral-700 checked:bg-red-600 p-3" />
-                <label class="ms-2" :for="`c${idx}`">Incorrect</label>
+                <input type="radio" v-model="answer.c" :name="`ci${idx}`" :id="`i${idx}`" :value="false" :checked="!answer.c" class="h-8 w-8 dark:bg-neutral-700 checked:bg-red-600 p-3" />
+                <label class="ms-2" :for="`i${idx}`">Incorrect</label>
               </div>
 
             </div>
@@ -60,17 +60,17 @@
         <ContributorForm class="mb-12" />
       </div>
       <div class="flex gap-12 mt-8">
-        <div class="text-left flex-grow">
+        <div class="text-left flex-grow border-r border-slate-200 dark:border-slate-700 pr-4">
           <h4 class="mb-4">Question readiness</h4>
           <div class="flex flex-wrap gap-4">
             <ul class="question-readiness">
-              <li>Required: </li>
-              <li :class="{ 'question-ready': questionReadiness.topic, 'question-not-ready': !questionReadiness.topic }"><i></i>Topic selected</li>
-              <li :class="{ 'question-ready': questionReadiness.question, 'question-not-ready': !questionReadiness.question }"><i></i>Question text entered</li>
-              <li :class="{ 'question-ready': questionReadiness.title, 'question-not-ready': !questionReadiness.title }"><i></i>One line summary</li>
+              <li class="font-semibold" :class="{ 'red-highlight': requiredHighlight }">Required: </li>
+              <li :class="{ 'question-ready': questionReadiness.topic, 'question-not-ready': !questionReadiness.topic, 'red-highlight': requiredHighlight }"><i></i>Topic selected</li>
+              <li :class="{ 'question-ready': questionReadiness.question, 'question-not-ready': !questionReadiness.question, 'red-highlight': requiredHighlight }"><i></i>Question text entered</li>
+              <li :class="{ 'question-ready': questionReadiness.title, 'question-not-ready': !questionReadiness.title, 'red-highlight': requiredHighlight }"><i></i>One line summary</li>
             </ul>
             <ul class="question-readiness">
-              <li>Can enter later: </li>
+              <li class="font-semibold">Can enter later: </li>
               <li :class="{ 'question-ready': questionReadiness.answers, 'question-not-ready': !questionReadiness.answers }"><i></i>At least 2 answers</li>
               <li :class="{ 'question-ready': questionReadiness.correct, 'question-not-ready': !questionReadiness.correct }"><i></i>At least 1 correct answer</li>
               <li :class="{ 'question-ready': questionReadiness.explanations, 'question-not-ready': !questionReadiness.explanations }"><i></i>Detailed explanations for all answers</li>
@@ -81,7 +81,8 @@
         </div>
         <div class="flex-shrink text-end flex-row space-x-4 space-y-4">
           <Button label="Cancel" icon="pi pi-times" raised severity="secondary" class="whitespace-nowrap" @click="cancelAndGoBack()" />
-          <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" :disabled="!questionReady" @click="submitQuestion()" />
+          <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" @click="submitQuestion()" />
+          <p v-if="requiredHighlight" class="red-highlight text-xs text-end">Fill in required fields to save.</p>
         </div>
       </div>
     </div>
@@ -102,7 +103,7 @@ import { toHex } from "uint8array-tools";
 import debounce from "lodash.debounce"
 import _ from "lodash";
 
-import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, PREVIEW_QUESTION_LS_KEY, MAX_TITLE_LEN } from "@/constants";
+import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, PREVIEW_QUESTION_LS_KEY, MAX_TITLE_LEN, findTopicById } from "@/constants";
 import type { Answer, Question } from "@/interfaces";
 import { fetchQuestionMD } from "@/data-loaders/fetch-question";
 import { LoadingStatus } from "@/interfaces";
@@ -147,6 +148,10 @@ const questionReadiness = ref({
   title: false,
 });
 const questionReady = ref(false); // enables Submit button
+
+// turned on briefly to highlight the required fields
+// when the user attempts to save the question
+const requiredHighlight = ref(false);
 
 /// Adds an answer block to the form
 function addAnswer(index: number) {
@@ -241,6 +246,12 @@ async function submitQuestion() {
     router.push("/");
     return;
   }
+
+  if (!questionReady.value) {
+    requiredHighlight.value = true;
+    return;
+  }
+
   // the lambda gets all it needs from the serialized JSON object
   const submissionQuestion = JSON.stringify(<Question>{
     qid: props.qid,
@@ -315,7 +326,10 @@ watch([selectedTopic, questionText, answers.value, title, question], ([, , answe
   questionReadiness.value.title = title.value != undefined && (title.value.length > 10);
 
   // enable / disable the submit button
-  questionReady.value = Object.values(questionReadiness.value).every((value) => value);
+  questionReady.value = questionReadiness.value.topic && questionReadiness.value.question && questionReadiness.value.title;
+
+  // reset the required highlight to normal if the user makes changes
+  requiredHighlight.value = false;
 
   // changes are sent to the preview with a debounce
   debouncePostMsg();
