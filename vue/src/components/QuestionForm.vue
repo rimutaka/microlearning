@@ -81,7 +81,7 @@
         </div>
         <div class="flex-shrink text-end flex-row space-x-4 space-y-4">
           <Button label="Cancel" icon="pi pi-times" raised severity="secondary" class="whitespace-nowrap" @click="cancelAndGoBack()" />
-          <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" @click="submitQuestion()" />
+          <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" @click="saveQuestion()" />
           <p v-if="requiredHighlight" class="red-highlight text-xs text-end">Fill in required fields to save.</p>
         </div>
       </div>
@@ -123,7 +123,7 @@ const props = defineProps<{
 
 const router = useRouter();
 const store = useMainStore();
-const { token, questionMD } = storeToRefs(store);
+const { token, questionMD, question } = storeToRefs(store);
 
 const hydrated = ref(LoadingStatus.Loading); // toggles the form between loading and the full form
 const topics = ref(TOPICS);
@@ -238,7 +238,7 @@ function formattingKeypress(event: KeyboardEvent) {
 }
 
 /** Save question in the cloud */
-async function submitQuestion() {
+async function saveQuestion() {
 
   if (!token.value) {
     // unlikely to get here because there is a page guard in the router
@@ -402,6 +402,11 @@ function cancelAndGoBack() {
 }
 
 watchEffect(async () => {
+
+  // clear the question from the store on load to force a reload on save
+  // if the store's question ID matches the URL it skips the reload
+  question.value = undefined; 
+
   // if no topic/qid is set, this is a new question
   if (!(props.topic && props.qid)) {
     console.log("Adding a new question");
