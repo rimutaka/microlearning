@@ -45,9 +45,9 @@ import ContributorCard from '@/components/ContributorCard.vue';
 import ContributorForm from '@/components/ContributorForm.vue';
 
 
-
+// contributor form uses questionMD, so the contributor details have to go via that object
 const store = useMainStore();
-const { question, anonymousContributor } = storeToRefs(store);
+const { questionMD, anonymousContributor } = storeToRefs(store);
 
 // load them once at the start
 const contributorDetailsInLS = localStorage.getItem(CONTRIBUTOR_DETAILS_LS_KEY);
@@ -55,22 +55,22 @@ const contributorDetailsInLS = localStorage.getItem(CONTRIBUTOR_DETAILS_LS_KEY);
 
 watch(anonymousContributor, (anonymousContributorNew, anonymousContributorOld) => {
   console.log("anonymousContributor changed (old/new): ", anonymousContributorOld, anonymousContributorNew);
-  if (!question.value) {
+  if (!questionMD.value) {
     console.log("Can't add contributor details - missing `question` in `store`");
     return
   };
   if (anonymousContributorOld === undefined && anonymousContributorNew === true && !contributorDetailsInLS) {
     console.log("Fist load - display contributor placeholder");
-    question.value.contributor = CONTRIBUTOR_PLACEHOLDER;
+    questionMD.value.contributor = CONTRIBUTOR_PLACEHOLDER;
   }
   else if (anonymousContributorNew) {
     console.log("Hide contributor details");
-    question.value.contributor = undefined;
+    questionMD.value.contributor = undefined;
   } else {
     // contributor details will be on auto-save, so we can retrieve them from the local storage
     console.log("Restore contributor details");
     const fromLS = localStorage.getItem(CONTRIBUTOR_DETAILS_LS_KEY);
-    question.value.contributor = fromLS ? <ContributorProfile>JSON.parse(fromLS) : CONTRIBUTOR_PLACEHOLDER;
+    questionMD.value.contributor = fromLS ? <ContributorProfile>JSON.parse(fromLS) : CONTRIBUTOR_PLACEHOLDER;
   }
 });
 
@@ -96,7 +96,7 @@ watchEffect(() => {
     if (contributorParsed.name) anonymousContributor.value = false;
   }
 
-  question.value = <Question>{
+  questionMD.value = <Question>{
     answers,
     contributor,
   }

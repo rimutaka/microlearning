@@ -123,7 +123,7 @@ const props = defineProps<{
 
 const router = useRouter();
 const store = useMainStore();
-const { token, question } = storeToRefs(store);
+const { token, questionMD } = storeToRefs(store);
 
 const hydrated = ref(LoadingStatus.Loading); // toggles the form between loading and the full form
 const topics = ref(TOPICS);
@@ -259,7 +259,7 @@ async function submitQuestion() {
     question: questionText.value,
     answers: answers.value,
     correct: 0,
-    contributor: question.value?.contributor, // this struct is set by a sub-component
+    contributor: questionMD.value?.contributor, // this struct is set by a sub-component
     title: title.value,
   });
 
@@ -285,13 +285,13 @@ async function submitQuestion() {
   console.log("Response status: ", response.status);
   if (response.status === 200) {
     try {
-      question.value = <Question>await response.json();
+      questionMD.value = <Question>await response.json();
       // clear the local storage
       localStorage.removeItem(PREVIEW_QUESTION_LS_KEY);
       // console.log("Saved OK: ", savedQuestion);
       // redirect to the saved question
       // TODO: make use of the returned question details to avoid an extra fetch
-      router.push(`/${PageIDs.QUESTION}?${URL_PARAM_TOPIC}=${question.value.topic}&${URL_PARAM_QID}=${question.value.qid}`);
+      router.push(`/${PageIDs.QUESTION}?${URL_PARAM_TOPIC}=${questionMD.value.topic}&${URL_PARAM_QID}=${questionMD.value.qid}`);
     } catch (error) {
       console.error(error);
     }
@@ -316,7 +316,7 @@ const debouncePostMsg = debounce(() => {
 }, 500);
 
 // update questionReadiness list and enable the submit button via questionReady
-watch([selectedTopic, questionText, answers.value, title, question], ([, , answersNew], [, , answersOld]) => {
+watch([selectedTopic, questionText, answers.value, title, questionMD], ([, , answersNew], [, , answersOld]) => {
   // assess question readiness
   questionReadiness.value.topic = selectedTopic.value !== "";
   questionReadiness.value.question = questionText.value.length > 10;
@@ -392,7 +392,7 @@ function loadQuestion(fetchedQuestion: Question) {
 
   // copy the loaded question to the store
   // for sub-components to access the data
-  question.value = JSON.parse(JSON.stringify(fetchedQuestion));; // store the question in the store
+  questionMD.value = JSON.parse(JSON.stringify(fetchedQuestion));; // store the question in the store
 }
 
 /** Clear the storage and go back to the previous page */
@@ -413,6 +413,7 @@ watchEffect(async () => {
 
   // disable the form while fetching the question
   hydrated.value = LoadingStatus.Loading;
+  questionMD.value = undefined;
 
   // fetching an existing question for editing
   console.log(`Fetching question for ${props.topic}/${props.qid}`);
@@ -440,7 +441,7 @@ function packageQuestion() {
     question: questionText.value,
     answers: answers.value,
     correct: 0, // setting this to the correct value will enable checkboxes in the preview
-    contributor: question.value?.contributor,
+    contributor: questionMD.value?.contributor,
     title: title.value,
   };
 }

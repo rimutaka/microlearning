@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 
 import { CONTRIBUTOR_DETAILS_LS_KEY, ANY_TOPIC, URL_PARAM_TOPIC } from './constants'
 import type { Question, QuestionWithHistory, User, ContributorProfile, LoadingStatus as LoadingStatusType } from './interfaces'
-import { LoadingStatus } from './interfaces'
+import { LoadingStatus, PublishStage } from './interfaces'
 import { fetchQuestion } from './data-loaders/fetch-question'
 
 
@@ -14,8 +14,12 @@ export const useMainStore = defineStore('main', () => {
 
   const route = useRoute();
 
-  /** The last loaded question */
+  /** The last loaded question in HTML format */
   const question = ref<Question | undefined>()
+
+  /** The last loaded question in Markdown format 
+   * TODO: replace this with a flag inside Question to indicate the format */
+  const questionMD = ref<Question | undefined>()
 
   /** The last loaded list of questions */
   const questionsWithHistory = ref<QuestionWithHistory[] | undefined>()
@@ -56,6 +60,7 @@ export const useMainStore = defineStore('main', () => {
 
   const reset = () => {
     question.value = undefined;
+    questionMD.value = undefined;
     questionsWithHistory.value = undefined;
     selectedTopics.value = [];
     showingRandomQuestion.value = false;
@@ -81,6 +86,8 @@ export const useMainStore = defineStore('main', () => {
       answers: [],
       correct: 0,
       contributor: contribParsed,
+      title: "",
+      stage: PublishStage.Draft,
     };
 
     questionStatus.value = LoadingStatus.Loaded;
@@ -130,6 +137,7 @@ export const useMainStore = defineStore('main', () => {
 
   return {
     question,
+    questionMD,
     questionsWithHistory,
     selectedTopics,
     currentTopic,
