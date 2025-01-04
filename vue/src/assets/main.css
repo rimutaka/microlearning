@@ -56,6 +56,10 @@ a.p-button {
   @apply text-red-500;
 }
 
+.red-highlight-border {
+  @apply border-red-500;
+}
+
 /* Dark styles for topic checkboxes */
 input.p-checkbox-input,
 input.p-radiobutton-input {

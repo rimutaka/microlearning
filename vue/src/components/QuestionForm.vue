@@ -1,31 +1,33 @@
 <template>
   <div class="card mt-12">
     <div v-if="hydrated == LoadingStatus.Loaded || hydrated == LoadingStatus.NoData">
-      <div class="flex flex-wrap gap-4 mb-8">
-        <h4>Topics: </h4>
-        <div class="flex" v-for="topic in topics" :key="topic.id">
-          <RadioButton v-model="selectedTopic" name="topics" :value="topic.id" :inputId="topic.id" :disabled="props.topic != undefined" />
-          <label :for="topic.id" class="ms-2">{{ topic.t }}</label>
+      <div class="flex gap-4 mb-8 align-middle">
+        <h4 class="p-1">Topic</h4>
+        <div class="p-2 rounded-md flex gap-4 flex-wrap" :class="{ 'red-highlight-border border': !questionReadiness.topic && requiredHighlight }">
+          <div class="flex" v-for="topic in topics" :key="topic.id">
+            <RadioButton v-model="selectedTopic" name="topics" :value="topic.id" :inputId="topic.id" :disabled="props.topic != undefined" />
+            <label :for="topic.id" class="ms-2">{{ topic.t }}</label>
+          </div>
         </div>
       </div>
 
       <div class="mb-4">
         <div class="flex flex-wrap gap-4 mb-4">
-          <h4 class="mt-auto">Question </h4>
+          <h4 class="mt-auto">Question</h4>
           <div class="flex-grow text-end">
             <Button :label="previewWindow ? 'Referesh preview' : 'Open preview'" icon="pi pi-receipt" severity="secondary" class="whitespace-nowrap" iconPos="right" @click="showPreviewWindow()" />
           </div>
         </div>
         <div class="w-full">
-          <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" @keydown="formattingKeypress" placeholder="Enter the text of the question here as plain text or Markdown." />
+          <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" :invalid="!questionReadiness.question && requiredHighlight" @keydown="formattingKeypress" placeholder="Enter the text of the question here as plain text or Markdown." />
           <p v-if="questionText" class=" input-help-line">Plain or Markdown text of the question.</p>
         </div>
       </div>
 
       <div class="flex flex-wrap gap-4 mb-8">
-        <h4>One line summary for a title</h4>
+        <h4>One line summary for the title</h4>
         <div class="w-full mb-6">
-          <InputText v-model="title" class="w-full mb-2" :maxlength="MAX_TITLE_LEN" placeholder="A short title for the question." />
+          <InputText v-model="title" class="w-full mb-2" :maxlength="MAX_TITLE_LEN" :invalid="!questionReadiness.title && requiredHighlight" placeholder="A short title for the question." />
           <p v-if="title" class=" input-help-line">A short description of what the question is about. No Markdown, 100 characters max.</p>
         </div>
       </div>
@@ -82,7 +84,7 @@
         <div class="flex-shrink text-end flex-row space-x-4 space-y-4">
           <Button label="Cancel" icon="pi pi-times" raised severity="secondary" class="whitespace-nowrap" @click="cancelAndGoBack()" />
           <Button label="Save" icon="pi pi-check" raised class="my-auto whitespace-nowrap" @click="saveQuestion()" />
-          <p v-if="requiredHighlight" class="red-highlight text-xs text-end">Fill in required fields to save.</p>
+          <p v-if="requiredHighlight" class="red-highlight text-sm text-end">Fill in required fields to save.</p>
         </div>
       </div>
     </div>
@@ -329,7 +331,7 @@ watch([selectedTopic, questionText, answers.value, title, questionMD], ([, , ans
   questionReady.value = questionReadiness.value.topic && questionReadiness.value.question && questionReadiness.value.title;
 
   // reset the required highlight to normal if the user makes changes
-  requiredHighlight.value = false;
+  if (questionReady.value) requiredHighlight.value = false;
 
   // changes are sent to the preview with a debounce
   debouncePostMsg();
@@ -405,7 +407,7 @@ watchEffect(async () => {
 
   // clear the question from the store on load to force a reload on save
   // if the store's question ID matches the URL it skips the reload
-  question.value = undefined; 
+  question.value = undefined;
 
   // if no topic/qid is set, this is a new question
   if (!(props.topic && props.qid)) {
