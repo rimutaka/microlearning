@@ -48,7 +48,7 @@ export const MAX_QUESTION_LEN = 12_000;
 /// The lambda may allow for a few extra bytes to account for the Unicode overhead.
 export const MAX_TITLE_LEN = 100;
 
-/// Keypair for the topic title and DDB topic ID, e.g. "AWS"/"aws".
+/** Keypair for the topic title and DDB topic ID, e.g. "AWS"/"aws". */
 export interface TopicFields {
   t: string,
   id: string,
@@ -74,7 +74,7 @@ export function randomTopicId(): string {
  */
 export const DEFAULT_TOPIC = "general";
 
-/// Returns the topic title by its ID
+/** Returns the topic title by its ID */
 export function findTopicById(id: string | undefined): string | undefined {
   if (!id) return undefined;
   return TOPICS.find((topic) => topic.id === id)?.t;

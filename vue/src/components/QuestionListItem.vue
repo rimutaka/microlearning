@@ -29,9 +29,7 @@ const props = defineProps<{
 
 const title = computed(() => props.question.question?.title ? props.question.question?.title : "Untitled question");
 
-const topicName = computed(() => {
-  return (constants.TOPICS.find((t) => t.id == props.question.question.topic))?.t;
-});
+const topicName = computed(() => constants.findTopicById(props.question.question.topic));
 
 const isAuthor = computed(() => props.showTopic || (props.user_email_hash != undefined && props.user_email_hash === props.question.question.author));
 

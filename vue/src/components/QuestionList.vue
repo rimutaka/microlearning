@@ -25,10 +25,7 @@ const { token, questionListStatus, questionsWithHistory, user } = storeToRefs(st
 
 const props = defineProps<{ topic?: string }>();
 
-
-const topicName = computed(() => {
-  return (constants.TOPICS.find((t) => t.id == props.topic))?.t;
-});
+const topicName = computed(() => constants.findTopicById(props.topic));
 
 const loadingMsg = computed(() => topicName.value ? `Loading questions about ${topicName.value}` : "Loading your questions");
 
