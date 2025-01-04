@@ -13,7 +13,7 @@
         <QuestionListCTASubscribe />
       </div>
     </div>
-    <LoadingMessage v-else class="mt-24" msg="The list will appear here after your selection" />
+    <LoadingMessage v-else class="mt-24" msg="The list of question will appear here after your selection" />
   </div>
 </template>
 
