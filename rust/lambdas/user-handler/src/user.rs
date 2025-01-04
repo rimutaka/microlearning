@@ -162,6 +162,11 @@ fn query_output_to_user(
             _ => Vec::new(),
         };
 
+        let is_mod = match item.get(fields::IS_MOD) {
+            Some(AttributeValue::Bool(v)) if *v => Some(true),
+            _ => None,
+        };
+
         let updated = match item.get(fields::UPDATED) {
             Some(AttributeValue::S(v)) => match DateTime::parse_from_rfc3339(v) {
                 Ok(v) => Some(v.with_timezone(&Utc)),
@@ -181,6 +186,7 @@ fn query_output_to_user(
             questions: Vec::new(),
             unsubscribe,
             updated,
+            is_mod,
         }))
     } else {
         // should not happen, but carry on anyway

@@ -374,6 +374,19 @@ footer a {
   @apply text-red-700;
 }
 
+/* Question source review form */
+.q-review {
+  @apply text-start;
+}
+
+.q-review h4 {
+  @apply mt-6 mb-2;
+}
+
+.q-review pre {
+  @apply text-sm p-2 mb-2 bg-slate-100 dark:bg-neutral-600 rounded-md;
+}
+
 /* About page */
 .about {
   @apply p-2 max-w-xl mx-auto;

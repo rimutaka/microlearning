@@ -56,4 +56,6 @@ pub mod fields {
     pub const QUESTION_STATS_INCORRECT: &str = "stat_i";
     /// A counter for the number of skipped answers.
     pub const QUESTION_STATS_SKIPPED: &str = "stat_s";
+    /// A boolean flag for the users with moderator privileges.
+    pub const IS_MOD: &str = "mod";
 }

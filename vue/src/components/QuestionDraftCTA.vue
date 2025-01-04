@@ -7,11 +7,16 @@
       <p class="mb-4">Questions become publicly available and are sent to subscribers after a review by other members.</p>
       <p>Reach out to the <a href="mailto:max@bitesized.info">site maintainer</a> if you need help or have feedback.</p>
       <ul v-if="hydrated == LoadingStatus.Loaded && !questionReady" class="mt-4">
-        <li class="mb-2"><h3>TODO:</h3></li>
+        <li class="mb-2">
+          <h3>TODO:</h3>
+        </li>
         <li class="ms-4 mb-2 text-sm" v-if="!questionReadiness.answers"><i class="pi pi-stop text-xs" style="font-size: 0.8rem"></i> provide at least 2 answers</li>
         <li class="ms-4 mb-2 text-sm" v-if="!questionReadiness.correct"><i class="pi pi-stop text-xs" style="font-size: 0.8rem"></i> have at least 1 correct answer</li>
         <li class="ms-4 mb-2 text-sm" v-if="!questionReadiness.explanations"><i class="pi pi-stop" style="font-size: 0.8rem"></i> add detailed explanations to all answers</li>
       </ul>
+      <div class="mt-8 w-full flex justify-center">
+        <LinkButton v-if="reviewLink" :href="reviewLink" label="Review question source"/>
+      </div>
       <LoadingMessage v-if="hydrated == LoadingStatus.Loading" msg="Checking question readiness ..." class="mb-0 text-center" />
       <h3 v-if="hydrated == LoadingStatus.Error" class="mt-8 mb-8 text-slate-500 dark:text-slate-100">Sorry, something went wrong. Try again.</h3>
     </div>
@@ -26,11 +31,14 @@ import { storeToRefs } from 'pinia'
 import type { Question } from "@/interfaces";
 import { fetchQuestionMD } from "@/data-loaders/fetch-question";
 import { LoadingStatus } from "@/interfaces";
+import { URL_PARAM_TOPIC, URL_PARAM_QID } from "@/constants";
+import { PageIDs } from "@/router";
 
 import LoadingMessage from "./LoadingMessage.vue";
+import LinkButton from "./LinkButton.vue";
 
 const store = useMainStore();
-const { token, question } = storeToRefs(store);
+const { token, question, user } = storeToRefs(store);
 
 const questionMD = ref<Question | undefined | null>();
 const hydrated = ref(LoadingStatus.Loading);
@@ -53,6 +61,11 @@ const questionReady = computed(() => {
 
   return Object.values(questionReadiness.value).every((value) => value);
 
+});
+
+// available to moderators only
+const reviewLink = computed(() => {
+  if (user.value?.isMod) return `/${PageIDs.REVIEW}?${URL_PARAM_TOPIC}=${question.value?.topic}&${URL_PARAM_QID}=${question.value?.qid}`;
 });
 
 watchEffect(async () => {

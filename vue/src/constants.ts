@@ -1,6 +1,7 @@
 /// The endpoint for question-related requests.
 export const QUESTION_HANDLER_URL = "https://bitesized.info/q?";
 export const QUESTION_LIST_HANDLER_URL = "https://bitesized.info/ql?";
+export const QUESTION_STAGE_HANDLER_URL = "https://bitesized.info/qs?";
 /// The endpoint for user-related requests.
 export const USER_HANDLER_URL = "https://bitesized.info/u?";
 /// The endpoint for payment-related requests.
@@ -12,6 +13,8 @@ export const URL_PARAM_TOPIC = "topic"
 export const URL_PARAM_TOPICS = "topics"
 /// E.g. .../q?topic=foo&qid=bar
 export const URL_PARAM_QID = "qid"
+/** E.g. .../q?topic=foo&qid=bar&stage=published, must be one of PublishStage enum values  */
+export const URL_PARAM_STAGE = "stage"
 /// E.g. .../q?topic=foo&qid=bar&answers=0.1
 export const URL_PARAM_ANSWERS = "answers"
 /// A character used to separate values within the same param value,

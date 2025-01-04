@@ -63,6 +63,9 @@ pub struct User {
     /// When the subscription was last updated
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub updated: Option<DateTime<Utc>>,
+    /// Set to true if the user is a moderator
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub is_mod: Option<bool>,
 }
 
 /// Convert it into 2024-01-01T00:00:00Za format,

@@ -15,7 +15,7 @@
         <div class="flex flex-wrap gap-4 mb-4">
           <h4 class="mt-auto">Question</h4>
           <div class="flex-grow text-end">
-            <Button :label="previewWindow ? 'Referesh preview' : 'Open preview'" icon="pi pi-receipt" severity="secondary" class="whitespace-nowrap" iconPos="right" @click="showPreviewWindow()" />
+            <Button :label="previewWindow ? 'Refresh preview' : 'Open preview'" icon="pi pi-receipt" severity="secondary" class="whitespace-nowrap" iconPos="right" @click="showPreviewWindow()" />
           </div>
         </div>
         <div class="w-full">
@@ -423,7 +423,7 @@ watchEffect(async () => {
   questionMD.value = undefined;
 
   // fetching an existing question for editing
-  console.log(`Fetching question for ${props.topic}/${props.qid}`);
+  console.log(`Fetching MD question for ${props.topic}/${props.qid}`);
   if (!token.value) {
     console.log("No token found. Redirecting to homepage.");
     router.push("/");

@@ -19,7 +19,7 @@ export interface Stats {
 
 /** Controls visibility of the question.
 * - Draft - visible to the author and mods
-* - Published - visible to everyone */ 
+* - Published - visible to everyone */
 export enum PublishStage {
   Draft = "draft",
   Published = "published",
@@ -66,7 +66,10 @@ export interface User {
   updated: string,
   details?: {
     profile: ContributorProfile,
-  }
+  },
+  /** True if the user is a moderator, otherwise undefined */
+  isMod?: boolean,
+
 }
 
 /// Questions contributor details to be displayed alongside the question

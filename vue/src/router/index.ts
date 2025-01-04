@@ -13,6 +13,7 @@ import SponsorshipView from '@/views/SponsorshipView.vue';
 import ThankYouView from '@/views/ThankYouView.vue';
 import LoginView from '@/views/LoginView.vue';
 import QuestionListView from '@/views/QuestionListView.vue';
+import QuestionReviewView from '@/views/QuestionReviewView.vue';
 
 // Extend RouteMeta to enforce title property stored in meta for every page
 import 'vue-router'
@@ -30,6 +31,7 @@ export const PageIDs = {
   ADD: 'add',
   QUESTION: 'question',
   QUESTIONS: 'questions',
+  REVIEW: 'review',
   ABOUT: 'about',
   SUBSCRIPTION: 'subscription',
   PREVIEW: 'preview',
@@ -116,7 +118,13 @@ const router = createRouter({
       component: LoginView,
       meta: { title: 'Login' }
     },
-
+    {
+      path: '/' + PageIDs.REVIEW,
+      name: PageIDs.REVIEW,
+      component: QuestionReviewView,
+      beforeEnter: authGuard,
+      meta: { title: 'Question review' }
+    },
   ]
 })
 
