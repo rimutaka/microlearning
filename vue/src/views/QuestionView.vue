@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import { computed, watch, ref, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
-import { TOPICS, randomTopicId, findTopicById } from "@/constants";
+import { randomTopicId, findTopicById } from "@/constants";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { LoadingStatus, PublishStage } from '@/interfaces';
@@ -28,35 +28,26 @@ import QuestionDraftCTA from '@/components/QuestionDraftCTA.vue';
 
 const route = useRoute();
 const router = useRouter();
-
-// the very first thing that has to be done - navigate to a random topic if none is provided
-const randomTopic = randomTopicId(); // pick a random topic now in case it is needed
-if (!route.query.topic) {
-  // if no topic is provided, pick a random one
-  console.log("Navigating to a random topic: ", randomTopic);
-  router.replace({ query: { topic: randomTopic } });
-}
-
 const store = useMainStore();
 const { question, email, questionStatus } = storeToRefs(store);
 
-// save the initial values to maintain state later because the topic and qid will change
-// the route change may lag behind, so it's better to reuse the random topic value from the variable
-const initialTopic = route.query.topic ? <string>route.query.topic : randomTopic;
+// save the initial values to maintain state later 
+// the topic never changes after the value is set to what is in the URL or to a random one
+// qid will change if another question is loaded
+const topic = route.query.topic ? <string>route.query.topic : randomTopicId();
 const initialQid = route.query.qid ? <string>route.query.qid : undefined;
-
-const topicName = computed(() => {
-  return findTopicById(route.query.topic as string | undefined);
-});
-
 // this flag tells to not store pages that have no question ID in history because they redirect to a new 
 // random question catching the user in a loop
 let replaceRouter = initialQid ? false : true;
 
-// route.query.topic and .qid can potentially be an array, but it should not happen in this app,
+// route.query.qid can potentially be an array, but it should not happen in this app,
 // so it is safe to cast them into a string
-const topic = ref<string | undefined>(initialTopic);
 const qid = ref<string | undefined>(initialQid);
+
+// a user-friendly name for the topic
+const topicName = computed(() => {
+  return findTopicById(topic);
+});
 
 const ctaBlockVisible = computed(() => {
   // checking user subs does not work because this page does not load user details
@@ -64,21 +55,21 @@ const ctaBlockVisible = computed(() => {
   if (!email.value && question.value?.answers?.[0].e) { return true } else { return false };
 });
 
-// reset the question ID and reload to show a new question on the same topic
+// reset the question ID and reload to show a new question from the same topic
 const loadNextQuestion = () => {
   console.log("Load next question");
   qid.value = undefined;
   replaceRouter = true;
-  store.loadNextQuestion(initialTopic);
+  store.loadNextQuestion(topic);
 };
 
 // update the query string with the next question topic and id when the question changes in the store
 watch(question, (newQuestion) => {
   // console.log("newQuestion: ", newQuestion);
   if (newQuestion) {
-    topic.value = newQuestion.topic;
+    // topic.value = newQuestion.topic;
     qid.value = newQuestion.qid;
-    console.log("New question topic/qid: ", topic.value, qid.value);
+    console.log("New question topic/qid: ", topic, qid.value);
 
     // update page title
     if (question.value?.title) {
@@ -86,14 +77,14 @@ watch(question, (newQuestion) => {
     }
 
     // update the URL query string to match the current question
-    if (route.query.topic != topic.value || route.query.qid != qid.value) {
+    if (route.query.qid != qid.value) {
       if (replaceRouter) {
-        console.log("replace-navigating to ", topic.value, qid.value);
+        console.log("replace-navigating to ", topic, qid.value);
         replaceRouter = false; // only replace the first time, subsequent calls should have qid
-        router.replace({ query: { topic: topic.value, qid: qid.value } });
+        router.replace({ query: { topic: topic, qid: qid.value } });
       } else {
-        console.log("push-navigating to ", topic.value, qid.value);
-        router.push({ query: { topic: topic.value, qid: qid.value } });
+        console.log("push-navigating to ", topic, qid.value);
+        router.push({ query: { topic: topic, qid: qid.value } });
       }
     }
   }
@@ -105,21 +96,25 @@ watch(question, (newQuestion) => {
 // this watch is needed to load questions on back/forward navigation
 watch(route, (newQuery) => {
   const newQid = newQuery.query.qid as string | undefined;
-  const newTopic = newQuery.query.topic as string | undefined;
-  console.log(`route.query changed to ${newTopic} / ${newQid}`);
-  if (newTopic && (newTopic != topic.value || newQid != qid.value)) {
+  console.log(`Route query changed to ${newQuery.query.topic} / ${newQid}`);
+  if (newQid != qid.value) {
     // load the new question if it is different from the current one
-    store.loadQuestion(newTopic, newQid);
+    store.loadQuestion(topic, newQid);
   }
 });
 
-// load a question when the component is mounted
-if (initialTopic && initialQid) {
+// the initial topic has a random value assigned if no topic was provided
+// update the URL query string to match the random topic
+if (!route.query.topic) {
+  console.log("Navigating to a random topic: ", topic);
+  router.replace({ query: { topic: topic } });
+}
+
+if (topic && initialQid) {
   // a particular question was requested
-  (async () => await store.loadQuestion(initialTopic, initialQid))();
+  (async () => await store.loadQuestion(topic, initialQid))();
 } else {
-  // a random question for a particular topic was requested
-  // or no topic at all and it was picked at random
+  // a random question was requested
   loadNextQuestion();
 }
 
