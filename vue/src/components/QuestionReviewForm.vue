@@ -1,6 +1,6 @@
 <template>
   <div class="my-12">
-    <div v-if="hydrated == LoadingStatus.Loaded || hydrated == LoadingStatus.NoData" class=" q-review">
+    <div v-if="hydrated == LoadingStatus.Loaded || hydrated == LoadingStatus.NoData" class="hidden lg:block q-review">
       <h4>Topic: <em>{{ findTopicById(questionMD?.topic) }}</em></h4>
 
       <h4 class="mt-auto">Question</h4>
@@ -10,12 +10,12 @@
       <pre>{{ questionMD?.title }}</pre>
 
       <h4>Answers</h4>
-      <div class="w-full mb-6" v-for="(answer, idx) in questionMD?.answers" :key="idx">
+      <div class="mb-6" v-for="(answer, idx) in questionMD?.answers" :key="idx">
         <pre>{{ answer.a }}</pre>
         <pre>{{ answer.e }}</pre>
 
-        <p v-if="answer.c" class="text-green-600">Correct</p>
-        <p v-else class="text-red-600">Incorrect</p>
+        <p v-if="answer.c" class="text-green-600 font-bold">Correct</p>
+        <p v-else class="text-red-600 font-bold">Incorrect</p>
       </div>
 
       <h4 class="text-start mb-4">Contributor</h4>
@@ -35,6 +35,12 @@
 
     <LoadingMessage v-if="hydrated == LoadingStatus.Loading" msg="Loading question source ..." />
     <h3 v-if="hydrated == LoadingStatus.Error" class="mt-8 mb-8 text-slate-500 dark:text-slate-100">Sorry, something went wrong. Try again.</h3>
+    
+    <!-- Do not allow reviewing and approval of questions on small screens because it is easy to overlook issues. -->
+    <div class="my-12 lg:hidden">
+      <h4 class="mb-4">Minimum 1024px screen is required to review and approve a question</h4>
+      <p>Resize your browser window or try a different device.</p>
+    </div>
   </div>
 </template>
 
@@ -87,7 +93,7 @@ async function approveQuestion() {
   console.log("Response status: ", response.status);
   if (response.status === 204) {
     console.log("Question approved. Redirecting to the list of questions: ", questionMD.value?.topic);
-    router.push({ name: PageIDs.QUESTIONS, query: { [URL_PARAM_TOPIC]: questionMD.value?.topic } });
+    router.push({ name: PageIDs.QUESTION, query: { [URL_PARAM_TOPIC]: questionMD.value?.topic, [URL_PARAM_QID]: questionMD.value?.qid } });
   } else {
     console.error("Failed to save the question: ", response.status);
   }

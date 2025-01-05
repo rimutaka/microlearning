@@ -384,7 +384,7 @@ footer a {
 }
 
 .q-review pre {
-  @apply text-sm p-2 mb-2 bg-slate-100 dark:bg-neutral-600 rounded-md;
+  @apply text-sm p-2 mb-2 bg-slate-100 dark:bg-neutral-600 rounded-md overflow-x-scroll;
 }
 
 /* About page */
