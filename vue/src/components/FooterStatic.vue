@@ -37,7 +37,7 @@ const menuItems = ref([
     route: '/'
   },
   {
-    label: 'Topics',
+    label: 'Questions',
     icon: 'pi pi-list-check',
     route:  `/${PageIDs.QUESTIONS}`
   },
