@@ -37,7 +37,6 @@
           <div class="flex-grow text-start">
             <LinkButton v-if="hasToken" :href="editPageUrl" label="Edit" class="me-2 mb-2" icon="pi pi-pencil" />
             <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click.capture="copyLinkToClipboard" />
-            <LinkButton :href="questionsPageUrl" label="View all questions" class="me-2 mb-2" icon="pi pi-list-check" />
             <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
             <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try another question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
