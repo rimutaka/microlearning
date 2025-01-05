@@ -6,7 +6,7 @@ export const fetchQuestions = async (topic?: string, token?: string): Promise<Qu
   console.log(`Fetching questions for: ${topic}`);
 
   if (!topic) {
-    console.error("No topic provided - getting user-authored questions.");
+    console.log("No topic provided - getting user-authored questions.");
   }
 
   // add a token with the email, if there is one (logged in users)

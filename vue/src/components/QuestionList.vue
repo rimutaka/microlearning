@@ -1,10 +1,11 @@
 <template>
   <div>
-    <LoadingMessage v-if="questionListStatus == undefined || questionListStatus == LoadingStatus.Loading" :msg="loadingMsg" />
+    <LoadingMessage v-if="(questionListStatus == undefined || questionListStatus == LoadingStatus.Loading) && loadingMsg" :msg="loadingMsg" />
     <div v-if="questionListStatus == LoadingStatus.Loaded" class="q-list">
       <QuestionListItem v-for="(question, index) in questionsWithHistory" :question="question" :key="index" :show-topic="topic == undefined" :user_email_hash="user?.emailHash" />
     </div>
-    <div v-if="questionListStatus == LoadingStatus.Error || questionListStatus == LoadingStatus.NoData">Cannot load the list of questions - something went wrong.</div>
+    <div v-if="questionListStatus == LoadingStatus.Error">Cannot load the list of questions - something went wrong.</div>
+    <!-- Show nothing if LoadingStatus.NoData -->
   </div>
 </template>
 
@@ -27,7 +28,7 @@ const props = defineProps<{ topic?: string }>();
 
 const topicName = computed(() => constants.findTopicById(props.topic));
 
-const loadingMsg = computed(() => topicName.value ? `Loading questions about ${topicName.value}` : "Loading your questions");
+const loadingMsg = computed(() => topicName.value ? `Loading questions about ${topicName.value}` : undefined);
 
 /// The topic always comes from props.topic
 /// The qid comes from props.qid if random is false.
@@ -42,6 +43,8 @@ const loadQuestions = async (paramTopic?: string) => {
   // update the status
   if (questionsWithHistory.value && questionsWithHistory.value.length) {
     questionListStatus.value = LoadingStatus.Loaded;
+  } else if (questionsWithHistory.value && questionsWithHistory.value.length == 0) {
+    questionListStatus.value = LoadingStatus.NoData;
   } else {
     questionListStatus.value = LoadingStatus.Error;
   }
