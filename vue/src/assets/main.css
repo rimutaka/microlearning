@@ -154,7 +154,7 @@ footer a {
   /* Chrome doesn't break up long URLs creating an overflow on small screens */
   overflow-wrap: anywhere;
   max-width: 95vw;
-  @apply md:max-w-none;
+  @apply md:max-w-none mb-2;
 }
 
 .q-card .q-text {
