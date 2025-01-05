@@ -1,21 +1,13 @@
 <template>
   <LoadingMessage v-if="!user" msg="Loading your subscription ..." />
-  <h3 v-if="user?.topics.length">Your subscribed topics</h3>
-  <h3 v-else-if="user && !user.topics.length">Select topics to subscribe</h3>
-  <div v-if="user" :key="user?.updated" class="flex flex-wrap items-center gap-4 justify-center my-4">
-    <div class="flex" v-for="topic in TOPICS" :key="topic.id">
-      <Checkbox v-model="selectedTopics" class="dark:opacity-85" :value="topic.id" :input-id="topic.id" />
-      <span class="ms-2 me-4 link" @click.capture="router.push({ query: { [URL_PARAM_TOPIC]: topic.id } })">{{ topic.t }}</span>
-    </div>
-  </div>
+  <SubscriptionTopics v-if="user" />
 
-  <p v-if="user?.topics.length" class="mb-4 text-xs text-slate-500 dark:text-slate-200">Last updated: {{ updateDate }} </p>
   <SubscriptionForm class="mb-12" />
   <TransitionSlot>
     <SubscriptionCTA v-if="user && !user?.topics.length && !questionsWithHistory?.length" />
   </TransitionSlot>
   <TransitionSlot>
-    <SubscriptionCompleted v-if="firstTimeSub && user?.topics.length" />
+    <SubscriptionCompleted v-if="user?.topics.length && !questionsWithHistory?.length" />
   </TransitionSlot>
   <h3 v-if="topic && questionsWithHistory?.length" class="my-8">Questions about {{ topicName }}</h3>
   <h3 v-else-if="user && questionsWithHistory?.length" class="my-8">Your questions</h3>
@@ -34,10 +26,9 @@ import TransitionSlot from "@/components/TransitionSlot.vue";
 import SubscriptionCTA from '@/components/SubscriptionCTA.vue';
 import SubscriptionCompleted from '@/components/SubscriptionCompleted.vue';
 import SubscriptionForm from '@/components/SubscriptionForm.vue';
-import TopicList from '@/components/TopicList.vue';
 import LoadingMessage from '@/components/LoadingMessage.vue';
 import QuestionList from '@/components/QuestionList.vue';
-import Checkbox from 'primevue/checkbox';
+import SubscriptionTopics from '@/components/SubscriptionTopics.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -48,12 +39,6 @@ const { user, questionsWithHistory, selectedTopics } = storeToRefs(store);
 const firstTimeSub = ref(false); // true when the user changes from no sub to sub with topics
 const topic = ref<string | undefined>();
 const topicName = computed(() => findTopicById(topic.value));
-
-/// Format RFC3339 date string to a human-readable date
-const updateDate = computed(() => {
-  if (!user.value?.updated) return "";
-  return new Date(user.value.updated).toLocaleString();
-});
 
 watch(user, (newUser) => {
   if (newUser && !newUser.topics.length) {
