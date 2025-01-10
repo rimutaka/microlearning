@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import initWasmModule from "@/wasm-rust/isbn_mod";
+import type { InitOutput } from '@/wasm-rust/isbn_mod';
 
 import { CONTRIBUTOR_DETAILS_LS_KEY, URL_PARAM_TOPIC, randomTopicId } from './constants'
 import type { Question, QuestionWithHistory, User, ContributorProfile, LoadingStatus as LoadingStatusType } from './interfaces'
@@ -52,6 +54,19 @@ export const useMainStore = defineStore('main', () => {
    then back to false on loading the view that includes the sample question */
   const showingRandomQuestion = ref<boolean>(false)
 
+  // an inner container for the WASM module that has to be initialized on boot
+  const wasmModInner = ref<InitOutput | undefined>();
+  initWasmModule()
+    .then((wasm) => { wasmModInner.value = wasm; console.log("Wasm module loaded") })
+    .catch((e) => console.error("Error loading wasm module", e));
+
+  /** Returns the initialized WASM Helper Module.
+   * Load it in the component with `const { wasmMod } = useMainStore()
+   * and call any of its functions as needed.
+   * The initial value is undefined until the module is compiled by the browser.
+   */
+  const wasmMod = computed(() => wasmModInner.value);
+
   /** Topic ID from the URL query parameter */
   const currentTopic = computed((): string | undefined => {
     console.log(`Detected topic change to ${route.query[URL_PARAM_TOPIC]}`);
@@ -92,8 +107,6 @@ export const useMainStore = defineStore('main', () => {
 
     questionStatus.value = LoadingStatus.Loaded;
   }
-
-
 
   /** Loads a question from the DB or reuses the existing one if the topic and qid match.
    * Returns a random question for the topic if qid is not provided.
@@ -177,6 +190,7 @@ export const useMainStore = defineStore('main', () => {
     anonymousContributor,
     questionStatus,
     questionListStatus,
+    wasmMod,
     reset,
     resetQuestionToBlank,
     loadQuestion,
