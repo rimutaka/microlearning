@@ -1,25 +1,28 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * The main entry point for the UI thread to request book data.
- * Multiple responses are sent back via `progress.js` to the UI thread.
- * See `fn report_progress()` for more details.
+ * A demo function for getting WASM working for the first time
  */
 export function hello_world(): Promise<void>;
+/**
+ * Converts a markdown string to HTML
+ */
+export function md_to_html(md: string): Promise<string>;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly hello_world: () => any;
+  readonly md_to_html: (a: number, b: number) => any;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __externref_table_alloc: () => number;
   readonly __wbindgen_export_2: WebAssembly.Table;
   readonly __wbindgen_export_3: WebAssembly.Table;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
-  readonly closure18_externref_shim: (a: number, b: number, c: any) => void;
-  readonly closure28_externref_shim: (a: number, b: number, c: any, d: any) => void;
+  readonly closure42_externref_shim: (a: number, b: number, c: any) => void;
+  readonly closure52_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }
 

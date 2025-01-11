@@ -14,8 +14,7 @@ import type { Question, Answer } from "@/interfaces";
 import { LoadingStatus } from '@/interfaces';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import { marked } from 'marked';
-
+import initWasmModule, { md_to_html } from "@/wasm-rust/isbn_mod";
 
 import QuestionCard from "../components/QuestionCard.vue";
 import ContributorCard from "../components/ContributorCard.vue";
@@ -47,47 +46,61 @@ function questionUpdateListener(event: MessageEvent) {
     return;
   }
 
-  renderQuestion(event.data).then((q) => {
-    // console.log("Setting question in store");
-    question.value = q;
-  });
+  renderQuestion(event.data);
 }
 
 window.removeEventListener("message", questionUpdateListener, false);
 window.addEventListener("message", questionUpdateListener, false);
 
-/// Renders a markdown question to HTML and returns it as a string
+/// Renders a markdown question to HTML and updates the store
 async function renderQuestion(qMarkdown: string) {
   const parsedQuestion: Question = JSON.parse(qMarkdown);
+
+  // preload the parsed question if it's not in the store yet
+  // remove MD/HTML fields
+  if (!question.value || question.value.qid == undefined || question.value.qid !== parsedQuestion.qid) {
+    const preload: Question = JSON.parse(qMarkdown);
+    preload.question = "";
+    preload.answers = [];
+    question.value = preload;
+  }
+
+  if (question.value == undefined) {
+    console.log("Question not loaded from the LS or the message");
+    return;
+  }
+
   // prepared the markdown to HTML renderer
-  marked.use({
-    async: true,
-    breaks: true,
+  try {
+    console.log("Loading Wasm module");
+    await initWasmModule();
+    console.log("Wasm module loaded");
+  }
+  catch (e) {
+    console.error("Error loading wasm module", e);
+    // clear all HTML to prevent an out of sync preview 
+    question.value.question = "Preview rendering failed";
+    question.value.answers = [];
+    return;
+  }
+
+  // render the question
+  md_to_html(parsedQuestion.question).then((html) => {
+    console.log("Wasm rendered `question`");
+    question.value!.question = html;
+  }).catch((e) => {
+    console.error("Error rendering `question`", e);
   });
 
   // render answers one by one
-  const answersHtml: Answer[] = await Promise.all(parsedQuestion.answers.map(async (a): Promise<Answer> => {
+  question.value.answers = await Promise.all(parsedQuestion.answers.map(async (a): Promise<Answer> => {
     return {
-      a: a.a ? await marked.parse(a.a) : "",
+      a: a.a ? await md_to_html(a.a) : "",
       c: a.c,
-      e: a.e ? await marked.parse(a.e) : "",
+      e: a.e ? await md_to_html(a.e) : "",
       sel: a.sel,
     }
   }));
-
-  // collect the data into a Question object and return
-  return <Question>{
-    qid: parsedQuestion.qid,
-    topic: parsedQuestion.topic,
-    question: parsedQuestion.question ? await marked.parse(parsedQuestion.question) : "",
-    answers: answersHtml,
-    author: parsedQuestion.author,
-    updated: parsedQuestion.updated,
-    correct: parsedQuestion.correct,
-    stats: parsedQuestion.stats,
-    contributor: parsedQuestion.contributor,
-    title: parsedQuestion.title,
-  };
 }
 
 // Load the question from local storage on mount, then listen for updates
@@ -103,7 +116,7 @@ async function renderQuestion(qMarkdown: string) {
   }
 
   // convert to a Question object
-  question.value = await renderQuestion(qLS);
+  renderQuestion(qLS);
   questionStatus.value = LoadingStatus.Loaded;
 })();
 

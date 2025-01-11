@@ -222,13 +222,23 @@ function getDataViewMemory0() {
     return cachedDataViewMemory0;
 }
 /**
- * The main entry point for the UI thread to request book data.
- * Multiple responses are sent back via `progress.js` to the UI thread.
- * See `fn report_progress()` for more details.
+ * A demo function for getting WASM working for the first time
  * @returns {Promise<void>}
  */
 export function hello_world() {
     const ret = wasm.hello_world();
+    return ret;
+}
+
+/**
+ * Converts a markdown string to HTML
+ * @param {string} md
+ * @returns {Promise<string>}
+ */
+export function md_to_html(md) {
+    const ptr0 = passStringToWasm0(md, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.md_to_html(ptr0, len0);
     return ret;
 }
 
@@ -238,13 +248,13 @@ function _assertNum(n) {
 function __wbg_adapter_20(arg0, arg1, arg2) {
     _assertNum(arg0);
     _assertNum(arg1);
-    wasm.closure18_externref_shim(arg0, arg1, arg2);
+    wasm.closure42_externref_shim(arg0, arg1, arg2);
 }
 
-function __wbg_adapter_34(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_35(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
-    wasm.closure28_externref_shim(arg0, arg1, arg2, arg3);
+    wasm.closure52_externref_shim(arg0, arg1, arg2, arg3);
 }
 
 async function __wbg_load(module, imports) {
@@ -299,7 +309,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_34(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_35(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -355,8 +365,8 @@ function __wbg_get_imports() {
         _assertBoolean(ret);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper194 = function() { return logError(function (arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 19, __wbg_adapter_20);
+    imports.wbg.__wbindgen_closure_wrapper472 = function() { return logError(function (arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 43, __wbg_adapter_20);
         return ret;
     }, arguments) };
     imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
