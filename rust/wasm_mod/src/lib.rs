@@ -9,6 +9,13 @@ macro_rules!  log {
 }
 
 /// A demo function for getting WASM working for the first time
+#[wasm_bindgen(start)]
+fn init() {
+    log!("WASM initializing");
+    console_error_panic_hook::set_once();
+}
+
+/// A demo function for getting WASM working for the first time
 #[wasm_bindgen]
 pub async fn hello_world() {
     log!("Hello world!");
