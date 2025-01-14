@@ -20,7 +20,7 @@
         </div>
         <div class="w-full">
           <Textarea v-model="questionText" id="questionTextInput" class="w-full" rows="3" :invalid="!questionReadiness.question && requiredHighlight" @keydown="formattingKeypress" placeholder="Enter the text of the question here as plain text or Markdown." />
-          <p v-if="questionText" class=" input-help-line">Plain or Markdown text of the question.</p>
+          <p v-if="questionText" class=" input-help-line">Plain text or <a href="https://www.markdownguide.org" target="_blank" title="Markdown syntax guide">Markdown</a> without HTML or ![images].</p>
         </div>
       </div>
 
@@ -36,7 +36,7 @@
         <h4>Answers</h4>
         <div class="w-full mb-6" v-for="(answer, idx) in answers" :key="idx">
           <Textarea v-model="answer.a" :value="answer.a" rows="3" :id="`answerInput${idx}`" class="w-full mb-2" placeholder="One of possible answers, always visible." @keydown="formattingKeypress" />
-          <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation, revealed after answering." @keydown="formattingKeypress" />
+          <Textarea v-model="answer.e" :value="answer.e" rows="5" :id="`explanationInput${idx}`" class="w-full mb-2" placeholder="A detailed explanation, revealed after answering. " @keydown="formattingKeypress" />
           <div class="flex">
             <div class="flex-grow justify-start text-start ps-4 gap-4 flex flex-wrap">
               <div class="w-fit  whitespace-nowrap">

@@ -23,7 +23,7 @@ import FooterStatic from './components/FooterStatic.vue';
 
 const { isAuthenticated, isLoading, idTokenClaims, getAccessTokenSilently } = useAuth0();
 const store = useMainStore();
-const { email, token, user, wasmMod } = storeToRefs(store);
+const { email, token, user } = storeToRefs(store);
 
 console.log(`App load/auth: ${isLoading.value}/${isAuthenticated.value}`);
 
@@ -35,12 +35,6 @@ watch([isAuthenticated, idTokenClaims], ([newIsAuth, newIdClaims]) => {
   if (newIsAuth && newIdClaims) {
     addTokenClaimsToStore();
   }
-});
-
-// this is for logging purposes only
-// TODO: remove when wasmMod gets used
-watch(wasmMod, (newWasmMod) => {
-  if (newWasmMod) console.log("WASM module loaded");
 });
 
 /// copy token details to the store
