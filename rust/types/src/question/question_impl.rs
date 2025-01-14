@@ -1,8 +1,8 @@
 use super::{Answer, ContributorProfile, PublishStage, QuestionFormat, Stats};
 use crate::topic::Topic;
 use anyhow::{Error, Result};
+use bitie_wasm_types::markdown::md_to_html;
 use chrono::{DateTime, Timelike, Utc};
-use pulldown_cmark::{html::push_html, Parser};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::str::FromStr;
@@ -79,25 +79,16 @@ impl Question {
         // the parser can have Options for extended MD support, but they don't seem to be needed
 
         // convert the question to HTML
-        let parser = pulldown_cmark::Parser::new(&self.question);
-        let mut question_as_html = String::new();
-        push_html(&mut question_as_html, parser);
+        let question_as_html = md_to_html(&self.question);
 
         // convert answers to HTML
         let answers_as_html = self
             .answers
             .into_iter()
             .map(|answer| {
-                let parser = Parser::new(&answer.a);
-                let mut a = String::new();
-                push_html(&mut a, parser);
+                let a = md_to_html(&answer.a);
 
-                let e = answer.e.map(|e| {
-                    let parser = Parser::new(&e);
-                    let mut e = String::new();
-                    push_html(&mut e, parser);
-                    e
-                });
+                let e = answer.e.map(|e| md_to_html(&e));
 
                 Answer {
                     a,

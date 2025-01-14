@@ -7,15 +7,16 @@ description = "Shared types and models for bitie"
 license = "GPL 3.0"
 
 [dependencies]
+bitie_wasm_types = { path = "../wasm_types" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }
 aws_lambda_events = { workspace = true }
 lambda_runtime = { workspace = true }
 tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
 bs58 = { workspace = true }
 uuid = { workspace = true }
-pulldown-cmark = "0.12.1"
 anyhow = { workspace = true }
 jsonwebtoken = "9.3.0"
 sha2 = { workspace = true }

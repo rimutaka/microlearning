@@ -255,7 +255,7 @@ function _assertNum(n) {
 function __wbg_adapter_20(arg0, arg1, arg2) {
     _assertNum(arg0);
     _assertNum(arg1);
-    wasm.closure45_externref_shim(arg0, arg1, arg2);
+    wasm.closure25_externref_shim(arg0, arg1, arg2);
 }
 
 function __wbg_adapter_42(arg0, arg1, arg2, arg3) {
@@ -394,8 +394,8 @@ function __wbg_get_imports() {
         _assertBoolean(ret);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper500 = function() { return logError(function (arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 46, __wbg_adapter_20);
+    imports.wbg.__wbindgen_closure_wrapper242 = function() { return logError(function (arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 26, __wbg_adapter_20);
         return ret;
     }, arguments) };
     imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {

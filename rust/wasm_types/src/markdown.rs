@@ -4,7 +4,7 @@ use pulldown_cmark::{html::push_html, Parser};
 #[cfg(not(target_family = "wasm"))]
 use tracing::info;
 
-pub async fn md_to_html(md: &str) -> String {
+pub fn md_to_html(md: &str) -> String {
     if md.is_empty() {
         return String::new();
     }
@@ -31,12 +31,12 @@ pub async fn md_to_html(md: &str) -> String {
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn test_md_to_html() {
+    #[test]
+    fn test_md_to_html() {
         let _ = tracing_subscriber::fmt().try_init();
 
-        assert_eq!(md_to_html("Hello\nWorld").await, "<p>Hello\nWorld</p>\n");
-        assert_eq!(md_to_html("Hello\n\nWorld").await, "<p>Hello</p>\n<p>World</p>\n");
-        assert_eq!(md_to_html("Hello  \nWorld").await, "<p>Hello<br />\nWorld</p>\n");
+        assert_eq!(md_to_html("Hello\nWorld"), "<p>Hello\nWorld</p>\n");
+        assert_eq!(md_to_html("Hello\n\nWorld"), "<p>Hello</p>\n<p>World</p>\n");
+        assert_eq!(md_to_html("Hello  \nWorld"), "<p>Hello<br />\nWorld</p>\n");
     }
 }

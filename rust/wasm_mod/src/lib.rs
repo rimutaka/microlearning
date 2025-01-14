@@ -1,14 +1,5 @@
+use bitie_wasm_types::{info, markdown};
 use wasm_bindgen::prelude::*;
-
-pub mod md;
-
-/// Logs output into browser console.
-macro_rules! info {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into())
-    }
-}
-pub(crate) use info;
 
 /// A demo function for getting WASM working for the first time
 #[wasm_bindgen(start)]
@@ -27,5 +18,5 @@ pub async fn hello_world() {
 #[wasm_bindgen]
 pub async fn md_to_html(md: &str) -> String {
     info!("Converting MD ({}) to HTML", md.len());
-    md::md_to_html(md).await
+    markdown::md_to_html(md)
 }
