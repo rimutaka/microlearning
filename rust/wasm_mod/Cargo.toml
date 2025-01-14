@@ -16,12 +16,17 @@ wasm-bindgen = "0.2"
 console_error_panic_hook = { version = "0.1.7" }
 js-sys = "0.3"
 wasm-bindgen-futures = "0.4"
+wasm-bindgen-test = "0.3.49"
 
 # everything else
+futures = "0.3"
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde-wasm-bindgen = "0.6"
 pulldown-cmark = "0.12.1"
+tracing = { workspace = true } # only used for non-WASM code
+tokio = { workspace = true , features = ["rt"]} # only rt is supported in WASM
+tracing-subscriber = { workspace = true }
 
 # All Web APIs have to be enabled explicitly here 
 # see https://rustwasm.github.io/wasm-bindgen/api/web_sys/

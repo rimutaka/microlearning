@@ -238,7 +238,7 @@ export function hello_world() {
 }
 
 /**
- * Converts a markdown string to HTML
+ * Converts a markdown string to HTML. Available in WASM only.
  * @param {string} md
  * @returns {Promise<string>}
  */
@@ -394,7 +394,7 @@ function __wbg_get_imports() {
         _assertBoolean(ret);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper490 = function() { return logError(function (arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper500 = function() { return logError(function (arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 46, __wbg_adapter_20);
         return ret;
     }, arguments) };

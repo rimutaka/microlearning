@@ -17,7 +17,9 @@ tokio = { version = "1.16", features = [
   "macros",
   "io-util",
   "sync",
-  "rt-multi-thread",
+  # it intentionally does not include "rt" or "rt-multi-thread" because of the conflicting
+  # capabilities between WASM and full environments
+  # add one of these two features to the individual lambda crates
 ] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

@@ -9,7 +9,7 @@ export function init(): void;
  */
 export function hello_world(): Promise<void>;
 /**
- * Converts a markdown string to HTML
+ * Converts a markdown string to HTML. Available in WASM only.
  */
 export function md_to_html(md: string): Promise<string>;
 
