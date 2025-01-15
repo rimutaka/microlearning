@@ -79,16 +79,16 @@ impl Question {
         // the parser can have Options for extended MD support, but they don't seem to be needed
 
         // convert the question to HTML
-        let question_as_html = md_to_html(&self.question);
+        let question_as_html = md_to_html(&self.question).html;
 
         // convert answers to HTML
         let answers_as_html = self
             .answers
             .into_iter()
             .map(|answer| {
-                let a = md_to_html(&answer.a);
+                let a = md_to_html(&answer.a).html;
 
-                let e = answer.e.map(|e| md_to_html(&e));
+                let e = answer.e.map(|e| md_to_html(&e).html);
 
                 Answer {
                     a,

@@ -18,5 +18,5 @@ pub async fn hello_world() {
 #[wasm_bindgen]
 pub async fn md_to_html(md: &str) -> String {
     info!("Converting MD ({}) to HTML", md.len());
-    markdown::md_to_html(md)
+    markdown::md_to_html(md).html
 }
