@@ -194,7 +194,7 @@ mod tests {
         assert!(
             checkout::get_checkout_url(
                 QuestionDonation {
-                    qty: 11,
+                    qty: 21,
                     ..full_order_details.clone()
                 },
                 secrets.clone(),
