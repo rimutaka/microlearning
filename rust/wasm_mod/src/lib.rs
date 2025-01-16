@@ -18,5 +18,13 @@ pub async fn hello_world() {
 #[wasm_bindgen]
 pub async fn md_to_html(md: &str) -> String {
     info!("Converting MD ({}) to HTML", md.len());
-    markdown::md_to_html(md).html
+    markdown::md_to_html(md, true).html
+}
+
+/// Extracts a list of markdown links. Available in WASM only.
+/// Only links that are converted into <a> tags are returned.
+#[wasm_bindgen]
+pub async fn extract_links_from_md(md: &str) -> Vec<String> {
+    info!("Extracting links from MD ({})", md.len());
+    markdown::md_to_html(md, false).links
 }

@@ -13,6 +13,7 @@ use tracing::info;
 pub struct ValidatedMarkdown {
     /// The HTML representation of the markdown
     /// with disallowed elements removed.
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub html: String,
     /// The list of disallowed markdown elements that were ignored during the HTML conversion.
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -33,7 +34,7 @@ pub struct ValidatedMarkdown {
 /// Links and images are collected and returned in addition to the HTML.
 ///
 /// Disallowed elements: html tags, images.
-pub fn md_to_html(md: &str) -> ValidatedMarkdown {
+pub fn md_to_html(md: &str, include_html: bool) -> ValidatedMarkdown {
     if md.is_empty() {
         return ValidatedMarkdown {
             html: String::new(),
@@ -75,11 +76,18 @@ pub fn md_to_html(md: &str) -> ValidatedMarkdown {
         _ => true,
     });
 
-    // pre-allocate the HTML string for 1.5 times the size of the markdown
-    let mut html = String::with_capacity(md.len() * 3 / 2);
+    // convert the tokens to HTML, if requested
+    let html = if include_html {
+        // pre-allocate the HTML string for 1.5 times the size of the markdown
+        let mut html = String::with_capacity(md.len() * 3 / 2);
+        push_html(&mut html, parser);
+        html
+    } else {
+        let _ = parser.collect::<Vec<_>>();
+        // parser.for_each(|_| ());
+        String::new()
+    };
 
-    // info!("HTML created");
-    push_html(&mut html, parser);
     info!(
         "MD: {}, HTML cap: {}, HTML len: {}, HTML/MD: {}, overalloc: {}, ignored: {}, links: {}, images: {}",
         md.len(),
@@ -111,7 +119,7 @@ mod tests {
         let _ = tracing_subscriber::fmt().try_init();
 
         assert_eq!(
-            md_to_html(""),
+            md_to_html("Hello World!!!", false),
             ValidatedMarkdown {
                 html: String::new(),
                 ignored: Vec::new(),
@@ -121,7 +129,27 @@ mod tests {
         );
 
         assert_eq!(
-            md_to_html("Hello\nWorld"),
+            md_to_html("Hello World!!!", false),
+            ValidatedMarkdown {
+                html: String::new(),
+                ignored: Vec::new(),
+                links: Vec::new(),
+                images: Vec::new(),
+            }
+        );
+
+        assert_eq!(
+            md_to_html("", true),
+            ValidatedMarkdown {
+                html: String::new(),
+                ignored: Vec::new(),
+                links: Vec::new(),
+                images: Vec::new(),
+            }
+        );
+
+        assert_eq!(
+            md_to_html("Hello\nWorld", true),
             ValidatedMarkdown {
                 html: "<p>Hello\nWorld</p>\n".to_string(),
                 ignored: Vec::new(),
@@ -130,10 +158,9 @@ mod tests {
             }
         );
 
+        let long_md = "Hello\nWorld<p>boo</p><https://example.com> [br](/br) ![img](/img) <script>alert('hi')</script>";
         assert_eq!(
-            md_to_html(
-                "Hello\nWorld<p>boo</p><https://example.com> [br](/br) ![img](/img) <script>alert('hi')</script>"
-            ),
+            md_to_html(long_md, true),
             ValidatedMarkdown {
                 html: "<p>Hello\nWorldboo<a href=\"https://example.com\">https://example.com</a> <a href=\"/br\">br</a> img alert('hi')</p>\n".to_string(),
                 ignored: vec!(
@@ -147,43 +174,66 @@ mod tests {
                 images: vec!["/img".to_string()],
             }
         );
+
+        assert_eq!(
+            md_to_html(long_md, false),
+            ValidatedMarkdown {
+                html: "".to_string(),
+                ignored: vec!(
+                    "<p>".to_string(),
+                    "</p>".to_string(),
+                    "image (/img)".to_string(),
+                    "<script>".to_string(),
+                    "</script>".to_string()
+                ),
+                links: vec!["https://example.com".to_string(), "/br".to_string()],
+                images: vec!["/img".to_string()],
+            }
+        );
     }
 
-    /*
-        #[test]
-        fn playground() {
-            let _ = tracing_subscriber::fmt().try_init();
+    #[test]
+    fn playground() {
+        let _ = tracing_subscriber::fmt().try_init();
 
-            let md = r#"What is the proper name for a group of _cosmic squirrels_?
+        let md = r#"This is an example of a _string literal_ with an escaped Unicode NULL character (`\x00` or `\0` or `\u{0}`).
 
-    Review: <https://doc.rust-lang.org/rust-by-example/scope/lifetime/fn.html>
+The NULL character may not appear as a visible symbol in the output, but it is present in the actual value.
 
-    <b>BOLD</b>"#;
+#### Example:
+```rust
+let x = "foo\x00barbaz";
 
-            let parser = Parser::new(md);
+println!("{x}");
+println!("{:?}", x);
 
-            // let parser = Parser::new(md).filter(|event| {
-            //     !matches!(
-            //         event,
-            //         Event::InlineHtml(_)
-            //                 | Event::Html(_)
-            //                 // | Event::Start(Tag::HtmlBlock)
-            //                 // | Event::End(TagEnd::HtmlBlock)
-            //                 | Event::Start(Tag::Image { .. })
-            //                 | Event::End(TagEnd::Image)
-            //     )
-            // });
+assert_eq!(x, "foobarbaz"); <-- fail
+```
+- _println!("{x}");_ output appears to be correct: `foobarbaz`
+- _println!("{:?}", x);_ output has the Unicode NULL character: `"foo\0barbaz"`
+- _assert_eq!_ output:
+```
+assertion `left == right` failed
+  left: "foo\0barbaz"
+ right: "foobarbaz"
+```
 
-            // for evt in parser {
-            //     info!("{:?}", evt);
-            // }
+More info: <https://doc.rust-lang.org/reference/tokens.html#character-escapes>"#;
 
-            let html = md_to_html(md);
-            print!("{:#?}", html);
+        // let parser = Parser::new(md).filter(|event| {
+        //     matches!(
+        //         event,
+        //         Event::Start(Tag::Link { dest_url, .. } ) if !dest_url.is_empty()
+        //     )
+        // });
 
+        // for evt in parser {
+        //     info!("{:?}", evt);
+        // }
 
-        }
-    */
+        let html = md_to_html(md, false);
+        print!("{:#?}", html.links);
+    }
 
     // #[test]
     // fn links_only() {

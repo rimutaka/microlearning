@@ -12,6 +12,11 @@ export function hello_world(): Promise<void>;
  * Converts a markdown string to HTML. Available in WASM only.
  */
 export function md_to_html(md: string): Promise<string>;
+/**
+ * Extracts a list of markdown links. Available in WASM only.
+ * Only links that are converted into <a> tags are returned.
+ */
+export function extract_links_from_md(md: string): Promise<(string)[]>;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -20,6 +25,7 @@ export interface InitOutput {
   readonly init: () => void;
   readonly hello_world: () => any;
   readonly md_to_html: (a: number, b: number) => any;
+  readonly extract_links_from_md: (a: number, b: number) => any;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __externref_table_alloc: () => number;
   readonly __wbindgen_export_2: WebAssembly.Table;
@@ -27,8 +33,8 @@ export interface InitOutput {
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export_6: WebAssembly.Table;
-  readonly closure25_externref_shim: (a: number, b: number, c: any) => void;
-  readonly closure65_externref_shim: (a: number, b: number, c: any, d: any) => void;
+  readonly closure17_externref_shim: (a: number, b: number, c: any) => void;
+  readonly closure58_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }
 
