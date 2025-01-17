@@ -1,4 +1,4 @@
-use bitie_wasm_types::{info, markdown};
+use bitie_types::{info, markdown};
 use wasm_bindgen::prelude::*;
 
 /// A demo function for getting WASM working for the first time

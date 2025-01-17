@@ -4,7 +4,6 @@ use aws_lambda_events::{
 };
 use bitie_types::{
     ddb::fields,
-    lambda,
     // question::{Question, QuestionFormat},
     topic::Topic,
 };
@@ -45,27 +44,27 @@ pub(crate) async fn my_handler(
                 method
             } else {
                 info!("Invalid HTTP method: {v}");
-                return lambda::text_response(Some("Invalid HTTP method".to_string()), 400);
+                return lambda_utils::text_response(Some("Invalid HTTP method".to_string()), 400);
             }
         }
         None => {
             info!("Missing HTTP method");
-            return lambda::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
+            return lambda_utils::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
         }
     };
     info!("Method: {}", method);
 
     // can only proceed if the user is authenticated with an email
-    let jwt_user = match lambda::get_email_from_token(&event.payload.headers) {
+    let jwt_user = match lambda_utils::get_email_from_token(&event.payload.headers) {
         Some(v) => v,
         None => {
             info!("Returning Unauthorized");
-            return lambda::text_response(Some("Unauthorized".to_string()), 401);
+            return lambda_utils::text_response(Some("Unauthorized".to_string()), 401);
         }
     };
 
     // topics param is optional
-    let topics = lambda::url_list_to_vec(event.payload.query_string_parameters.get(fields::TOPICS))
+    let topics = lambda_utils::url_list_to_vec(event.payload.query_string_parameters.get(fields::TOPICS))
         .map(Topic::filter_valid_topics);
 
     //decide on the action depending on the HTTP method
@@ -86,16 +85,16 @@ pub(crate) async fn my_handler(
 
             // return the right response
             match user {
-                Ok(Some(v)) => lambda::json_response(Some(&v), 200),
+                Ok(Some(v)) => lambda_utils::json_response(Some(&v), 200),
                 Ok(None) => {
                     error!("User not found after it was created");
-                    lambda::text_response(Some("Failed to created a new user".to_owned()), 500)
+                    lambda_utils::text_response(Some("Failed to created a new user".to_owned()), 500)
                 }
-                Err(e) => lambda::text_response(Some(e.to_string()), 400),
+                Err(e) => lambda_utils::text_response(Some(e.to_string()), 400),
             }
         }
 
         // unsupported method
-        _ => lambda::text_response(Some("Unsupported HTTP method".to_string()), 400),
+        _ => lambda_utils::text_response(Some("Unsupported HTTP method".to_string()), 400),
     }
 }

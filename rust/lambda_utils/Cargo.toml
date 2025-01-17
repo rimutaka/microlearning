@@ -1,15 +1,17 @@
 [package]
-name = "bitie_types"
+name = "lambda_utils"
 version = "0.1.0"
 edition = "2021"
 authors = ["rimutaka <max@onebro.me>"]
-description = "Shared types and models for bitie"
+description = "Shared types and functions for lambda functions"
 license = "GPL 3.0"
 
 [dependencies]
+bitie_types = { path = "../types" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }
+lambda_runtime = { workspace = true }
 aws_lambda_events = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
@@ -23,11 +25,11 @@ rand = { workspace = true }
 pulldown-cmark = "0.12.1"
 
 # wasm-related dependencies
-# wasm-bindgen = "0.2"
-# console_error_panic_hook = { version = "0.1.7" }
-# js-sys = "0.3"
-# wasm-bindgen-futures = "0.4"
-# wasm-bindgen-test = "0.3.49"
+wasm-bindgen = "0.2"
+console_error_panic_hook = { version = "0.1.7" }
+js-sys = "0.3"
+wasm-bindgen-futures = "0.4"
+wasm-bindgen-test = "0.3.49"
 
 # All Web APIs have to be enabled explicitly here 
 # see https://rustwasm.github.io/wasm-bindgen/api/web_sys/

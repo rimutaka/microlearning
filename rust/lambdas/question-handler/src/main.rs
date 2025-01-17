@@ -5,7 +5,6 @@ use aws_lambda_events::{
 use aws_sdk_dynamodb::Client;
 use bitie_types::{
     ddb::fields,
-    lambda,
     question::{PublishStage, Question, QuestionFormat},
 };
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
@@ -47,20 +46,20 @@ pub(crate) async fn my_handler(
                 method
             } else {
                 info!("Invalid HTTP method: {v}");
-                return lambda::text_response(Some("Invalid HTTP method".to_string()), 400);
+                return lambda_utils::text_response(Some("Invalid HTTP method".to_string()), 400);
             }
         }
         None => {
             info!("Missing HTTP method");
-            return lambda::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
+            return lambda_utils::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
         }
     };
     info!("Method: {}", method);
 
     // the user may be authenticated with an email inside the token
-    let jwt_user = lambda::get_email_from_token(&event.payload.headers);
+    let jwt_user = lambda_utils::get_email_from_token(&event.payload.headers);
     // topics param is optional
-    let answers = match lambda::url_list_to_vec(event.payload.query_string_parameters.get(fields::ANSWERS)) {
+    let answers = match lambda_utils::url_list_to_vec(event.payload.query_string_parameters.get(fields::ANSWERS)) {
         Some(v) => Some(v.iter().filter_map(|v| v.parse::<usize>().ok()).collect()),
         None => {
             info!("No answers param in the query string");
@@ -91,7 +90,7 @@ pub(crate) async fn my_handler(
                 (Some(topic), Some(qid)) => (topic, qid),
                 _ => {
                     info!("Missing topic/qid in the query string");
-                    return lambda::text_response(Some("No topic/qid found in the query string".to_string()), 400);
+                    return lambda_utils::text_response(Some("No topic/qid found in the query string".to_string()), 400);
                 }
             };
 
@@ -102,9 +101,9 @@ pub(crate) async fn my_handler(
                 Ok(Some(v)) => v,
                 Ok(None) => {
                     info!("No question found for topic: {topic}");
-                    return lambda::text_response(Some("No question found".to_string()), 404);
+                    return lambda_utils::text_response(Some("No question found".to_string()), 404);
                 }
-                Err(e) => return lambda::text_response(Some(e.to_string()), 400),
+                Err(e) => return lambda_utils::text_response(Some(e.to_string()), 400),
             };
 
             // update the user answers if the user is known
@@ -119,7 +118,7 @@ pub(crate) async fn my_handler(
                 QuestionFormat::HtmlShort
             };
 
-            lambda::json_response(Some(&question.format(response_format)), 200)
+            lambda_utils::json_response(Some(&question.format(response_format)), 200)
         }
 
         Method::PUT => {
@@ -130,7 +129,7 @@ pub(crate) async fn my_handler(
                 Some(v) => v,
                 None => {
                     info!("Unauthorized");
-                    return lambda::text_response(Some("Unauthorized".to_string()), 401);
+                    return lambda_utils::text_response(Some("Unauthorized".to_string()), 401);
                 }
             };
 
@@ -144,13 +143,13 @@ pub(crate) async fn my_handler(
                             .with_author(&jwt_user.email_hash) // defaults to the current user
                             .with_updated()
                             .with_stage(PublishStage::Draft), // always reset it to Draft in save, other stages are set elsewhere
-                        Err(_) => return lambda::text_response(Some("Invalid question".to_string()), 400),
+                        Err(_) => return lambda_utils::text_response(Some("Invalid question".to_string()), 400),
                     };
 
                     // DDB returns an error if the author does not match
                     match question::save(&client, &q).await {
-                        Ok(_) => lambda::json_response(Some(&q.format(QuestionFormat::HtmlShort)), 200),
-                        Err(e) => lambda::text_response(Some(e.to_string()), 400),
+                        Ok(_) => lambda_utils::json_response(Some(&q.format(QuestionFormat::HtmlShort)), 200),
+                        Err(e) => lambda_utils::text_response(Some(e.to_string()), 400),
                     }
                 }
                 // return the question in markdown format if there is no body
@@ -159,7 +158,7 @@ pub(crate) async fn my_handler(
                         (Some(topic), Some(qid)) => (topic, qid),
                         _ => {
                             info!("Missing topic or qid in the query string: {:?} / {:?}", topic, qid);
-                            return lambda::text_response(
+                            return lambda_utils::text_response(
                                 Some("Missing topic or qid in the query string".to_string()),
                                 400,
                             );
@@ -168,21 +167,21 @@ pub(crate) async fn my_handler(
                     // return the question in markdown format if the author matches
                     let question = match question::get(&client, topic, qid).await {
                         Ok(Some(v)) => v,
-                        Ok(None) => return lambda::text_response(Some("No question found".to_string()), 404), // this would be a bug
-                        Err(e) => return lambda::text_response(Some(e.to_string()), 400),
+                        Ok(None) => return lambda_utils::text_response(Some("No question found".to_string()), 404), // this would be a bug
+                        Err(e) => return lambda_utils::text_response(Some(e.to_string()), 400),
                     };
 
                     if question.author.as_ref() == Some(&jwt_user.email_hash) {
-                        lambda::json_response(Some(&question.format(QuestionFormat::MarkdownFull)), 200)
+                        lambda_utils::json_response(Some(&question.format(QuestionFormat::MarkdownFull)), 200)
                     } else {
                         warn!("Unauthorized (email hash mismatch): {:?}", jwt_user);
-                        lambda::text_response(Some("Unauthorized".to_string()), 401)
+                        lambda_utils::text_response(Some("Unauthorized".to_string()), 401)
                     }
                 }
             }
         }
 
         // unsupported method
-        _ => lambda::text_response(Some("Unsupported HTTP method".to_string()), 400),
+        _ => lambda_utils::text_response(Some("Unsupported HTTP method".to_string()), 400),
     }
 }

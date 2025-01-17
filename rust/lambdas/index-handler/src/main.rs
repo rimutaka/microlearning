@@ -1,5 +1,5 @@
 use aws_lambda_events::lambda_function_urls::{LambdaFunctionUrlRequest, LambdaFunctionUrlResponse};
-use bitie_types::{ddb::fields, lambda, topic::Topic};
+use bitie_types::{ddb::fields, topic::Topic};
 use index::get_index_from_s3;
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
 use tracing::{error, info};
@@ -38,13 +38,13 @@ pub(crate) async fn my_handler(
         _ => {
             // log the error, return the original HTML and let the frontend handle it
             info!("Missing topic in the query string");
-            return lambda::text_response(Some(index_html), 200);
+            return lambda_utils::text_response(Some(index_html), 200);
         }
     };
     info!("Topic: {:?}", topic);
 
     // return index.html with OG tags updated
-    lambda::text_response(Some(replace_with_regex(index_html, &topic)), 200)
+    lambda_utils::text_response(Some(replace_with_regex(index_html, &topic)), 200)
 }
 
 /// Replaces Title and ogImage in the HTML, if the new values are not empty strings.

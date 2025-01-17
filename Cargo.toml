@@ -8,7 +8,7 @@ members = [
   "rust/lambdas/payments-handler",
   "rust/types",
   "rust/wasm_mod",
-  "rust/wasm_types",
+  "rust/lambda_utils",
 ]
 resolver = "2"
 

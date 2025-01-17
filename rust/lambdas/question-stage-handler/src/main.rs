@@ -3,7 +3,7 @@ use aws_lambda_events::{
     lambda_function_urls::{LambdaFunctionUrlRequest, LambdaFunctionUrlResponse},
 };
 use aws_sdk_dynamodb::Client;
-use bitie_types::{ddb::fields, lambda, question::PublishStage};
+use bitie_types::{ddb::fields, question::PublishStage};
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
 use std::str::FromStr;
 use tracing::{info, warn};
@@ -42,12 +42,12 @@ pub(crate) async fn my_handler(
                 method
             } else {
                 info!("Invalid HTTP method: {v}");
-                return lambda::text_response(Some("Invalid HTTP method".to_string()), 400);
+                return lambda_utils::text_response(Some("Invalid HTTP method".to_string()), 400);
             }
         }
         None => {
             info!("Missing HTTP method");
-            return lambda::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
+            return lambda_utils::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
         }
     };
     info!("Method: {}", method);
@@ -58,7 +58,7 @@ pub(crate) async fn my_handler(
         Some(v) => v.trim().to_ascii_lowercase(),
         None => {
             info!("Missing topic in the query string");
-            return lambda::text_response(Some("Missing topic in the query string".to_string()), 400);
+            return lambda_utils::text_response(Some("Missing topic in the query string".to_string()), 400);
         }
     };
 
@@ -66,7 +66,7 @@ pub(crate) async fn my_handler(
         Some(v) => v.trim(),
         None => {
             info!("Missing qid in the query string");
-            return lambda::text_response(Some("Missing qid in the query string".to_string()), 400);
+            return lambda_utils::text_response(Some("Missing qid in the query string".to_string()), 400);
         }
     };
 
@@ -75,24 +75,24 @@ pub(crate) async fn my_handler(
             Ok(s) => s,
             Err(e) => {
                 warn!("Invalid stage in the query string: {v} / {:?}", e);
-                return lambda::text_response(Some("Invalid stage in the query string".to_string()), 400);
+                return lambda_utils::text_response(Some("Invalid stage in the query string".to_string()), 400);
             }
         },
         None => {
             info!("Missing qid in the query string");
-            return lambda::text_response(Some("Invalid stage in the query string".to_string()), 400);
+            return lambda_utils::text_response(Some("Invalid stage in the query string".to_string()), 400);
         }
     };
 
     // this action is only allowed for mods
     // TODO: use some other way of determining if the user is a mod
-    match lambda::get_email_from_token(&event.payload.headers) {
+    match lambda_utils::get_email_from_token(&event.payload.headers) {
         Some(v) if v.email_hash == "0e3bf888c95b085a7172b2e819692bb5b46c26ad067f9405c8ba1dd950732b65" => {
             info!("Stage change by {}: {topic}/{qid}/{stage}", v.email)
         }
         _ => {
             info!("Missing user email in the token");
-            return lambda::text_response(Some("Must provide a mod's token".to_string()), 400);
+            return lambda_utils::text_response(Some("Must provide a mod's token".to_string()), 400);
         }
     }
 
@@ -101,11 +101,11 @@ pub(crate) async fn my_handler(
     //decide on the action depending on the HTTP method
     match method {
         Method::GET => match question::change_publish_stage(&client, &topic, qid, stage).await {
-            Ok(_) => lambda::text_response(None, 204),
-            Err(e) => lambda::text_response(Some(e.to_string()), 500),
+            Ok(_) => lambda_utils::text_response(None, 204),
+            Err(e) => lambda_utils::text_response(Some(e.to_string()), 500),
         },
 
         // unsupported method
-        _ => lambda::text_response(Some("Unsupported HTTP method".to_string()), 400),
+        _ => lambda_utils::text_response(Some("Unsupported HTTP method".to_string()), 400),
     }
 }

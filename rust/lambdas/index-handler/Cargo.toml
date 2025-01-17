@@ -8,6 +8,7 @@ license = "AGPL-3.0"
 
 [dependencies]
 bitie_types = { path = "../../types" }
+lambda_utils = { path = "../../lambda_utils" }
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 serde = { workspace = true }
 serde_json = { workspace = true }

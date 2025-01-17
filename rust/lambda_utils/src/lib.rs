@@ -1,4 +1,4 @@
-use crate::jwt;
+use bitie_types::jwt;
 use aws_lambda_events::{
     http::{HeaderMap, HeaderValue},
     lambda_function_urls::LambdaFunctionUrlResponse,

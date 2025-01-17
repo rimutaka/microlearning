@@ -2,10 +2,7 @@ use aws_lambda_events::{
     http::method::Method,
     lambda_function_urls::{LambdaFunctionUrlRequest, LambdaFunctionUrlResponse},
 };
-use bitie_types::{
-    lambda,
-    payments::{PaymentProcessorSecrets, QuestionDonation, STRIPE_SECRETS_ENV_VAR},
-};
+use bitie_types::payments::{PaymentProcessorSecrets, QuestionDonation, STRIPE_SECRETS_ENV_VAR};
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
 use tracing::info;
 use tracing_subscriber::filter::LevelFilter;
@@ -37,7 +34,7 @@ pub(crate) async fn my_handler(
         Some(v) => v,
         None => {
             info!("Missing payment processor secrets");
-            return lambda::text_response(Some("Server misconfiguration.".to_string()), 500);
+            return lambda_utils::text_response(Some("Server misconfiguration.".to_string()), 500);
         }
     };
 
@@ -52,19 +49,19 @@ pub(crate) async fn my_handler(
                 method
             } else {
                 info!("Invalid HTTP method: {v}");
-                return lambda::text_response(Some("Invalid HTTP method".to_string()), 400);
+                return lambda_utils::text_response(Some("Invalid HTTP method".to_string()), 400);
             }
         }
         None => {
             info!("Missing HTTP method");
-            return lambda::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
+            return lambda_utils::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
         }
     };
     info!("Method: {}", method);
 
     if method != Method::POST {
         info!("Unsupported HTTP method - only POSTs are allowed");
-        return lambda::text_response(Some("Unsupported HTTP method".to_string()), 400);
+        return lambda_utils::text_response(Some("Unsupported HTTP method".to_string()), 400);
     }
 
     // this request must have a body
@@ -73,12 +70,12 @@ pub(crate) async fn my_handler(
             Ok(v) => v,
             Err(e) => {
                 info!("Failed to parse the body: {:?}", e);
-                return lambda::text_response(Some("Failed to parse the body".to_string()), 400);
+                return lambda_utils::text_response(Some("Failed to parse the body".to_string()), 400);
             }
         },
         None => {
             info!("Missing HTTP body");
-            return lambda::text_response(Some("Missing HTTP body. It's a bug.".to_string()), 400);
+            return lambda_utils::text_response(Some("Missing HTTP body. It's a bug.".to_string()), 400);
         }
     };
 
@@ -86,10 +83,10 @@ pub(crate) async fn my_handler(
 
     // attempt to get the checkout URL from the payment provider and return it as text
     match checkout::get_checkout_url(order_details, secrets).await {
-        Some(v) => lambda::text_response(Some(v), 200),
+        Some(v) => lambda_utils::text_response(Some(v), 200),
         None => {
             info!("Failed to get the checkout URL");
-            lambda::text_response(Some("Failed to get the checkout URL".to_string()), 500)
+            lambda_utils::text_response(Some("Failed to get the checkout URL".to_string()), 500)
         }
     }
 }

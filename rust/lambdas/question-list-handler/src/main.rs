@@ -3,7 +3,7 @@ use aws_lambda_events::{
     lambda_function_urls::{LambdaFunctionUrlRequest, LambdaFunctionUrlResponse},
 };
 use aws_sdk_dynamodb::Client;
-use bitie_types::{ddb::fields, lambda, relations::QuestionWithHistory, user::AskedQuestion};
+use bitie_types::{ddb::fields, relations::QuestionWithHistory, user::AskedQuestion};
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
 use std::collections::HashMap;
 use tracing::info;
@@ -43,12 +43,12 @@ pub(crate) async fn my_handler(
                 method
             } else {
                 info!("Invalid HTTP method: {v}");
-                return lambda::text_response(Some("Invalid HTTP method".to_string()), 400);
+                return lambda_utils::text_response(Some("Invalid HTTP method".to_string()), 400);
             }
         }
         None => {
             info!("Missing HTTP method");
-            return lambda::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
+            return lambda_utils::text_response(Some("Missing HTTP method. It's a bug.".to_string()), 400);
         }
     };
     info!("Method: {}", method);
@@ -59,7 +59,7 @@ pub(crate) async fn my_handler(
             let v = v.trim().to_lowercase();
             if !questions::validate_topic(&v) {
                 info!("Invalid topic: {v}");
-                return lambda::text_response(Some("Invalid topic".to_string()), 400);
+                return lambda_utils::text_response(Some("Invalid topic".to_string()), 400);
             }
             Some(v)
         }
@@ -70,7 +70,7 @@ pub(crate) async fn my_handler(
     };
 
     // get user details from the JWT token
-    let jwt_user = lambda::get_email_from_token(&event.payload.headers);
+    let jwt_user = lambda_utils::get_email_from_token(&event.payload.headers);
 
     let client = Client::new(&aws_config::load_from_env().await);
 
@@ -107,7 +107,7 @@ pub(crate) async fn my_handler(
                 // anything else should not be handled
                 _ => {
                     info!("No topic or user");
-                    return lambda::text_response(Some("No topic or user".to_string()), 400);
+                    return lambda_utils::text_response(Some("No topic or user".to_string()), 400);
                 }
             };
 
@@ -122,7 +122,7 @@ pub(crate) async fn my_handler(
                 // no questions found
                 (None, _) => {
                     info!("Returning empty list of QuestionWithHistory");
-                    lambda::json_response(Some(&Vec::<QuestionWithHistory>::new()), 200)
+                    lambda_utils::json_response(Some(&Vec::<QuestionWithHistory>::new()), 200)
                 }
 
                 // questions + history
@@ -137,7 +137,7 @@ pub(crate) async fn my_handler(
                         .collect::<Vec<QuestionWithHistory>>();
 
                     info!("Returning list questions + history: {}", questions_with_history.len());
-                    lambda::json_response(Some(&questions_with_history), 200)
+                    lambda_utils::json_response(Some(&questions_with_history), 200)
                 }
 
                 // only questions found, no history
@@ -155,12 +155,12 @@ pub(crate) async fn my_handler(
                         "Returning list of questions, no history: {}",
                         questions_with_history.len()
                     );
-                    lambda::json_response(Some(&questions_with_history), 200)
+                    lambda_utils::json_response(Some(&questions_with_history), 200)
                 }
             }
         }
 
         // unsupported method
-        _ => lambda::text_response(Some("Unsupported HTTP method".to_string()), 400),
+        _ => lambda_utils::text_response(Some("Unsupported HTTP method".to_string()), 400),
     }
 }

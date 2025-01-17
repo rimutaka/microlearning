@@ -1,7 +1,7 @@
 use super::{Answer, ContributorProfile, PublishStage, QuestionFormat, Stats};
+use crate::markdown::md_to_html;
 use crate::topic::Topic;
 use anyhow::{Error, Result};
-use bitie_wasm_types::markdown::md_to_html;
 use chrono::{DateTime, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
