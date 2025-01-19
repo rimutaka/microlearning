@@ -11,21 +11,80 @@ export function hello_world(): Promise<void>;
 /**
  * Converts a markdown string to HTML. Available in WASM only.
  */
-export function md_to_html(md: string): Promise<string>;
+export function md_to_html(md: string): Promise<ValidatedMarkdown>;
 /**
- * Extracts a list of markdown links. Available in WASM only.
- * Only links that are converted into <a> tags are returned.
+ * Combines all the links in the logical order:
+ * - question links
+ * - correct answer links
+ * - incorrect answer links
+ * All links are sorted alphabetically within their logical group
  */
-export function extract_links_from_md(md: string): Promise<(string)[]>;
+export function sort_links(links: ExtractedLinks): (string)[];
+/**
+ * Contains URLs extracted from different parts of the question.
+ * The URL origin is important to arrange the links in the correct order.
+ */
+export class ExtractedLinks {
+  free(): void;
+  constructor();
+  question_links: (string)[];
+  correct_answer_links: (string)[];
+  incorrect_answer_links: (string)[];
+}
+/**
+ * Contains the result of the streaming parser that returns HTML
+ * and what was filtered out in a single pass.
+ */
+export class ValidatedMarkdown {
+  private constructor();
+  free(): void;
+  /**
+   * The HTML representation of the markdown
+   * with disallowed elements removed.
+   */
+  html: string;
+  /**
+   * The list of disallowed markdown elements that were ignored during the HTML conversion.
+   */
+  ignored: (string)[];
+  /**
+   * The list of link URLs found in the markdown.
+   * The are what the parser considers a link, which may be absolute or relative.
+   * The URLs are not validated and appear in the order they were encountered.
+   */
+  links: (string)[];
+  /**
+   * The list of image URLs found in the markdown.
+   * The URLs are not validated and appear in the order they were encountered.
+   */
+  images: (string)[];
+}
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly __wbg_extractedlinks_free: (a: number, b: number) => void;
+  readonly __wbg_get_extractedlinks_question_links: (a: number) => [number, number];
+  readonly __wbg_set_extractedlinks_question_links: (a: number, b: number, c: number) => void;
+  readonly __wbg_get_extractedlinks_correct_answer_links: (a: number) => [number, number];
+  readonly __wbg_set_extractedlinks_correct_answer_links: (a: number, b: number, c: number) => void;
+  readonly __wbg_get_extractedlinks_incorrect_answer_links: (a: number) => [number, number];
+  readonly __wbg_set_extractedlinks_incorrect_answer_links: (a: number, b: number, c: number) => void;
+  readonly extractedlinks_new: () => number;
   readonly init: () => void;
   readonly hello_world: () => any;
   readonly md_to_html: (a: number, b: number) => any;
-  readonly extract_links_from_md: (a: number, b: number) => any;
+  readonly sort_links: (a: number) => [number, number];
+  readonly __wbg_validatedmarkdown_free: (a: number, b: number) => void;
+  readonly __wbg_get_validatedmarkdown_html: (a: number) => [number, number];
+  readonly __wbg_set_validatedmarkdown_html: (a: number, b: number, c: number) => void;
+  readonly __wbg_get_validatedmarkdown_ignored: (a: number) => [number, number];
+  readonly __wbg_set_validatedmarkdown_ignored: (a: number, b: number, c: number) => void;
+  readonly __wbg_get_validatedmarkdown_links: (a: number) => [number, number];
+  readonly __wbg_set_validatedmarkdown_links: (a: number, b: number, c: number) => void;
+  readonly __wbg_get_validatedmarkdown_images: (a: number) => [number, number];
+  readonly __wbg_set_validatedmarkdown_images: (a: number, b: number, c: number) => void;
   readonly ring_core_0_17_8_bn_mul_mont: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __externref_table_alloc: () => number;
@@ -34,8 +93,9 @@ export interface InitOutput {
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export_6: WebAssembly.Table;
-  readonly closure29_externref_shim: (a: number, b: number, c: any) => void;
-  readonly closure144_externref_shim: (a: number, b: number, c: any, d: any) => void;
+  readonly __externref_drop_slice: (a: number, b: number) => void;
+  readonly closure27_externref_shim: (a: number, b: number, c: any) => void;
+  readonly closure141_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }
 

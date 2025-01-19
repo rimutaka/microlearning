@@ -1,5 +1,6 @@
 use pulldown_cmark::{html::push_html, Event, Parser, Tag};
 use serde::Serialize;
+use wasm_bindgen::prelude::*;
 
 #[cfg(target_family = "wasm")]
 use crate::info;
@@ -8,6 +9,7 @@ use tracing::info;
 
 /// Contains the result of the streaming parser that returns HTML
 /// and what was filtered out in a single pass.
+#[wasm_bindgen(getter_with_clone)]
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidatedMarkdown {

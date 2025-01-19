@@ -221,6 +221,31 @@ function debugString(val) {
     // TODO we could test for more things here, like `Set`s and `Map`s.
     return className;
 }
+
+function _assertNum(n) {
+    if (typeof(n) !== 'number') throw new Error(`expected a number argument, found ${typeof(n)}`);
+}
+
+function getArrayJsValueFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    const mem = getDataViewMemory0();
+    const result = [];
+    for (let i = ptr; i < ptr + 4 * len; i += 4) {
+        result.push(wasm.__wbindgen_export_2.get(mem.getUint32(i, true)));
+    }
+    wasm.__externref_drop_slice(ptr, len);
+    return result;
+}
+
+function passArrayJsValueToWasm0(array, malloc) {
+    const ptr = malloc(array.length * 4, 4) >>> 0;
+    const mem = getDataViewMemory0();
+    for (let i = 0; i < array.length; i++) {
+        mem.setUint32(ptr + 4 * i, addToExternrefTable0(array[i]), true);
+    }
+    WASM_VECTOR_LEN = array.length;
+    return ptr;
+}
 /**
  * A demo function for getting WASM working for the first time
  */
@@ -240,7 +265,7 @@ export function hello_world() {
 /**
  * Converts a markdown string to HTML. Available in WASM only.
  * @param {string} md
- * @returns {Promise<string>}
+ * @returns {Promise<ValidatedMarkdown>}
  */
 export function md_to_html(md) {
     const ptr0 = passStringToWasm0(md, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
@@ -249,32 +274,272 @@ export function md_to_html(md) {
     return ret;
 }
 
+function _assertClass(instance, klass) {
+    if (!(instance instanceof klass)) {
+        throw new Error(`expected instance of ${klass.name}`);
+    }
+}
 /**
- * Extracts a list of markdown links. Available in WASM only.
- * Only links that are converted into <a> tags are returned.
- * @param {string} md
- * @returns {Promise<(string)[]>}
+ * Combines all the links in the logical order:
+ * - question links
+ * - correct answer links
+ * - incorrect answer links
+ * All links are sorted alphabetically within their logical group
+ * @param {ExtractedLinks} links
+ * @returns {(string)[]}
  */
-export function extract_links_from_md(md) {
-    const ptr0 = passStringToWasm0(md, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.extract_links_from_md(ptr0, len0);
-    return ret;
+export function sort_links(links) {
+    _assertClass(links, ExtractedLinks);
+    if (links.__wbg_ptr === 0) {
+        throw new Error('Attempt to use a moved value');
+    }
+    const ret = wasm.sort_links(links.__wbg_ptr);
+    var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+    return v1;
 }
 
-function _assertNum(n) {
-    if (typeof(n) !== 'number') throw new Error(`expected a number argument, found ${typeof(n)}`);
-}
-function __wbg_adapter_24(arg0, arg1, arg2) {
+function __wbg_adapter_22(arg0, arg1, arg2) {
     _assertNum(arg0);
     _assertNum(arg1);
-    wasm.closure29_externref_shim(arg0, arg1, arg2);
+    wasm.closure27_externref_shim(arg0, arg1, arg2);
 }
 
-function __wbg_adapter_47(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_62(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
-    wasm.closure144_externref_shim(arg0, arg1, arg2, arg3);
+    wasm.closure141_externref_shim(arg0, arg1, arg2, arg3);
+}
+
+const ExtractedLinksFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_extractedlinks_free(ptr >>> 0, 1));
+/**
+ * Contains URLs extracted from different parts of the question.
+ * The URL origin is important to arrange the links in the correct order.
+ */
+export class ExtractedLinks {
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        ExtractedLinksFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_extractedlinks_free(ptr, 0);
+    }
+    /**
+     * @returns {(string)[]}
+     */
+    get question_links() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_extractedlinks_question_links(this.__wbg_ptr);
+        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * @param {(string)[]} arg0
+     */
+    set question_links(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_extractedlinks_question_links(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * @returns {(string)[]}
+     */
+    get correct_answer_links() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_extractedlinks_correct_answer_links(this.__wbg_ptr);
+        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * @param {(string)[]} arg0
+     */
+    set correct_answer_links(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_extractedlinks_correct_answer_links(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * @returns {(string)[]}
+     */
+    get incorrect_answer_links() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_extractedlinks_incorrect_answer_links(this.__wbg_ptr);
+        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * @param {(string)[]} arg0
+     */
+    set incorrect_answer_links(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_extractedlinks_incorrect_answer_links(this.__wbg_ptr, ptr0, len0);
+    }
+    constructor() {
+        const ret = wasm.extractedlinks_new();
+        this.__wbg_ptr = ret >>> 0;
+        ExtractedLinksFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+}
+
+const ValidatedMarkdownFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_validatedmarkdown_free(ptr >>> 0, 1));
+/**
+ * Contains the result of the streaming parser that returns HTML
+ * and what was filtered out in a single pass.
+ */
+export class ValidatedMarkdown {
+
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
+    }
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(ValidatedMarkdown.prototype);
+        obj.__wbg_ptr = ptr;
+        ValidatedMarkdownFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        ValidatedMarkdownFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_validatedmarkdown_free(ptr, 0);
+    }
+    /**
+     * The HTML representation of the markdown
+     * with disallowed elements removed.
+     * @returns {string}
+     */
+    get html() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.__wbg_ptr);
+            const ret = wasm.__wbg_get_validatedmarkdown_html(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * The HTML representation of the markdown
+     * with disallowed elements removed.
+     * @param {string} arg0
+     */
+    set html(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_validatedmarkdown_html(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * The list of disallowed markdown elements that were ignored during the HTML conversion.
+     * @returns {(string)[]}
+     */
+    get ignored() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_validatedmarkdown_ignored(this.__wbg_ptr);
+        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * The list of disallowed markdown elements that were ignored during the HTML conversion.
+     * @param {(string)[]} arg0
+     */
+    set ignored(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_validatedmarkdown_ignored(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * The list of link URLs found in the markdown.
+     * The are what the parser considers a link, which may be absolute or relative.
+     * The URLs are not validated and appear in the order they were encountered.
+     * @returns {(string)[]}
+     */
+    get links() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_validatedmarkdown_links(this.__wbg_ptr);
+        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * The list of link URLs found in the markdown.
+     * The are what the parser considers a link, which may be absolute or relative.
+     * The URLs are not validated and appear in the order they were encountered.
+     * @param {(string)[]} arg0
+     */
+    set links(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_validatedmarkdown_links(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * The list of image URLs found in the markdown.
+     * The URLs are not validated and appear in the order they were encountered.
+     * @returns {(string)[]}
+     */
+    get images() {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_validatedmarkdown_images(this.__wbg_ptr);
+        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * The list of image URLs found in the markdown.
+     * The URLs are not validated and appear in the order they were encountered.
+     * @param {(string)[]} arg0
+     */
+    set images(arg0) {
+        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.__wbg_ptr);
+        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_validatedmarkdown_images(this.__wbg_ptr, ptr0, len0);
+    }
 }
 
 async function __wbg_load(module, imports) {
@@ -340,7 +605,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_47(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_62(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -397,13 +662,10 @@ function __wbg_get_imports() {
         const ret = arg0.then(arg1);
         return ret;
     }, arguments) };
-    imports.wbg.__wbindgen_array_new = function() {
-        const ret = [];
+    imports.wbg.__wbg_validatedmarkdown_new = function() { return logError(function (arg0) {
+        const ret = ValidatedMarkdown.__wrap(arg0);
         return ret;
-    };
-    imports.wbg.__wbindgen_array_push = function(arg0, arg1) {
-        arg0.push(arg1);
-    };
+    }, arguments) };
     imports.wbg.__wbindgen_cb_drop = function(arg0) {
         const obj = arg0.original;
         if (obj.cnt-- == 1) {
@@ -414,8 +676,8 @@ function __wbg_get_imports() {
         _assertBoolean(ret);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper268 = function() { return logError(function (arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 30, __wbg_adapter_24);
+    imports.wbg.__wbindgen_closure_wrapper392 = function() { return logError(function (arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 28, __wbg_adapter_22);
         return ret;
     }, arguments) };
     imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
@@ -444,6 +706,14 @@ function __wbg_get_imports() {
         const ret = arg0 === undefined;
         _assertBoolean(ret);
         return ret;
+    };
+    imports.wbg.__wbindgen_string_get = function(arg0, arg1) {
+        const obj = arg1;
+        const ret = typeof(obj) === 'string' ? obj : undefined;
+        var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
+        getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
     };
     imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
         const ret = getStringFromWasm0(arg0, arg1);

@@ -1,5 +1,31 @@
-use bitie_types::{info, markdown};
+use bitie_types::markdown;
 use wasm_bindgen::prelude::*;
+
+// Two logging options - browser console for WASM and tracing for native
+#[cfg(target_family = "wasm")]
+use bitie_types::info;
+#[cfg(not(target_family = "wasm"))]
+use tracing::info;
+
+mod implementations;
+
+/// Contains URLs extracted from different parts of the question.
+/// The URL origin is important to arrange the links in the correct order.
+#[wasm_bindgen(getter_with_clone)]
+#[derive(Default, Debug, Clone)]
+pub struct ExtractedLinks {
+    pub question_links: Vec<String>,
+    pub correct_answer_links: Vec<String>,
+    pub incorrect_answer_links: Vec<String>,
+}
+
+#[wasm_bindgen]
+impl ExtractedLinks {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> ExtractedLinks {
+        ExtractedLinks::default()
+    }
+}
 
 /// A demo function for getting WASM working for the first time
 #[wasm_bindgen(start)]
@@ -16,15 +42,19 @@ pub async fn hello_world() {
 
 /// Converts a markdown string to HTML. Available in WASM only.
 #[wasm_bindgen]
-pub async fn md_to_html(md: &str) -> String {
+pub async fn md_to_html(md: &str) -> markdown::ValidatedMarkdown {
     info!("Converting MD ({}) to HTML", md.len());
-    markdown::md_to_html(md, true).html
+    markdown::md_to_html(md, true)
 }
 
-/// Extracts a list of markdown links. Available in WASM only.
-/// Only links that are converted into <a> tags are returned.
+/// Combines all the links in the logical order:
+/// - question links
+/// - correct answer links
+/// - incorrect answer links
+/// All links are sorted alphabetically within their logical group
 #[wasm_bindgen]
-pub async fn extract_links_from_md(md: &str) -> Vec<String> {
-    info!("Extracting links from MD ({})", md.len());
-    markdown::md_to_html(md, false).links
+pub fn sort_links(links: &ExtractedLinks) -> Vec<String> {
+    info!("Sorting the links in the right order");
+
+    implementations::sort_links(links.clone())
 }
