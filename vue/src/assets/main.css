@@ -186,7 +186,8 @@ footer a {
   @apply hidden cursor-pointer;
 }
 
-.q-card .hide-explanation .explain-link {
+.q-card .hide-explanation .explain-link,
+.q-card .refresher .explain-link {
   @apply inline-flex;
 }
 

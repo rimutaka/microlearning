@@ -49,6 +49,8 @@ export interface Question {
   title: string,
   /** This value is read-only. The server ignores the values submitted from UI. */
   stage: PublishStage,
+  /** An ordered list of URLs for refresher material to display on request */
+  refresherLinks?: string[],
 }
 
 /// A mirror of the Rust's type

@@ -32,6 +32,24 @@
           </div>
         </div>
 
+        <div v-if="shouldShowRefresher" class="mb-8 refresher">
+          <h3 class="mb-4">Not sure?</h3>
+          <div class="border-2 rounded-md border-slate-100">
+            <div v-if="shouldShowRefresherLinks" class="q-explain">
+              <p>Check out these resources to refresh your memory about this subject:</p>
+              <ul>
+                <li v-for="(link, index) in question?.refresherLinks" :key="index">
+                  <a :href="link" target="_blank">{{ link }}</a>
+                </li>
+              </ul>
+              <Tag value="Hide explanation" icon="pi pi-sort-up-fill" severity="secondary" class="explain-link" @click.prevent="shouldShowRefresherLinks = false" />
+            </div>
+            <div v-else class="flex items-center q-answer">
+              <Tag value="Show explanation" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click.prevent="shouldShowRefresherLinks = true" />
+            </div>
+          </div>
+        </div>
+
         <div v-if="!props.isPreview" class="flex">
           <!-- Hide this block in Preview mode -->
           <div class="flex-grow text-start">
@@ -90,6 +108,7 @@ const answersCheckbox = ref<string[]>([]);
 const answerRadio = ref<string | undefined>();
 const linkCopiedFlag = ref(false); // controls share button: f: Copy link, t: Link copied
 const emphasizedSubmitReminder = ref(false); // Toggles the class of Submit button block to reminder to select the right number of answers
+const shouldShowRefresherLinks = ref(false); // Toggles the list of URLs of the refresher section.
 
 // only the author of the question can edit it
 const hasToken = computed(() => question.value?.author && question.value.author === user.value?.emailHash);
@@ -140,9 +159,6 @@ const howManyOptionsLeftToSelect = computed(() => {
   }
 });
 
-/// A relative path to the list of questions
-const questionsPageUrl = computed(() => `/${PageIDs.QUESTIONS}?${constants.URL_PARAM_TOPIC}=${question.value?.topic}`);
-
 /// A URL to the page with the question on its own
 /// without the question ID to display a random question
 const questionTopicOnlyUrl = computed(() => `/${PageIDs.QUESTION}?${constants.URL_PARAM_TOPIC}=${question.value?.topic}`);
@@ -153,6 +169,9 @@ const questionTopicAndPageUrl = computed(() => `${questionTopicOnlyUrl.value}&${
 
 /// A URL to the question edit page
 const editPageUrl = computed(() => `/${PageIDs.ADD}?${constants.URL_PARAM_TOPIC}=${question.value?.topic}&${constants.URL_PARAM_QID}=${question.value?.qid}`);
+
+/** True if the question has refresher links and they should be made available. */
+const shouldShowRefresher = computed(() => question.value?.refresherLinks?.length && !props.isPreview && !isAnswered.value);
 
 /// Toggles selections when the user clicks on the answer area
 const handleQuestionAreaClick = (index: number) => {
