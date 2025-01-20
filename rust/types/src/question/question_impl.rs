@@ -1,5 +1,5 @@
 use super::{Answer, ContributorProfile, PublishStage, QuestionFormat, Stats};
-use crate::markdown::md_to_html;
+use crate::markdown::{self, md_to_html, ValidatedMarkdown};
 use crate::topic::Topic;
 use anyhow::{Error, Result};
 use chrono::{DateTime, Timelike, Utc};
@@ -9,7 +9,7 @@ use std::str::FromStr;
 use tracing::error;
 
 /// A question with multiple answers.
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Question {
     /// Base-58 encoded UUID4
@@ -58,6 +58,12 @@ pub struct Question {
     /// Details of the person or business who contributed the question
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub contributor: Option<ContributorProfile>,
+    /// A sorted list of links extracted from the Markdown of the question,
+    /// answers and explanations.
+    /// This data is not persisted in the DB.
+    /// The links are built on the fly by the server.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub refresher_links: Option<Vec<String>>,
 }
 
 impl Question {
@@ -73,22 +79,46 @@ impl Question {
     pub const DEFAULT_TITLE: &str = "Untitled";
 
     /// Converts markdown members (question, answers) to HTML.
+    /// Extracts `refresher_links` links from the markdown.
     /// Supports CommonMark only.
     /// See https://crates.io/crates/pulldown-cmark for more information.
     fn into_html(self, learner_answers: Option<Vec<usize>>) -> Self {
-        // the parser can have Options for extended MD support, but they don't seem to be needed
+        // containers for collecting links extracted from the markdown
+        let mut q_links = Vec::with_capacity(10); // question links
+        let mut c_links = Vec::with_capacity(10); // correct answers links
+        let mut i_links = Vec::with_capacity(10); // incorrect answers links
 
-        // convert the question to HTML
-        let question_as_html = md_to_html(&self.question, true).html;
+        // convert the question to HTML and extract links in one step
+        let question_as_html = {
+            let ValidatedMarkdown { html, links, .. } = md_to_html(&self.question, true);
+            q_links.extend(links);
+            html
+        };
 
         // convert answers to HTML
         let answers_as_html = self
             .answers
             .into_iter()
             .map(|answer| {
-                let a = md_to_html(&answer.a, true).html;
+                let ValidatedMarkdown { html, links, .. } = md_to_html(&answer.a, true);
+                let a = {
+                    if answer.c.unwrap_or_default() {
+                        c_links.extend(links);
+                    } else {
+                        i_links.extend(links);
+                    }
+                    html
+                };
 
-                let e = answer.e.map(|e| md_to_html(&e, true).html);
+                let e = answer.e.map(|e| {
+                    let ValidatedMarkdown { html, links, .. } = md_to_html(&e, true);
+                    if answer.c.unwrap_or_default() {
+                        c_links.extend(links);
+                    } else {
+                        i_links.extend(links);
+                    }
+                    html
+                });
 
                 Answer {
                     a,
@@ -122,9 +152,17 @@ impl Question {
             None => answers_as_html,
         };
 
+        let refresher_links = markdown::sort_links(q_links, c_links, i_links);
+        let refresher_links = if refresher_links.is_empty() {
+            None
+        } else {
+            Some(refresher_links)
+        };
+
         Question {
             question: question_as_html,
             answers: answers_as_html,
+            refresher_links,
             ..self
         }
     }
@@ -150,7 +188,8 @@ impl Question {
         match format {
             QuestionFormat::MarkdownFull => self,
             QuestionFormat::HtmlFull(v) => self.into_html(v),
-            QuestionFormat::HtmlShort => self.without_detailed_explanations().into_html(None),
+            // TODO: add a flag to extract links, but do not convert certain parts of the question into HTML
+            QuestionFormat::HtmlShort => self.into_html(None).without_detailed_explanations(),
         }
     }
 
@@ -217,6 +256,7 @@ impl Question {
             correct: 0,
             author: None,
             contributor: None,
+            refresher_links: None,
         }
     }
 
@@ -384,6 +424,7 @@ mod test {
             contributor: None,
             title: "".to_string(),
             stage: PublishStage::Draft,
+            refresher_links: None,
         };
 
         assert!(q.is_correct(&[1]), "correct");
@@ -426,6 +467,7 @@ mod test {
             contributor: None,
             title: "".to_string(),
             stage: PublishStage::Draft,
+            refresher_links: None,
         };
 
         assert!(q.is_correct(&[0, 2]), "correct");
@@ -475,6 +517,7 @@ mod test {
             }),
             title: "Simple Rust question".to_string(),
             stage: PublishStage::Draft,
+            refresher_links: None,
         };
 
         let s = q.to_string();
@@ -526,6 +569,7 @@ mod test {
             }),
             title: "Simple Rust question".to_string(),
             stage: PublishStage::Draft,
+            refresher_links: None,
         };
 
         let s = q.to_string();
@@ -567,6 +611,7 @@ mod test {
             }),
             stage: PublishStage::Published, // it was Draft in other tests, vary the test here
             title: "".to_string(),
+            refresher_links: None,
         };
 
         // blank title, question copied to title as-is
@@ -610,9 +655,68 @@ mod test {
             contributor: None,
             title: "".to_string(),
             stage: PublishStage::Published,
+            refresher_links: None,
         };
 
         let q = q.with_stage(PublishStage::Draft);
         assert_eq!(q.stage, PublishStage::Draft);
+    }
+
+    // tests if the refresher links were extract correctly
+    #[test]
+    fn test_question_into_html() {
+        // test link extraction and ordering
+        let mut q = Question {
+            qid: "".to_string(),
+            topic: "".to_string(),
+            question: "What is 1+1? [link](https://a.com)".to_string(),
+            answers: vec![
+                Answer {
+                    a: "<https://b.com>".to_string(),
+                    e: Some("<https://b.com/c>".to_string()),
+                    c: Some(false),
+                    sel: None,
+                },
+                Answer {
+                    a: "<https://c.com>".to_string(),
+                    e: Some("<https://c.com#c>".to_string()),
+                    c: Some(true),
+                    sel: None,
+                },
+                Answer {
+                    a: "3".to_string(),
+                    e: None,
+                    c: Some(false),
+                    sel: None,
+                },
+            ],
+            correct: 1,
+            author: None,
+            updated: None,
+            stats: None,
+            contributor: None,
+            title: "".to_string(),
+            stage: PublishStage::Published,
+            refresher_links: None,
+        };
+
+        assert_eq!(
+            q.clone().into_html(None).refresher_links,
+            Some(vec![
+                "https://a.com".to_string(),
+                "https://c.com".to_string(),
+                "https://b.com".to_string(),
+                "https://b.com/c".to_string(),
+            ])
+        );
+
+        // test without links in the question or answers
+        q.question = "What is 1+1?".to_string();
+        q.answers[0].a = "1".to_string();
+        q.answers[0].e = None;
+        q.answers[1].a = "2".to_string();
+        q.answers[1].e = Some("3".to_string());
+
+        assert_eq!(q.into_html(None).refresher_links, None);
     }
 }

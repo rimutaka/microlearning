@@ -111,6 +111,7 @@ pub(crate) async fn get_published_questions_by_topic(
                             contributor: None,
                             stats: None,
                             stage,
+                            refresher_links: None,
                         };
 
                         fetched_questions.push(question);
@@ -226,6 +227,7 @@ pub(crate) async fn get_all_questions_by_author(client: &DdbClient, email_hash: 
                             contributor: None,
                             stats: None,
                             stage,
+                            refresher_links: None,
                         };
 
                         fetched_questions.push(question);

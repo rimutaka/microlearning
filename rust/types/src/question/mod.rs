@@ -20,7 +20,7 @@ pub enum QuestionFormat {
 }
 
 /// A question with multiple answers.
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Answer {
     /// The short answer that in Markdown format that appears as an option
@@ -42,7 +42,7 @@ pub struct Answer {
 /// Stats about the user answers, correct, incorrect, skipped.
 /// The counters are DDB fields.
 /// The struct values are set during DDB reads.
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Stats {
     /// The total number of correct answers.

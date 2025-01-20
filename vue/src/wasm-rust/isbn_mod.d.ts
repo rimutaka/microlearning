@@ -17,6 +17,7 @@ export function md_to_html(md: string): Promise<ValidatedMarkdown>;
  * - question links
  * - correct answer links
  * - incorrect answer links
+ *
  * All links are sorted alphabetically within their logical group
  */
 export function sort_links(links: ExtractedLinks): (string)[];
@@ -64,6 +65,9 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly init: () => void;
+  readonly hello_world: () => any;
+  readonly md_to_html: (a: number, b: number) => any;
   readonly __wbg_extractedlinks_free: (a: number, b: number) => void;
   readonly __wbg_get_extractedlinks_question_links: (a: number) => [number, number];
   readonly __wbg_set_extractedlinks_question_links: (a: number, b: number, c: number) => void;
@@ -72,9 +76,6 @@ export interface InitOutput {
   readonly __wbg_get_extractedlinks_incorrect_answer_links: (a: number) => [number, number];
   readonly __wbg_set_extractedlinks_incorrect_answer_links: (a: number, b: number, c: number) => void;
   readonly extractedlinks_new: () => number;
-  readonly init: () => void;
-  readonly hello_world: () => any;
-  readonly md_to_html: (a: number, b: number) => any;
   readonly sort_links: (a: number) => [number, number];
   readonly __wbg_validatedmarkdown_free: (a: number, b: number) => void;
   readonly __wbg_get_validatedmarkdown_html: (a: number) => [number, number];
@@ -94,7 +95,7 @@ export interface InitOutput {
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export_6: WebAssembly.Table;
   readonly __externref_drop_slice: (a: number, b: number) => void;
-  readonly closure27_externref_shim: (a: number, b: number, c: any) => void;
+  readonly closure25_externref_shim: (a: number, b: number, c: any) => void;
   readonly closure141_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }

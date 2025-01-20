@@ -221,31 +221,6 @@ function debugString(val) {
     // TODO we could test for more things here, like `Set`s and `Map`s.
     return className;
 }
-
-function _assertNum(n) {
-    if (typeof(n) !== 'number') throw new Error(`expected a number argument, found ${typeof(n)}`);
-}
-
-function getArrayJsValueFromWasm0(ptr, len) {
-    ptr = ptr >>> 0;
-    const mem = getDataViewMemory0();
-    const result = [];
-    for (let i = ptr; i < ptr + 4 * len; i += 4) {
-        result.push(wasm.__wbindgen_export_2.get(mem.getUint32(i, true)));
-    }
-    wasm.__externref_drop_slice(ptr, len);
-    return result;
-}
-
-function passArrayJsValueToWasm0(array, malloc) {
-    const ptr = malloc(array.length * 4, 4) >>> 0;
-    const mem = getDataViewMemory0();
-    for (let i = 0; i < array.length; i++) {
-        mem.setUint32(ptr + 4 * i, addToExternrefTable0(array[i]), true);
-    }
-    WASM_VECTOR_LEN = array.length;
-    return ptr;
-}
 /**
  * A demo function for getting WASM working for the first time
  */
@@ -274,6 +249,31 @@ export function md_to_html(md) {
     return ret;
 }
 
+function _assertNum(n) {
+    if (typeof(n) !== 'number') throw new Error(`expected a number argument, found ${typeof(n)}`);
+}
+
+function getArrayJsValueFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    const mem = getDataViewMemory0();
+    const result = [];
+    for (let i = ptr; i < ptr + 4 * len; i += 4) {
+        result.push(wasm.__wbindgen_export_2.get(mem.getUint32(i, true)));
+    }
+    wasm.__externref_drop_slice(ptr, len);
+    return result;
+}
+
+function passArrayJsValueToWasm0(array, malloc) {
+    const ptr = malloc(array.length * 4, 4) >>> 0;
+    const mem = getDataViewMemory0();
+    for (let i = 0; i < array.length; i++) {
+        mem.setUint32(ptr + 4 * i, addToExternrefTable0(array[i]), true);
+    }
+    WASM_VECTOR_LEN = array.length;
+    return ptr;
+}
+
 function _assertClass(instance, klass) {
     if (!(instance instanceof klass)) {
         throw new Error(`expected instance of ${klass.name}`);
@@ -284,6 +284,7 @@ function _assertClass(instance, klass) {
  * - question links
  * - correct answer links
  * - incorrect answer links
+ *
  * All links are sorted alphabetically within their logical group
  * @param {ExtractedLinks} links
  * @returns {(string)[]}
@@ -302,7 +303,7 @@ export function sort_links(links) {
 function __wbg_adapter_22(arg0, arg1, arg2) {
     _assertNum(arg0);
     _assertNum(arg1);
-    wasm.closure27_externref_shim(arg0, arg1, arg2);
+    wasm.closure25_externref_shim(arg0, arg1, arg2);
 }
 
 function __wbg_adapter_62(arg0, arg1, arg2, arg3) {
@@ -676,8 +677,8 @@ function __wbg_get_imports() {
         _assertBoolean(ret);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper392 = function() { return logError(function (arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 28, __wbg_adapter_22);
+    imports.wbg.__wbindgen_closure_wrapper310 = function() { return logError(function (arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 26, __wbg_adapter_22);
         return ret;
     }, arguments) };
     imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {

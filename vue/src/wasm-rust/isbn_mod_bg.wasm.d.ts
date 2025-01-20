@@ -1,6 +1,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export const init: () => void;
+export const hello_world: () => any;
+export const md_to_html: (a: number, b: number) => any;
 export const __wbg_extractedlinks_free: (a: number, b: number) => void;
 export const __wbg_get_extractedlinks_question_links: (a: number) => [number, number];
 export const __wbg_set_extractedlinks_question_links: (a: number, b: number, c: number) => void;
@@ -9,9 +12,6 @@ export const __wbg_set_extractedlinks_correct_answer_links: (a: number, b: numbe
 export const __wbg_get_extractedlinks_incorrect_answer_links: (a: number) => [number, number];
 export const __wbg_set_extractedlinks_incorrect_answer_links: (a: number, b: number, c: number) => void;
 export const extractedlinks_new: () => number;
-export const init: () => void;
-export const hello_world: () => any;
-export const md_to_html: (a: number, b: number) => any;
 export const sort_links: (a: number) => [number, number];
 export const __wbg_validatedmarkdown_free: (a: number, b: number) => void;
 export const __wbg_get_validatedmarkdown_html: (a: number) => [number, number];
@@ -31,6 +31,6 @@ export const __wbindgen_malloc: (a: number, b: number) => number;
 export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
 export const __wbindgen_export_6: WebAssembly.Table;
 export const __externref_drop_slice: (a: number, b: number) => void;
-export const closure27_externref_shim: (a: number, b: number, c: any) => void;
+export const closure25_externref_shim: (a: number, b: number, c: any) => void;
 export const closure141_externref_shim: (a: number, b: number, c: any, d: any) => void;
 export const __wbindgen_start: () => void;

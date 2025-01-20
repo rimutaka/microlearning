@@ -110,11 +110,82 @@ pub fn md_to_html(md: &str, include_html: bool) -> ValidatedMarkdown {
     }
 }
 
-// the tests have no WASM support and are meant to run in server environment only
+/// Combines all the links in the logical order:
+/// - question links
+/// - correct answer links
+/// - incorrect answer links
+///
+/// All links are sorted alphabetically within their logical group
+pub fn sort_links(
+    mut question_links: Vec<String>,
+    mut correct_answer_links: Vec<String>,
+    mut incorrect_answer_links: Vec<String>,
+) -> Vec<String> {
+    // remove #-part of the links
+    for link in &mut question_links
+        .iter_mut()
+        .chain(correct_answer_links.iter_mut())
+        .chain(incorrect_answer_links.iter_mut())
+    {
+        if let Some(pos) = link.find('#') {
+            // info!("Removing #-part from link: {}", link);
+            link.truncate(pos);
+        }
+    }
+
+    // sort all the links alphabetically
+    question_links.sort();
+    correct_answer_links.sort();
+    incorrect_answer_links.sort();
+
+    // combine all the links into a single list
+    let mut all_links =
+        Vec::with_capacity(question_links.len() + correct_answer_links.len() + incorrect_answer_links.len());
+    all_links.append(&mut question_links);
+    all_links.append(&mut correct_answer_links);
+    all_links.append(&mut incorrect_answer_links);
+
+    // remove duplicates
+    all_links.dedup();
+
+    info!("Returning {} links", all_links.len());
+
+    all_links
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     // use pulldown_cmark::{Event, Parser, Tag, TagEnd};
+
+    // the tests have no WASM support and are meant to run in server environment only
+
+    #[test]
+    fn test_sort_links() {
+        let _ = tracing_subscriber::fmt().try_init();
+
+        let question_links = vec!["https://a.com".to_string()];
+        let correct_answer_links = vec![
+            "https://b.com#foo".to_string(),
+            "https://b.com#bar".to_string(),
+            "https://b.com/baz".to_string(),
+        ];
+        let incorrect_answer_links = vec![
+            "https://c.com".to_string(),
+            "https://c.com".to_string(),
+            "https://c.com#foo".to_string(),
+        ];
+
+        assert_eq!(
+            sort_links(question_links, correct_answer_links, incorrect_answer_links),
+            vec![
+                "https://a.com".to_string(),
+                "https://b.com".to_string(),
+                "https://b.com/baz".to_string(),
+                "https://c.com".to_string()
+            ]
+        );
+    }
 
     #[test]
     fn test_md_to_html() {
