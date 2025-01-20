@@ -20,18 +20,7 @@ export function md_to_html(md: string): Promise<ValidatedMarkdown>;
  *
  * All links are sorted alphabetically within their logical group
  */
-export function sort_links(links: ExtractedLinks): (string)[];
-/**
- * Contains URLs extracted from different parts of the question.
- * The URL origin is important to arrange the links in the correct order.
- */
-export class ExtractedLinks {
-  free(): void;
-  constructor();
-  question_links: (string)[];
-  correct_answer_links: (string)[];
-  incorrect_answer_links: (string)[];
-}
+export function sort_links(question_links: (string)[], correct_answer_links: (string)[], incorrect_answer_links: (string)[]): (string)[];
 /**
  * Contains the result of the streaming parser that returns HTML
  * and what was filtered out in a single pass.
@@ -68,15 +57,7 @@ export interface InitOutput {
   readonly init: () => void;
   readonly hello_world: () => any;
   readonly md_to_html: (a: number, b: number) => any;
-  readonly __wbg_extractedlinks_free: (a: number, b: number) => void;
-  readonly __wbg_get_extractedlinks_question_links: (a: number) => [number, number];
-  readonly __wbg_set_extractedlinks_question_links: (a: number, b: number, c: number) => void;
-  readonly __wbg_get_extractedlinks_correct_answer_links: (a: number) => [number, number];
-  readonly __wbg_set_extractedlinks_correct_answer_links: (a: number, b: number, c: number) => void;
-  readonly __wbg_get_extractedlinks_incorrect_answer_links: (a: number) => [number, number];
-  readonly __wbg_set_extractedlinks_incorrect_answer_links: (a: number, b: number, c: number) => void;
-  readonly extractedlinks_new: () => number;
-  readonly sort_links: (a: number) => [number, number];
+  readonly sort_links: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
   readonly __wbg_validatedmarkdown_free: (a: number, b: number) => void;
   readonly __wbg_get_validatedmarkdown_html: (a: number) => [number, number];
   readonly __wbg_set_validatedmarkdown_html: (a: number, b: number, c: number) => void;

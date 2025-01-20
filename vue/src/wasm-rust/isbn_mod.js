@@ -249,8 +249,14 @@ export function md_to_html(md) {
     return ret;
 }
 
-function _assertNum(n) {
-    if (typeof(n) !== 'number') throw new Error(`expected a number argument, found ${typeof(n)}`);
+function passArrayJsValueToWasm0(array, malloc) {
+    const ptr = malloc(array.length * 4, 4) >>> 0;
+    const mem = getDataViewMemory0();
+    for (let i = 0; i < array.length; i++) {
+        mem.setUint32(ptr + 4 * i, addToExternrefTable0(array[i]), true);
+    }
+    WASM_VECTOR_LEN = array.length;
+    return ptr;
 }
 
 function getArrayJsValueFromWasm0(ptr, len) {
@@ -263,22 +269,6 @@ function getArrayJsValueFromWasm0(ptr, len) {
     wasm.__externref_drop_slice(ptr, len);
     return result;
 }
-
-function passArrayJsValueToWasm0(array, malloc) {
-    const ptr = malloc(array.length * 4, 4) >>> 0;
-    const mem = getDataViewMemory0();
-    for (let i = 0; i < array.length; i++) {
-        mem.setUint32(ptr + 4 * i, addToExternrefTable0(array[i]), true);
-    }
-    WASM_VECTOR_LEN = array.length;
-    return ptr;
-}
-
-function _assertClass(instance, klass) {
-    if (!(instance instanceof klass)) {
-        throw new Error(`expected instance of ${klass.name}`);
-    }
-}
 /**
  * Combines all the links in the logical order:
  * - question links
@@ -286,121 +276,37 @@ function _assertClass(instance, klass) {
  * - incorrect answer links
  *
  * All links are sorted alphabetically within their logical group
- * @param {ExtractedLinks} links
+ * @param {(string)[]} question_links
+ * @param {(string)[]} correct_answer_links
+ * @param {(string)[]} incorrect_answer_links
  * @returns {(string)[]}
  */
-export function sort_links(links) {
-    _assertClass(links, ExtractedLinks);
-    if (links.__wbg_ptr === 0) {
-        throw new Error('Attempt to use a moved value');
-    }
-    const ret = wasm.sort_links(links.__wbg_ptr);
-    var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+export function sort_links(question_links, correct_answer_links, incorrect_answer_links) {
+    const ptr0 = passArrayJsValueToWasm0(question_links, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArrayJsValueToWasm0(correct_answer_links, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ptr2 = passArrayJsValueToWasm0(incorrect_answer_links, wasm.__wbindgen_malloc);
+    const len2 = WASM_VECTOR_LEN;
+    const ret = wasm.sort_links(ptr0, len0, ptr1, len1, ptr2, len2);
+    var v4 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-    return v1;
+    return v4;
 }
 
+function _assertNum(n) {
+    if (typeof(n) !== 'number') throw new Error(`expected a number argument, found ${typeof(n)}`);
+}
 function __wbg_adapter_22(arg0, arg1, arg2) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.closure25_externref_shim(arg0, arg1, arg2);
 }
 
-function __wbg_adapter_62(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_55(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.closure141_externref_shim(arg0, arg1, arg2, arg3);
-}
-
-const ExtractedLinksFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_extractedlinks_free(ptr >>> 0, 1));
-/**
- * Contains URLs extracted from different parts of the question.
- * The URL origin is important to arrange the links in the correct order.
- */
-export class ExtractedLinks {
-
-    __destroy_into_raw() {
-        const ptr = this.__wbg_ptr;
-        this.__wbg_ptr = 0;
-        ExtractedLinksFinalization.unregister(this);
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_extractedlinks_free(ptr, 0);
-    }
-    /**
-     * @returns {(string)[]}
-     */
-    get question_links() {
-        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.__wbg_ptr);
-        const ret = wasm.__wbg_get_extractedlinks_question_links(this.__wbg_ptr);
-        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-        return v1;
-    }
-    /**
-     * @param {(string)[]} arg0
-     */
-    set question_links(arg0) {
-        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.__wbg_ptr);
-        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_extractedlinks_question_links(this.__wbg_ptr, ptr0, len0);
-    }
-    /**
-     * @returns {(string)[]}
-     */
-    get correct_answer_links() {
-        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.__wbg_ptr);
-        const ret = wasm.__wbg_get_extractedlinks_correct_answer_links(this.__wbg_ptr);
-        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-        return v1;
-    }
-    /**
-     * @param {(string)[]} arg0
-     */
-    set correct_answer_links(arg0) {
-        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.__wbg_ptr);
-        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_extractedlinks_correct_answer_links(this.__wbg_ptr, ptr0, len0);
-    }
-    /**
-     * @returns {(string)[]}
-     */
-    get incorrect_answer_links() {
-        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.__wbg_ptr);
-        const ret = wasm.__wbg_get_extractedlinks_incorrect_answer_links(this.__wbg_ptr);
-        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-        return v1;
-    }
-    /**
-     * @param {(string)[]} arg0
-     */
-    set incorrect_answer_links(arg0) {
-        if (this.__wbg_ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.__wbg_ptr);
-        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_extractedlinks_incorrect_answer_links(this.__wbg_ptr, ptr0, len0);
-    }
-    constructor() {
-        const ret = wasm.extractedlinks_new();
-        this.__wbg_ptr = ret >>> 0;
-        ExtractedLinksFinalization.register(this, this.__wbg_ptr, this);
-        return this;
-    }
 }
 
 const ValidatedMarkdownFinalization = (typeof FinalizationRegistry === 'undefined')
@@ -606,7 +512,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_62(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_55(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -677,7 +583,7 @@ function __wbg_get_imports() {
         _assertBoolean(ret);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper310 = function() { return logError(function (arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper247 = function() { return logError(function (arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 26, __wbg_adapter_22);
         return ret;
     }, arguments) };

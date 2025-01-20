@@ -15,8 +15,7 @@ import type { Question, Answer } from "@/interfaces";
 import { LoadingStatus } from '@/interfaces';
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
-import initWasmModule, { md_to_html, ExtractedLinks, sort_links } from "@/wasm-rust/isbn_mod";
-import type { ExtractedLinks as ExtractedLinksType } from "@/wasm-rust/isbn_mod";
+import initWasmModule, { md_to_html, sort_links } from "@/wasm-rust/isbn_mod";
 
 import QuestionCard from "../components/QuestionCard.vue";
 import ContributorCard from "../components/ContributorCard.vue";
@@ -43,11 +42,7 @@ const sortedRefresherLinks = computed(() => {
   console.log("Found links to sort");
 
   try {
-    const extLinksParam = new ExtractedLinks;
-    extLinksParam.correct_answer_links = correctAnswerLinks.value;
-    extLinksParam.incorrect_answer_links = incorrectAnswerLinks.value;
-    extLinksParam.question_links = questionLinks.value;
-    return sort_links(extLinksParam);
+    return sort_links(questionLinks.value, correctAnswerLinks.value, incorrectAnswerLinks.value);
   } catch (e) {
     console.error("Error sorting links", e);
     return [];
