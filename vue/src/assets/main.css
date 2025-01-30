@@ -420,3 +420,11 @@ footer a {
   background-position: bottom right;
   background-repeat: no-repeat;
 }
+
+@media print {
+  .no-print,
+  #__vue-devtools-container__,
+  footer {
+    @apply hidden;
+  }
+}

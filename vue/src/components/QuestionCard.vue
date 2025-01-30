@@ -32,7 +32,7 @@
           </div>
         </div>
 
-        <div v-if="shouldShowRefresher" class="mb-8 refresher">
+        <div v-if="shouldShowRefresher" class="mb-8 refresher no-print">
           <h3 class="mb-4">Not sure?</h3>
           <div class="border-2 rounded-md border-slate-100">
             <div v-if="shouldShowRefresherLinks" class="q-explain">
@@ -50,7 +50,7 @@
           </div>
         </div>
 
-        <div v-if="!props.isPreview" class="flex">
+        <div v-if="!props.isPreview" class="flex no-print">
           <!-- Hide this block in Preview mode -->
           <div class="flex-grow text-start">
             <LinkButton v-if="hasToken" :href="editPageUrl" label="Edit" class="me-2 mb-2" icon="pi pi-pencil" />

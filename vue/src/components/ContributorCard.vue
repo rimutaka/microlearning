@@ -1,7 +1,7 @@
 <template>
   <div class="contributor-block" :class="{ 'subdued': isSubdued }">
     <figure class="max-w-screen-md mx-auto">
-      <div class="w-full h-12 mb-4 contributor-icon subdued-image"></div>
+      <div class="w-full h-12 mb-4 contributor-icon subdued-image no-print"></div>
       <blockquote>
         <p class="text-l font-medium text-slate-700 dark:text-slate-300 dark:opacity-70 mx-auto subdued-text md:whitespace-nowrap">This question was contributed by a generous community member</p>
       </blockquote>
