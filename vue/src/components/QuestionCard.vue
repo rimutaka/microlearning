@@ -36,16 +36,16 @@
           <h3 class="mb-4">Not sure?</h3>
           <div class="border-2 rounded-md border-slate-100">
             <div v-if="shouldShowRefresherLinks" class="q-explain">
-              <p>Check out these resources to refresh your memory about this subject:</p>
+              <p>Check out these resources to refresh your knowledge about this subject:</p>
               <ul>
                 <li v-for="(link, index) in question?.refresherLinks" :key="index">
                   <a :href="link" target="_blank">{{ link }}</a>
                 </li>
               </ul>
-              <Tag value="Hide explanation" icon="pi pi-sort-up-fill" severity="secondary" class="explain-link" @click.prevent="shouldShowRefresherLinks = false" />
+              <Tag value="Hide refresher" icon="pi pi-sort-up-fill" severity="secondary" class="explain-link" @click.prevent="shouldShowRefresherLinks = false" />
             </div>
             <div v-else class="flex items-center q-answer">
-              <Tag value="Show explanation" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click.prevent="shouldShowRefresherLinks = true" />
+              <Tag value="Show refresher material" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click.prevent="shouldShowRefresherLinks = true" />
             </div>
           </div>
         </div>
