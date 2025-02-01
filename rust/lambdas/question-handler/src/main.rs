@@ -90,7 +90,10 @@ pub(crate) async fn my_handler(
                 (Some(topic), Some(qid)) => (topic, qid),
                 _ => {
                     info!("Missing topic/qid in the query string");
-                    return lambda_utils::text_response(Some("No topic/qid found in the query string".to_string()), 400);
+                    return lambda_utils::text_response(
+                        Some("No topic/qid found in the query string".to_string()),
+                        400,
+                    );
                 }
             };
 
@@ -148,7 +151,10 @@ pub(crate) async fn my_handler(
 
                     // DDB returns an error if the author does not match
                     match question::save(&client, &q).await {
-                        Ok(_) => lambda_utils::json_response(Some(&q.format(QuestionFormat::HtmlShort)), 200),
+                        Ok(_) => {
+                            notify_moderators(&q).await;
+                            lambda_utils::json_response(Some(&q.format(QuestionFormat::HtmlShort)), 200)
+                        }
                         Err(e) => lambda_utils::text_response(Some(e.to_string()), 400),
                     }
                 }
@@ -184,4 +190,18 @@ pub(crate) async fn my_handler(
         // unsupported method
         _ => lambda_utils::text_response(Some("Unsupported HTTP method".to_string()), 400),
     }
+}
+
+/// Sends an email to the moderators about a new question for review and approval.
+async fn notify_moderators(question: &Question) {
+    let subject = format!("{}: {}", question.topic, question.title);
+
+    let question_url = format!(
+        "https://bitesized.info/review?topic={}&qid={}",
+        question.topic, question.qid
+    );
+
+    let body = format!("{}\n\n{}", question_url, question.question);
+
+    lambda_utils::email::send_text_email("max@onebro.me", &subject, &body).await;
 }

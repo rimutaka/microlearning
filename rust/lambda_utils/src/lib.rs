@@ -7,6 +7,8 @@ use lambda_runtime::Error;
 use serde::Serialize;
 use tracing::info;
 
+pub mod email;
+
 /// An HTTP header for the JWT token.
 pub const X_BITIE_TOKEN_HEADER: &str = "x-bitie-token";
 
