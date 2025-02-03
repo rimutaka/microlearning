@@ -202,7 +202,13 @@ async fn notify_moderators(question: &Question) {
         question.topic, question.qid
     );
 
-    let body = format!("{}\n\n{}", question_url, question.question);
+    let is_complete = if question.is_complete() {
+        "complete"
+    } else {
+        "incomplete"
+    };
+
+    let body = format!("{}\n\nState: {}\n\n{}", question_url, is_complete, question.question);
 
     lambda_utils::email::send_text_email("max@onebro.me", &subject, &body).await;
 }

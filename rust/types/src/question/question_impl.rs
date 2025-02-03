@@ -195,7 +195,7 @@ impl Question {
 
     /// Generates a random question ID as UUID4 in Base58 encoding.,
     /// e.g. 1D759ksnnlogULbRPng3noG, 2gS2XiBnscLX5dQFDP3kiJo, 3SPUtNR96QCIsdu1je8Duki
-    pub fn generate_random_qid() -> String {
+    fn generate_random_qid() -> String {
         bs58::encode(uuid::Uuid::new_v4().as_bytes()).into_string()
     }
 
@@ -292,6 +292,19 @@ impl Question {
         // the number of answers matches the number of correct answers
         // and all correct answers are in the list, so it must be correct
         true
+    }
+
+    /// Returns True if the question has all the required parts.
+    pub fn is_complete(&self) -> bool {
+        !self.topic.is_empty()
+            && self.question.len() > 10
+            && self.answers.len() >= 2
+            && self
+                .answers
+                .iter()
+                .all(|a| !a.a.is_empty() && a.e.as_ref().unwrap_or(&"".to_string()).len() > 10)
+            && self.correct > 0
+            && self.title.len() > 10
     }
 }
 
@@ -718,5 +731,128 @@ mod test {
         q.answers[1].e = Some("3".to_string());
 
         assert_eq!(q.into_html(None).refresher_links, None);
+    }
+
+    // test if the question complete
+    #[test]
+    fn test_question_is_complete() {
+        // happy path
+        let q = Question {
+            qid: "".to_string(),
+            topic: "aws".to_string(),
+            question: "What is 1+1? [link](https://a.com)".to_string(),
+            answers: vec![
+                Answer {
+                    a: "<https://b.com>".to_string(),
+                    e: Some("<https://b.com/c>".to_string()),
+                    c: Some(false),
+                    sel: None,
+                },
+                Answer {
+                    a: "<https://c.com>".to_string(),
+                    e: Some("<https://c.com#c>".to_string()),
+                    c: Some(true),
+                    sel: None,
+                },
+                Answer {
+                    a: "3 is an invalid answer".to_string(),
+                    e: Some("3 is an invalid explanation".to_string()),
+                    c: Some(false),
+                    sel: None,
+                },
+            ],
+            correct: 1,
+            author: None,
+            updated: None,
+            stats: None,
+            contributor: None,
+            title: "A test questions".to_string(),
+            stage: PublishStage::Draft,
+            refresher_links: None,
+        };
+
+        assert!(q.is_complete());
+
+        // test unhappy paths with missing parts, one by one
+
+        assert!(
+            !Question {
+                question: "123".to_string(),
+                ..q.clone()
+            }
+            .is_complete(),
+            "invalid question"
+        );
+
+        assert!(
+            !Question {
+                topic: "".to_string(),
+                ..q.clone()
+            }
+            .is_complete(),
+            "invalid topic"
+        );
+
+        assert!(
+            !Question {
+                title: "".to_string(),
+                ..q.clone()
+            }
+            .is_complete(),
+            "invalid title"
+        );
+
+        assert!(
+            !Question {
+                correct: 0,
+                ..q.clone()
+            }
+            .is_complete(),
+            "invalid correct"
+        );
+
+        assert!(
+            !Question {
+                answers: vec![
+                    Answer {
+                        a: "<https".to_string(),
+                        e: Some("".to_string()),
+                        c: Some(false),
+                        sel: None,
+                    },
+                    Answer {
+                        a: "<https://c.com>".to_string(),
+                        e: Some("<https://c.com#c>".to_string()),
+                        c: Some(true),
+                        sel: None,
+                    },
+                ],
+                ..q.clone()
+            }
+            .is_complete(),
+            "invalid answer.a"
+        );
+
+        assert!(
+            !Question {
+                answers: vec![
+                    Answer {
+                        a: "<https".to_string(),
+                        e: Some("<https".to_string()),
+                        c: Some(false),
+                        sel: None,
+                    },
+                    Answer {
+                        a: "<https://c.com>".to_string(),
+                        e: Some("<https://c.com#c>".to_string()),
+                        c: Some(true),
+                        sel: None,
+                    },
+                ],
+                ..q.clone()
+            }
+            .is_complete(),
+            "invalid answer.e"
+        );
     }
 }
