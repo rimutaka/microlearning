@@ -6,6 +6,7 @@ use aws_sdk_dynamodb::Client;
 use bitie_types::{
     ddb::fields,
     question::{PublishStage, Question, QuestionFormat},
+    topic::Topic,
 };
 use lambda_runtime::{service_fn, Error, LambdaEvent, Runtime};
 use std::str::FromStr;
@@ -194,7 +195,7 @@ pub(crate) async fn my_handler(
 
 /// Sends an email to the moderators about a new question for review and approval.
 async fn notify_moderators(question: &Question) {
-    let subject = format!("{}: {}", question.topic, question.title);
+    let subject = format!("{}: {}", Topic::into_name(&question.topic), question.title);
 
     let question_url = format!(
         "https://bitesized.info/review?topic={}&qid={}",
