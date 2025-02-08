@@ -45,7 +45,7 @@
               <Tag value="Hide refresher" icon="pi pi-sort-up-fill" severity="secondary" class="explain-link" @click.prevent="shouldShowRefresherLinks = false" />
             </div>
             <div v-else class="flex items-center q-answer">
-              <Tag value="Show refresher material" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click.prevent="shouldShowRefresherLinks = true" />
+              <Tag value="View refresher material" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click.prevent="shouldShowRefresherLinks = true" />
             </div>
           </div>
         </div>
