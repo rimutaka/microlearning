@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "rust/lambdas/question-handler",
+  "rust/lambdas/feedback-handler",
   "rust/lambdas/question-stage-handler",
   "rust/lambdas/question-list-handler",
   "rust/lambdas/user-handler",

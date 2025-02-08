@@ -2,6 +2,7 @@
 export const QUESTION_HANDLER_URL = "https://bitesized.info/q?";
 export const QUESTION_LIST_HANDLER_URL = "https://bitesized.info/ql?";
 export const QUESTION_STAGE_HANDLER_URL = "https://bitesized.info/qs?";
+export const QUESTION_FEEDBACK_HANDLER_URL = "https://bitesized.info/qf?";
 /// The endpoint for user-related requests.
 export const USER_HANDLER_URL = "https://bitesized.info/u?";
 /// The endpoint for payment-related requests.

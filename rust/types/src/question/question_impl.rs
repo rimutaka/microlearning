@@ -199,6 +199,21 @@ impl Question {
         bs58::encode(uuid::Uuid::new_v4().as_bytes()).into_string()
     }
 
+    /// Returns true if the qid is a valid Base58 encoded UUID.
+    /// It checks for string length before decoding the value.
+    pub fn validate_qid(qid: &str) -> bool {
+        // check for the length before trying to decode the value
+        if qid.len() < 16 || qid.len() > 30 {
+            return false;
+        };
+
+        // UUID can have any value as long as it's exactly 128 bits or 16 bytes
+        match bs58::decode(qid).into_vec() {
+            Ok(v) => v.len() == 16,
+            _ => false,
+        }
+    }
+
     /// Sets the author field.
     /// e.g. 0e3bf888c95b085a7172b2e819692bb5b46c26ad067f9405c8ba1dd950732b65
     pub fn with_author(self, email_hash: &str) -> Self {
@@ -854,5 +869,23 @@ mod test {
             .is_complete(),
             "invalid answer.e"
         );
+    }
+
+    // test qid validity checkers
+    #[test]
+    fn test_question_validate_qid() {
+        assert!(Question::validate_qid(
+            &bs58::encode(uuid::Uuid::nil().as_bytes()).into_string()
+        ));
+        assert!(Question::validate_qid(
+            &bs58::encode(uuid::Uuid::max().as_bytes()).into_string()
+        ));
+        assert!(Question::validate_qid("NgGdoZov4T6jV46ty4JUX6"));
+        assert!(!Question::validate_qid("NgGdoZov4T6jV46ty4JUX6="));
+        assert!(!Question::validate_qid("hello"));
+        assert!(!Question::validate_qid(
+            "NgGdoZov4T6jV46ty4JUX6==NgGdoZov4T6jV46ty4JUX6==NgGdoZov4T6jV46ty4JUX6==89yZBXJBa9t2LB6"
+        ));
+        assert!(!Question::validate_qid("ZZZZZZZZZZZZZZZZZZZZZZ"));
     }
 }

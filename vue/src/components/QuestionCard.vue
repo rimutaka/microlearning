@@ -35,18 +35,25 @@
         <div v-if="shouldShowRefresher" class="mb-8 refresher no-print">
           <h3 class="mb-4">Not sure?</h3>
           <div class="border-2 rounded-md border-slate-100">
-            <div v-if="shouldShowRefresherLinks" class="q-explain">
+            <div v-if="refresherLinksToggleFlag" class="q-explain">
               <p>Check out these resources to refresh your knowledge about this subject:</p>
               <ul>
                 <li v-for="(link, index) in question?.refresherLinks" :key="index">
                   <a :href="link" target="_blank">{{ link }}</a>
                 </li>
               </ul>
-              <Tag value="Hide refresher" icon="pi pi-sort-up-fill" severity="secondary" class="explain-link" @click.prevent="shouldShowRefresherLinks = false" />
+              <Tag value="Hide refresher" icon="pi pi-sort-up-fill" severity="secondary" class="explain-link" @click.prevent="refresherLinksToggleFlag = false" />
             </div>
             <div v-else class="flex items-center q-answer">
-              <Tag value="View refresher material" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click.prevent="shouldShowRefresherLinks = true" />
+              <Tag value="Refresher material" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click.prevent="refresherLinksToggleFlag = true" />
             </div>
+          </div>
+        </div>
+
+        <div v-if="feedbackToggleFlag" class="mb-8">
+          <h3 class="mb-4">Can you help us improve this question?</h3>
+          <div class="border-2 rounded-md border-slate-100 p-2 mb-8">
+            <QuestionFeedback class="" />
           </div>
         </div>
 
@@ -54,7 +61,8 @@
           <!-- Hide this block in Preview mode -->
           <div class="flex-grow text-start">
             <LinkButton v-if="hasToken" :href="editPageUrl" label="Edit" class="me-2 mb-2" icon="pi pi-pencil" />
-            <LinkButton :href="questionTopicAndPageUrl" label="Copy link" class="me-2 mb-2" icon="pi pi-share-alt" @click.capture="copyLinkToClipboard" />
+            <LinkButton :href="questionTopicAndPageUrl" label="Feedback" class="me-2 mb-2" icon="pi pi-megaphone" @click.capture="feedbackToggleFlag = !feedbackToggleFlag" />
+            <LinkButton :href="questionTopicAndPageUrl" label="Share" class="me-2 mb-2" icon="pi pi-share-alt" @click.capture="copyLinkToClipboard" />
             <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
             <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try another question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
@@ -88,6 +96,7 @@ import Tag from "primevue/tag";
 import TransitionSlot from "./TransitionSlot.vue";
 import LinkButton from "./LinkButton.vue";
 import LoadingMessage from "./LoadingMessage.vue";
+import QuestionFeedback from "./QuestionFeedback.vue";
 
 const props = defineProps<{
   // topic: string,// must have a value or "any" for any topic
@@ -108,7 +117,8 @@ const answersCheckbox = ref<string[]>([]);
 const answerRadio = ref<string | undefined>();
 const linkCopiedFlag = ref(false); // controls share button: f: Copy link, t: Link copied
 const emphasizedSubmitReminder = ref(false); // Toggles the class of Submit button block to reminder to select the right number of answers
-const shouldShowRefresherLinks = ref(false); // Toggles the list of URLs of the refresher section.
+const refresherLinksToggleFlag = ref(false); // Turns the list of URLs of the refresher section on and off.
+const feedbackToggleFlag = ref(false); // Turn the feedback form on and off
 
 // only the author of the question can edit it
 const hasToken = computed(() => question.value?.author && question.value.author === user.value?.emailHash);
