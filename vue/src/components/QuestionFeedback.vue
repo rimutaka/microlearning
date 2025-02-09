@@ -3,27 +3,38 @@
     <div class="mb-4">
       <div class="w-full">
         <p class="mb-8">All questions should be <i>correct</i>, <i>concise</i> and <i>unambiguous</i>.</p>
-        <p class="mb-8">Please report any issues and corrections to help us improve.</p>
+        <p class="mb-8">Please share any suggestions and corrections to help us improve.</p>
         <Textarea v-model="feedbackText" class="w-full" rows="3" />
 
       </div>
     </div>
     <div class="flex-shrink text-end flex-row space-x-4 space-y-4">
       <Button label="Send feedback" icon="pi pi-send" severity="secondary" class="my-auto whitespace-nowrap" @click="submitFeedback()" />
+      <p v-if="loadingStatus == LoadingStatus.Error" class="text-xs">
+        <span class="text-red-500">Failed to send your feedback.</span>
+        <br />
+        <span class="">
+          Can you try again or <a target="_blank" :href="`mailto:max@bitesized.info?subject=Feedback for ${question.topic} / ${question.qid}&body=${encodeURIComponent(feedbackText)}`">email the maintainer</a> directly?
+        </span>
+      </p>
+      <p v-else-if="loadingStatus == LoadingStatus.Loading" class="text-xs">Sending ...</p>
+      <p v-else-if="textTooShort" class="text-xs text-red-500">Can you give more detail?</p>
+      <p v-else-if="textTooLong" class="text-xs text-red-500">Sorry, can you make it shorter?</p>
     </div>
   </div>
 </template>
 
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
 
 import { QUESTION_FEEDBACK_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME } from "@/constants";
-
+import { LoadingStatus } from "@/interfaces"
+import type { LoadingStatus as LoadingStatusType } from "@/interfaces"
 
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
@@ -32,23 +43,56 @@ const store = useMainStore();
 const { token, question } = storeToRefs(store);
 
 const feedbackText = ref("");
+const loadingStatus = ref<LoadingStatusType>(LoadingStatus.NoData);
+const textTooShort = ref(false);
+const textTooLong = ref(false);
+
+// reset validation flags when the text changes
+// do not set them here until the user tries to submit
+watch(feedbackText, () => {
+  if (feedbackText.value.length >= 10) textTooShort.value = false;
+
+  if (feedbackText.value.length > 3000) { textTooLong.value = true } else { textTooLong.value = false };
+});
 
 /** Save question in the cloud */
 async function submitFeedback() {
-  // validate input
-  if (feedbackText.value.length < 10 || feedbackText.value.length > 3000) {
-    console.error("Feedback is too short or too long");
+
+  if (loadingStatus.value === LoadingStatus.Loading) {
+    console.log("Waiting for response");
     return;
   }
 
+  // validate input
+  const text = feedbackText.value.trim();
+
+  if (text.length < 10) {
+    console.log("Feedback is too short");
+    textTooShort.value = true;
+    return;
+  } else {
+    textTooShort.value = false;
+  }
+
+  if (text.length > 3000) {
+    console.log("Feedback is too long");
+    textTooLong.value = true;
+    return;
+  } else {
+    textTooLong.value = false;
+  }
+
   if (!question.value?.qid || !question.value?.topic) {
-    console.error("No question ID or topic found");
+    console.log("No question ID or topic found");
     return;
   }
+
+  loadingStatus.value = LoadingStatus.Loading;
+
   // calculate the hash of the request body for x-amz-content-sha256 header
   // as required by CloudFront
   const hash = new Sha256();
-  hash.update(feedbackText.value);
+  hash.update(text);
   const bodyHash = toHex(await hash.digest());
 
   // user token is optional, but it's nice to know who submitted the feedback
@@ -59,7 +103,7 @@ async function submitFeedback() {
   try {
     const response = await fetch(`${QUESTION_FEEDBACK_HANDLER_URL}${URL_PARAM_TOPIC}=${question.value.topic}&${URL_PARAM_QID}=${question.value.qid}`, {
       method: "POST",
-      body: feedbackText.value,
+      body: text,
       headers,
     });
 
@@ -67,12 +111,15 @@ async function submitFeedback() {
     console.log("Response status: ", response.status);
     if (response.status === 204) {
       console.log("Feedback submitted OK");
+      loadingStatus.value = LoadingStatus.Loaded;
     }
     else {
-      console.error("Failed to submit feedback: ", response.status);
+      console.log("Failed to submit feedback: ", response.status);
+      loadingStatus.value = LoadingStatus.Error;
     }
   } catch (error) {
-    console.error(error);
+    console.log(error);
+    loadingStatus.value = LoadingStatus.Error;
   }
 }
 
