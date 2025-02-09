@@ -48,6 +48,9 @@ export const useMainStore = defineStore('main', () => {
  */
   const questionListStatus = ref<LoadingStatusType | undefined>()
 
+  /** Toggles the feedback form on and off */
+  const feedbackStatus = ref<LoadingStatusType | undefined>();
+
   /** Is set to true when the user clicks on Show Random Question,
    then back to false on loading the view that includes the sample question */
   const showingRandomQuestion = ref<boolean>(false)
@@ -175,6 +178,7 @@ export const useMainStore = defineStore('main', () => {
     anonymousContributor,
     questionStatus,
     questionListStatus,
+    feedbackStatus,
     reset,
     resetQuestionToBlank,
     loadQuestion,

@@ -9,15 +9,16 @@
       </div>
     </div>
     <div class="flex-shrink text-end flex-row space-x-4 space-y-4">
+      <Button label="Cancel" icon="pi pi-times" severity="secondary" class="whitespace-nowrap" @click="feedbackStatus = undefined" />
       <Button label="Send feedback" icon="pi pi-send" severity="secondary" class="my-auto whitespace-nowrap" @click="submitFeedback()" />
-      <p v-if="loadingStatus == LoadingStatus.Error" class="text-xs">
+      <p v-if="feedbackStatus == LoadingStatus.Error" class="text-xs">
         <span class="text-red-500">Failed to send your feedback.</span>
         <br />
         <span class="">
           Can you try again or <a target="_blank" :href="`mailto:max@bitesized.info?subject=Feedback for ${question.topic} / ${question.qid}&body=${encodeURIComponent(feedbackText)}`">email the maintainer</a> directly?
         </span>
       </p>
-      <p v-else-if="loadingStatus == LoadingStatus.Loading" class="text-xs">Sending ...</p>
+      <p v-else-if="feedbackStatus == LoadingStatus.Loading" class="text-xs">Sending ...</p>
       <p v-else-if="textTooShort" class="text-xs text-red-500">Can you give more detail?</p>
       <p v-else-if="textTooLong" class="text-xs text-red-500">Sorry, can you make it shorter?</p>
     </div>
@@ -34,16 +35,14 @@ import { toHex } from "uint8array-tools";
 
 import { QUESTION_FEEDBACK_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME } from "@/constants";
 import { LoadingStatus } from "@/interfaces"
-import type { LoadingStatus as LoadingStatusType } from "@/interfaces"
 
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
 
 const store = useMainStore();
-const { token, question } = storeToRefs(store);
+const { token, question, feedbackStatus } = storeToRefs(store);
 
 const feedbackText = ref("");
-const loadingStatus = ref<LoadingStatusType>(LoadingStatus.NoData);
 const textTooShort = ref(false);
 const textTooLong = ref(false);
 
@@ -58,7 +57,7 @@ watch(feedbackText, () => {
 /** Save question in the cloud */
 async function submitFeedback() {
 
-  if (loadingStatus.value === LoadingStatus.Loading) {
+  if (feedbackStatus.value === LoadingStatus.Loading) {
     console.log("Waiting for response");
     return;
   }
@@ -87,7 +86,7 @@ async function submitFeedback() {
     return;
   }
 
-  loadingStatus.value = LoadingStatus.Loading;
+  feedbackStatus.value = LoadingStatus.Loading;
 
   // calculate the hash of the request body for x-amz-content-sha256 header
   // as required by CloudFront
@@ -100,27 +99,27 @@ async function submitFeedback() {
   headers.append("x-amz-content-sha256", bodyHash);
   if (token.value) headers.append(TOKEN_HEADER_NAME, token.value);
 
-  try {
-    const response = await fetch(`${QUESTION_FEEDBACK_HANDLER_URL}${URL_PARAM_TOPIC}=${question.value.topic}&${URL_PARAM_QID}=${question.value.qid}`, {
-      method: "POST",
-      body: text,
-      headers,
-    });
-
+  fetch(`${QUESTION_FEEDBACK_HANDLER_URL}${URL_PARAM_TOPIC}=${question.value.topic}&${URL_PARAM_QID}=${question.value.qid}`, {
+    method: "POST",
+    body: text,
+    headers,
+  }).then((response) => {
     // 204 on success, anything else is an error
     console.log("Response status: ", response.status);
     if (response.status === 204) {
       console.log("Feedback submitted OK");
-      loadingStatus.value = LoadingStatus.Loaded;
+      feedbackStatus.value = undefined;
     }
     else {
       console.log("Failed to submit feedback: ", response.status);
-      loadingStatus.value = LoadingStatus.Error;
+      feedbackStatus.value = LoadingStatus.Error;
     }
-  } catch (error) {
-    console.log(error);
-    loadingStatus.value = LoadingStatus.Error;
-  }
+  })
+    .catch((error) => {
+      console.log(error);
+      feedbackStatus.value = LoadingStatus.Error;
+    }
+    );
 }
 
 </script>

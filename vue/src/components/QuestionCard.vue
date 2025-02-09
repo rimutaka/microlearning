@@ -50,7 +50,7 @@
           </div>
         </div>
 
-        <div v-if="feedbackToggleFlag" class="mb-8">
+        <div v-if="feedbackStatus !== undefined" class="mb-8">
           <h3 class="mb-4">Can you help us improve this question?</h3>
           <div class="border-2 rounded-md border-slate-100 p-2 mb-8">
             <QuestionFeedback class="" />
@@ -61,7 +61,7 @@
           <!-- Hide this block in Preview mode -->
           <div class="flex-grow text-start">
             <LinkButton v-if="hasToken" :href="editPageUrl" label="Edit" class="me-2 mb-2" icon="pi pi-pencil" />
-            <LinkButton :href="questionTopicAndPageUrl" label="Feedback" class="me-2 mb-2" icon="pi pi-megaphone" @click.capture="feedbackToggleFlag = !feedbackToggleFlag" />
+            <LinkButton :href="questionTopicAndPageUrl" label="Feedback" class="me-2 mb-2" icon="pi pi-megaphone" @click.capture="enableFeedbackForm" />
             <LinkButton :href="questionTopicAndPageUrl" label="Share" class="me-2 mb-2" icon="pi pi-share-alt" @click.capture="copyLinkToClipboard" />
             <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
             <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try another question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
@@ -110,7 +110,7 @@ const NEXT_QUESTION_EMIT = 'nextQuestion';
 const emit = defineEmits([NEXT_QUESTION_EMIT]);
 
 const store = useMainStore();
-const { token, question, questionStatus, user } = storeToRefs(store);
+const { token, question, questionStatus, user, feedbackStatus } = storeToRefs(store);
 
 // as fetched from the server
 const answersCheckbox = ref<string[]>([]);
@@ -118,7 +118,6 @@ const answerRadio = ref<string | undefined>();
 const linkCopiedFlag = ref(false); // controls share button: f: Copy link, t: Link copied
 const emphasizedSubmitReminder = ref(false); // Toggles the class of Submit button block to reminder to select the right number of answers
 const refresherLinksToggleFlag = ref(false); // Turns the list of URLs of the refresher section on and off.
-const feedbackToggleFlag = ref(false); // Turn the feedback form on and off
 
 // only the author of the question can edit it
 const hasToken = computed(() => question.value?.author && question.value.author === user.value?.emailHash);
@@ -225,6 +224,11 @@ const copyLinkToClipboard = (e: MouseEvent) => {
   setTimeout(() => {
     linkCopiedFlag.value = false;
   }, 3000);
+}
+
+/** Turns the feedback form on. No effect if already turned on. */
+const enableFeedbackForm = () => {
+  if (feedbackStatus.value === undefined) feedbackStatus.value = LoadingStatus.NoData;
 }
 
 /// Changes the parent class of the answer to toggle the explanation
