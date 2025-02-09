@@ -2,14 +2,13 @@
   <div v-if="question?.qid" class="">
     <div class="mb-4">
       <div class="w-full">
-        <p class="mb-8">All questions should be <i>correct</i>, <i>concise</i> and <i>unambiguous</i>.</p>
-        <p class="mb-8">Please share any suggestions and corrections to help us improve.</p>
+        <p class="mb-8">Please share any suggestions to make this question <i>correct</i>, <i>concise</i> and <i>unambiguous</i>.</p>
         <Textarea v-model="feedbackText" class="w-full" rows="3" />
 
       </div>
     </div>
     <div class="flex-shrink text-end flex-row space-x-4 space-y-4">
-      <Button label="Cancel" icon="pi pi-times" severity="secondary" class="whitespace-nowrap" @click="feedbackStatus = undefined" />
+      <Button label="Close" icon="pi pi-times" severity="secondary" class="whitespace-nowrap" @click="feedbackStatus = undefined" />
       <Button label="Send feedback" icon="pi pi-send" severity="secondary" class="my-auto whitespace-nowrap" @click="submitFeedback()" />
       <p v-if="feedbackStatus == LoadingStatus.Error" class="text-xs">
         <span class="text-red-500">Failed to send your feedback.</span>
@@ -21,6 +20,7 @@
       <p v-else-if="feedbackStatus == LoadingStatus.Loading" class="text-xs">Sending ...</p>
       <p v-else-if="textTooShort" class="text-xs text-red-500">Can you give more detail?</p>
       <p v-else-if="textTooLong" class="text-xs text-red-500">Sorry, can you make it shorter?</p>
+      <p v-else-if="feedbackStatus == LoadingStatus.Loaded" class="text-xs">Feedback received. Thank you!</p>
     </div>
   </div>
 </template>
@@ -45,6 +45,9 @@ const { token, question, feedbackStatus } = storeToRefs(store);
 const feedbackText = ref("");
 const textTooShort = ref(false);
 const textTooLong = ref(false);
+
+// to prevent multiple submissions of the same feedback
+let lastSubmissionHash = "";
 
 // reset validation flags when the text changes
 // do not set them here until the user tries to submit
@@ -94,6 +97,12 @@ async function submitFeedback() {
   hash.update(text);
   const bodyHash = toHex(await hash.digest());
 
+  if (lastSubmissionHash === bodyHash) {
+    console.log("Duplicate submission");
+    feedbackStatus.value = LoadingStatus.Loaded;
+    return;
+  }
+
   // user token is optional, but it's nice to know who submitted the feedback
   const headers = new Headers();
   headers.append("x-amz-content-sha256", bodyHash);
@@ -108,7 +117,8 @@ async function submitFeedback() {
     console.log("Response status: ", response.status);
     if (response.status === 204) {
       console.log("Feedback submitted OK");
-      feedbackStatus.value = undefined;
+      feedbackStatus.value = LoadingStatus.Loaded;
+      lastSubmissionHash = bodyHash;
     }
     else {
       console.log("Failed to submit feedback: ", response.status);
