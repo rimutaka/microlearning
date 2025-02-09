@@ -3,7 +3,7 @@
     <h1 class="mb-2 text-2xl">Question preview about <em class="italic">{{ question?.title || topicName }}</em></h1>
   </div>
   <QuestionCard :next="false" :is-preview="true" />
-  <QuestionRefresher v-if="sortedRefresherLinks.length" :links="sortedRefresherLinks" />
+  <QuestionRefresherPreview v-if="sortedRefresherLinks.length" :links="sortedRefresherLinks" />
   <ContributorCard class="mb-12 mt-8 md:mt-16" />
 </template>
 
@@ -19,7 +19,7 @@ import initWasmModule, { md_to_html, sort_links } from "@/wasm-rust/isbn_mod";
 
 import QuestionCard from "../components/QuestionCard.vue";
 import ContributorCard from "../components/ContributorCard.vue";
-import QuestionRefresher from '@/components/QuestionRefresher.vue';
+import QuestionRefresherPreview from '@/components/QuestionRefresherPreview.vue';
 
 const route = useRoute();
 const router = useRouter();

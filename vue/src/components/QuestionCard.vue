@@ -1,8 +1,8 @@
 <template>
   <div id="answerTopElement"></div>
   <TransitionSlot>
-    <div v-if="question && questionStatus == LoadingStatus.Loaded" class="flex">
-      <div class="q-card">
+    <div v-if="question && questionStatus == LoadingStatus.Loaded" class="q-card">
+      <div class="qna">
         <div class="q-text">
           <div class="" v-html="question?.question"></div>
         </div>
@@ -28,49 +28,41 @@
               <Tag value="Explain" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click="showExplanation" />
               <span class="incorrect-label">Incorrect.</span>
             </div>
-            <div class="q-explain" v-if="answer?.e" v-html="answer.e"></div>
+            <div class="q-explainer" v-if="answer?.e" v-html="answer.e"></div>
           </div>
         </div>
 
         <div v-if="shouldShowRefresher" class="mb-8 refresher no-print">
           <h3 class="mb-4">Not sure?</h3>
           <div class="border-2 rounded-md border-slate-100">
-            <div v-if="refresherLinksToggleFlag" class="q-explain">
-              <p>Check out these resources to refresh your knowledge about this subject:</p>
-              <ul>
-                <li v-for="(link, index) in question?.refresherLinks" :key="index">
-                  <a :href="link" target="_blank">{{ link }}</a>
-                </li>
-              </ul>
-              <Tag value="Hide refresher" icon="pi pi-sort-up-fill" severity="secondary" class="explain-link" @click.prevent="refresherLinksToggleFlag = false" />
-            </div>
+            <QuestionRefresherCard v-if="refresherLinksToggleFlag" />
             <div v-else class="flex items-center q-answer">
               <Tag value="Refresher material" icon="pi pi-sort-down-fill" severity="secondary" class="explain-link" @click.prevent="refresherLinksToggleFlag = true" />
             </div>
           </div>
         </div>
 
-        <div v-if="feedbackStatus !== undefined" class="mb-8">
+        <div v-if="feedbackStatus !== undefined" class="mb-12">
           <h3 class="mb-4">Can you help us improve this question?</h3>
           <div class="border-2 rounded-md border-slate-100 p-2 mb-8">
             <QuestionFeedback class="" />
           </div>
         </div>
 
-        <div v-if="!props.isPreview" class="flex no-print">
+        <div v-if="!props.isPreview && feedbackStatus == undefined" class="flex no-print">
           <!-- Hide this block in Preview mode -->
           <div class="flex-grow text-start">
             <LinkButton v-if="hasToken" :href="editPageUrl" label="Edit" class="me-2 mb-2" icon="pi pi-pencil" />
             <LinkButton :href="questionTopicAndPageUrl" label="Feedback" class="me-2 mb-2" icon="pi pi-megaphone" @click.capture="enableFeedbackForm" />
             <LinkButton :href="questionTopicAndPageUrl" label="Share" class="me-2 mb-2" icon="pi pi-share-alt" @click.capture="copyLinkToClipboard" />
             <LinkButton v-if="!isAnswered && next" :href="questionTopicOnlyUrl" label="Skip" class="me-2 mb-2" icon="pi pi-angle-double-right" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
-            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try another question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
             <p v-if="linkCopiedFlag" class="text-xs text-slate-500">Link copied to the clipboard</p>
             <p v-if="!linkCopiedFlag">&nbsp;</p>
           </div>
           <div class="flex-shrink text-end">
             <Button v-if="!isAnswered" label="Submit" :icon="isQuestionReady ? 'pi pi-check' : 'pi pi-ellipsis-h'" raised class="font-bold px-24 py-4 my-auto whitespace-nowrap" :class="{ 'opacity-50': !isQuestionReady }" @click.prevent="getAnswers()" />
-            <p v-if="!isAnswered" class="" :class="emphasizedSubmitReminder ? 'text-red-500 text-base' : 'text-slate-500 dark:text-slate-300 text-xs'">{{ howManyOptionsLeftToSelect }}</p>
+            <LinkButton v-if="isAnswered && next" :href="questionTopicOnlyUrl" label="Try another question" class="mb-2" icon="pi pi-sparkles" :primary="token != null" @click.prevent="emit(NEXT_QUESTION_EMIT)" />
+            <p v-if="!isAnswered" class="mt-2" :class="emphasizedSubmitReminder ? 'text-red-500 text-base' : 'text-slate-500 dark:text-slate-300 text-xs'">{{ howManyOptionsLeftToSelect }}</p>
           </div>
         </div>
       </div>
@@ -97,6 +89,7 @@ import TransitionSlot from "./TransitionSlot.vue";
 import LinkButton from "./LinkButton.vue";
 import LoadingMessage from "./LoadingMessage.vue";
 import QuestionFeedback from "./QuestionFeedback.vue";
+import QuestionRefresherCard from "./QuestionRefresherCard.vue";
 
 const props = defineProps<{
   // topic: string,// must have a value or "any" for any topic
@@ -110,14 +103,13 @@ const NEXT_QUESTION_EMIT = 'nextQuestion';
 const emit = defineEmits([NEXT_QUESTION_EMIT]);
 
 const store = useMainStore();
-const { token, question, questionStatus, user, feedbackStatus } = storeToRefs(store);
+const { token, question, questionStatus, user, feedbackStatus, refresherLinksToggleFlag } = storeToRefs(store);
 
 // as fetched from the server
 const answersCheckbox = ref<string[]>([]);
 const answerRadio = ref<string | undefined>();
 const linkCopiedFlag = ref(false); // controls share button: f: Copy link, t: Link copied
 const emphasizedSubmitReminder = ref(false); // Toggles the class of Submit button block to reminder to select the right number of answers
-const refresherLinksToggleFlag = ref(false); // Turns the list of URLs of the refresher section on and off.
 
 // only the author of the question can edit it
 const hasToken = computed(() => question.value?.author && question.value.author === user.value?.emailHash);

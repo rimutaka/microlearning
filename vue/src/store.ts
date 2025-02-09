@@ -51,6 +51,9 @@ export const useMainStore = defineStore('main', () => {
   /** Toggles the feedback form on and off */
   const feedbackStatus = ref<LoadingStatusType | undefined>();
 
+  /** Toggles the refresher block on and off */
+  const refresherLinksToggleFlag = ref<boolean>(false);
+
   /** Is set to true when the user clicks on Show Random Question,
    then back to false on loading the view that includes the sample question */
   const showingRandomQuestion = ref<boolean>(false)
@@ -102,6 +105,10 @@ export const useMainStore = defineStore('main', () => {
    * Clear the question value to guarantee the latest version is loaded.
    */
   const loadQuestion = async (paramTopic: string, paramQid?: string) => {
+
+    // hide the refresher links and feedback on reload
+    refresherLinksToggleFlag.value = false;
+    feedbackStatus.value = undefined;
 
     // check if the currently loaded question can be reused
     if (question.value && question.value.topic === paramTopic && question.value.qid === paramQid) {
@@ -179,6 +186,7 @@ export const useMainStore = defineStore('main', () => {
     questionStatus,
     questionListStatus,
     feedbackStatus,
+    refresherLinksToggleFlag,
     reset,
     resetQuestionToBlank,
     loadQuestion,
