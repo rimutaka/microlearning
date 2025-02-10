@@ -2,7 +2,7 @@
   <header class="">
     <TopHeader />
   </header>
-  <main class="mb-auto w-full">
+  <main class="my-auto w-full">
     <RouterView />
   </main>
   <footer class="w-full">
