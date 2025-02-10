@@ -2,14 +2,14 @@
   <div v-if="question?.qid" class="">
     <div class="mb-2">
       <div class="w-full">
-        <p class="mb-4">Please share any suggestions to make this question <i>correct</i>, <i>concise</i> and <i>unambiguous</i>.</p>
+        <p class="mb-4">Please share any suggestions how to make this question <i>correct</i>, <i>concise</i> and <i>unambiguous</i>.</p>
         <Textarea v-model="feedbackText" class="w-full" rows="3" />
 
       </div>
     </div>
     <div class="flex-shrink text-end flex-row space-x-4 space-y-4">
       <Button label="Close" size="small" icon="pi pi-times" severity="secondary" class="whitespace-nowrap" @click="feedbackStatus = undefined" />
-      <Button label="Send feedback" size="small" icon="pi pi-send" severity="secondary" class="my-auto whitespace-nowrap" @click="submitFeedback()" />
+      <Button label="Send feedback" size="small" icon="pi pi-send" class="my-auto whitespace-nowrap" @click="submitFeedback()" />
       <p v-if="feedbackStatus == LoadingStatus.Error" class="text-xs">
         <span class="text-red-500">Failed to send your feedback.</span>
         <br />
