@@ -32,7 +32,7 @@
     </div>
     <h3>Give feedback</h3>
     <p>Did you come across a bug or have a suggestion?</p>
-    <p>Consider making a <a href="https://github.com/rimutaka/bitesized">pull request</a> or <a href="mailto:max@bitesized.info">email the developer</a> with your ideas,
+    <p>Consider making a <a href="https://github.com/rimutaka/bitesized">pull request</a> or <a href="mailto:max@bitesized.info">email the maintainer</a> with your ideas,
       corrections or whatever other feedback you may have.</p>
   </div>
 
