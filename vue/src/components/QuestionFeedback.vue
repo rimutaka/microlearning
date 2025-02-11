@@ -33,7 +33,7 @@ import { useMainStore } from '@/store';
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
 
-import { QUESTION_FEEDBACK_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME } from "@/constants";
+import { QUESTION_FEEDBACK_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, AWS_BODY_HASH_HEADER } from "@/constants";
 import { LoadingStatus } from "@/interfaces"
 
 import Button from 'primevue/button';
@@ -105,7 +105,7 @@ async function submitFeedback() {
 
   // user token is optional, but it's nice to know who submitted the feedback
   const headers = new Headers();
-  headers.append("x-amz-content-sha256", bodyHash);
+  headers.append(AWS_BODY_HASH_HEADER, bodyHash);
   if (token.value) headers.append(TOKEN_HEADER_NAME, token.value);
 
   fetch(`${QUESTION_FEEDBACK_HANDLER_URL}${URL_PARAM_TOPIC}=${question.value.topic}&${URL_PARAM_QID}=${question.value.qid}`, {

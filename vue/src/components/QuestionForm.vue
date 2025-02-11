@@ -105,7 +105,7 @@ import { toHex } from "uint8array-tools";
 import debounce from "lodash.debounce"
 import _ from "lodash";
 
-import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, PREVIEW_QUESTION_LS_KEY, MAX_TITLE_LEN, findTopicById } from "@/constants";
+import { TOPICS, QUESTION_HANDLER_URL, URL_PARAM_TOPIC, URL_PARAM_QID, TOKEN_HEADER_NAME, AWS_BODY_HASH_HEADER, PREVIEW_QUESTION_LS_KEY, MAX_TITLE_LEN, findTopicById } from "@/constants";
 import type { Answer, Question } from "@/interfaces";
 import { fetchQuestionMD } from "@/data-loaders/fetch-question";
 import { LoadingStatus } from "@/interfaces";
@@ -277,7 +277,7 @@ async function saveQuestion() {
     method: "PUT",
     body: submissionQuestion,
     headers: {
-      "x-amz-content-sha256": bodyHash,
+      [AWS_BODY_HASH_HEADER]: bodyHash,
       [TOKEN_HEADER_NAME]: token.value,
     },
   });

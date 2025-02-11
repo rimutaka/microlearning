@@ -245,12 +245,6 @@ async function getAnswers() {
   // the lambda expects a list of answers in the URL
   const answers = question.value?.correct == 1 ? answerRadio.value : answersCheckbox.value.join(constants.URL_PARAM_LIST_SEPARATOR);
 
-  // calculate the hash of the request body for x-amz-content-sha256 header
-  // as required by CloudFront
-  // const hash = new Sha256();
-  // hash.update(answers);
-  // const bodyHash = toHex(await hash.digest());
-
   const url = `${constants.QUESTION_HANDLER_URL}${constants.URL_PARAM_TOPIC}=${question.value?.topic}&${constants.URL_PARAM_QID}=${question.value?.qid}&${constants.URL_PARAM_ANSWERS}=${answers}`;
   // add a token with the email, if there is one (logged in users)
   const headers = new Headers();

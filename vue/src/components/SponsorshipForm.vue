@@ -31,7 +31,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/store';
 
 import type { LoadingStatus as LoadingStatusType, QuestionSponsorship } from '@/interfaces'
-import { PAYMENTS_HANDLER_URL, SPONSOR_DETAILS_LS_KEY, CONTRIBUTOR_DETAILS_LS_KEY, MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT } from "@/constants";
+import { PAYMENTS_HANDLER_URL, SPONSOR_DETAILS_LS_KEY, CONTRIBUTOR_DETAILS_LS_KEY, MAX_NUMBER_OF_QUESTIONS_PER_PAYMENT, AWS_BODY_HASH_HEADER } from "@/constants";
 import { LoadingStatus } from "@/interfaces";
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { toHex } from "uint8array-tools";
@@ -53,7 +53,7 @@ const loadingStatus = ref<LoadingStatusType>(LoadingStatus.Loaded);
 
 const sponsorDetailsInLS = localStorage.getItem(SPONSOR_DETAILS_LS_KEY);
 
-const qtyNumber = computed(() => +qty.value || 0 );
+const qtyNumber = computed(() => +qty.value || 0);
 
 /// Saves the default contributor details to local storage
 const saveDefaultSponsorDetails = () => {
@@ -111,7 +111,7 @@ async function get_checkout_url() {
     method: "POST",
     body: questionDonationStr,
     headers: {
-      "x-amz-content-sha256": bodyHash,
+      [AWS_BODY_HASH_HEADER]: bodyHash,
     },
   });
 

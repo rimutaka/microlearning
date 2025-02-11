@@ -25,6 +25,12 @@ export const URL_PARAM_LIST_SEPARATOR = "."
 /// A temporary measure to limit who can save data in DDB
 export const TOKEN_HEADER_NAME = "x-bitie-token";
 
+/** x-amz-content-sha256 is required for all PUT/POST requests.
+ * See https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
+ * Empty body value: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+*/
+export const AWS_BODY_HASH_HEADER = "x-amz-content-sha256";
+
 /// The key name for the last authentication timestamp in the localStorage.
 /// The user is asked to auth if the key is present.
 export const LAST_AUTH_TIMESTAMP = "auth";
